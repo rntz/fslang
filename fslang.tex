@@ -9,14 +9,13 @@
 %% FONTS & TYPOGRAPHY
 \usepackage[sups,scaled=.96]{XCharter}
 \usepackage[scaled=1.010417965903645]{inconsolata}
-\usepackage[osf,scaled=1.007,scaled=1.033,scaled=1.02,]{AlegreyaSans}
+\usepackage[scaled=0.95,proportional,semibold]{sourcesanspro}
+%\usepackage[osf,scaled=1.007,scaled=1.033,scaled=1.02,]{AlegreyaSans}
 \usepackage[euler-digits]{eulervm}
 \edef\zeu@Scale{0.99}
 \PassOptionsToPackage{scaled=\zeu@Scale,bbscaled=\zeu@Scale,scrscaled=\zeu@Scale}{mathalfa}
 \RequirePackage[cal=cm]{mathalfa}
 %% Make sure \mathbold and \mathvar are defined.
-\providecommand\mathbold\boldsymbol
-\providecommand\mathvar\ensuremath
 \linespread{1.06667}            %eyeballed
 %% END FONTS & TYPOGRAPHY
 
@@ -72,7 +71,7 @@
 %% \renewcommand\J[5]{{#3} \cxsep {#4} \cxsep {#5} \,\vdash\, {#2}}
 %% \renewcommand\hyp[2]{#2}
 
-\newcommand\fname\text          %function name
+\newcommand\fname\textsf        %function name
 \newcommand\cname\text          %constructor name
 
 \newcommand\fnspace\:           %binder space
