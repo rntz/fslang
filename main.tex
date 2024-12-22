@@ -1,14 +1,40 @@
-\documentclass{rntz}
-\PassOptionsToPackage{euler-digits}{eulervm}
-\usepackage{rntzfont}
-\RequirePackage[osf,scaled=1.007,scaled=1.033,scaled=1.02,]{AlegreyaSans}
-\usepackage{rntzgeometry}
+\documentclass{article}
 
+\usepackage[letterpaper,
+  hratio=1:1,vratio=3:4,
+  %text={152mm,228mm}, % 2:3
+  text={162mm,228mm}, % 5:7
+]{geometry}
+
+%% FONTS & TYPOGRAPHY
+\usepackage[sups,scaled=.96]{XCharter}
+\usepackage[scaled=1.010417965903645]{inconsolata}
+\usepackage[osf,scaled=1.007,scaled=1.033,scaled=1.02,]{AlegreyaSans}
+\usepackage[euler-digits]{eulervm}
+\edef\zeu@Scale{0.99}
+\PassOptionsToPackage{scaled=\zeu@Scale,bbscaled=\zeu@Scale,scrscaled=\zeu@Scale}{mathalfa}
+\RequirePackage[cal=cm]{mathalfa}
+%% Make sure \mathbold and \mathvar are defined.
+\providecommand\mathbold\boldsymbol
+\providecommand\mathvar\ensuremath
+\linespread{1.06667}            %eyeballed
+%% END FONTS & TYPOGRAPHY
+
+\usepackage[dvipsnames]{xcolor}
+%% cleveref must be loaded AFTER hyperref & amsmath, or it errors; and AFTER
+%% amsthm and BEFORE we define theorem styles, otherwise (eg) it calls lemmas
+%% "Theorem"s.
+\usepackage{hyperref,url,amsmath,amsthm}
+\usepackage[nameinlink,noabbrev]{cleveref}
 \usepackage{mathpartir}
 \usepackage{mathtools}          %\Coloneqq, \dblcolon
 \usepackage{amssymb}            %\multimap
 \usepackage{stmaryrd}           %\llbracket, \shortrightarrow
 \usepackage{array}              %\setlength\extrarowheight
+
+\newcommand\crefrangeconjunction{--} % use en-dashes for ranges.
+\creflabelformat{equation}{#2#1#3}
+\crefformat{footnote}{#2\footnotemark[#1]#3} % referencing footnotes
 
 \newcommand\ensuretext[1]{{\ifmmode\text{#1}\else{#1}\fi}}
 \newcommand\strong[1]{{\bfseries#1}}
@@ -23,6 +49,7 @@
 \newcommand\x\times
 \newcommand\ox\otimes
 \newcommand\tbool{\ensuremath{2}}
+\newcommand\tmaybe[1]{\ensuremath{{#1}_{*}}}
 
 \newcommand\bnfeq{\Coloneqq}
 \newcommand\bnfor{\mathrel{\,|\,}}
@@ -33,17 +60,13 @@
 \newcommand\hs{,}             %hypothesis separator
 
 \newcommand\of{\mathbin{:}}
-\newcommand\cxsep{\mathbin{/}}
-
-%\renewcommand\of{\mathbin{\cdot}}
-%\renewcommand\cxsep{\mathrel{:}}
-
 %\renewcommand\of{~}
-%\renewcommand\cxsep{\mathrel{\cdot}}
+\newcommand\cxsep{\mathbin{/}}
 
 \newcommand\cJ[3]{{#3} \,\vdash\, {#1} : {#2}}
 \newcommand\J[5]{{#3} \cxsep {#4} \cxsep {#5} \,\vdash\, {#1} : {#2}}
-\newcommand\pJ[5]{{#3} \cxsep {#4} \,\vdash\, {#1} : {#2} \dashv {#5}}
+%\newcommand\pJ[5]{{#3} \cxsep {#4} \,\vdash\, {#1} : {#2} \dashv {#5}}
+\newcommand\pJ[5]{{#3} \cxsep {#4} \cxsep {#5} \,\vdash\, {#1} : {#2}}
 
 %% %% Hide terms and hypotheses.
 %% \renewcommand\J[5]{{#3} \cxsep {#4} \cxsep {#5} \,\vdash\, {#2}}
@@ -55,6 +78,7 @@
 \newcommand\fnspace\:           %binder space
 \newcommand\fn[1]{\lambda{#1}.\fnspace}
 \newcommand\<\;                 %function application space
+
 
 \newcommand\cnil{\cname{nil}}
 \newcommand\cjust{\cname{just}}
@@ -68,9 +92,15 @@
 \newcommand\tand{\mathrel{\textsf{and}}}
 \newcommand\tor{\mathrel{\textsf{or}}}
 
-\newcommand\maybe[1]{\ensuremath{{#1}_{*}}}
-
 \newcommand\peq{{!}}
+
+
+
+\newcommand\isa{\mathrel{\,:\,}}
+\newcommand\den[1]{\llbracket{#1}\rrbracket}
+
+\newcommand\todo[1]{\ensuretext{\color{red}#1}}
+\newcommand\xxx{\todo{XXX}}
 
 %% \setlength\parindent{0pt}
 %% \setlength\parskip{2ex}
@@ -79,7 +109,7 @@
 
 
 \noindent
-Grammars:
+\textsc{grammars}
 
 \[
 \begin{array}{rccl}
@@ -88,7 +118,7 @@ Grammars:
   % \bnfor A + B
   \\
   \text{pointed types} & P,Q &\bnfeq&
-  \maybe A \bnfor P \times Q \bnfor P \otimes Q
+  \tmaybe A \bnfor P \times Q \bnfor P \otimes Q
   %\bnfor P \oplus Q
   \bnfor P \lto Q
   \bnfor A \fto P
@@ -115,10 +145,13 @@ Grammars:
 \end{array}
 \]
 
+\vskip 1em
+
 \noindent
-Judgments and their interpretation:
+\textsc{judgments}
+
 \[
-\begin{array}{l@{\hskip 2em}l}
+\begin{array}{l@{\hskip 2em}l@{\hskip 2em}l}
   \cJ e A \G
   & \G \to A
   \\
@@ -126,15 +159,19 @@ Judgments and their interpretation:
   & \G \to \D \lto \O \fto P
   \\
   \pJ p A \G \D \O
-  & \G \to \D \lto A \to \maybe{\O}
+  & \G \to \D \lto A \to \tmaybe{\O}
+  & \textit{note the swapping of $A, \O$!}
 \end{array}
 \]
 
+\noindent
+\todo{Maybe this should be redone to allow arbitrary nesting/interleaving of all three kinds of context. See ``PROBLEMS'', below. (Aren't finitely supported maps a graded monad over pointed sets? Or not?)}
+
+\vskip 1em
 
 \noindent
-Inference rules and their rough denotational justifications:
+\textsc{inference rules and their rough denotational justifications}
 
-\newcommand\isa{\mathrel{\,:\,}}
 %% denotational function
 \newcommand\dmap[3]{{#1} \to {#2} \lto {#3} \fto}
 \newcommand\darg[3]{{#1}\ {#2}\ {#3}}
@@ -142,11 +179,6 @@ Inference rules and their rough denotational justifications:
 \newcommand\g\gamma
 \renewcommand\d\delta
 \renewcommand\o\omega
-
-\newcommand\den[1]{\llbracket{#1}\rrbracket}
-
-\newcommand\todo[1]{\ensuretext{\color{red}#1}}
-\newcommand\xxx{\todo{XXX}}
 
 \begin{align*}
   %% Linear variables
@@ -222,7 +254,7 @@ Inference rules and their rough denotational justifications:
   \end{enumerate}
 \end{enumerate}
 
-\noindent One way to perhaps solve (1-2) is to stop pussyfooting about with pointed types and use commutative monoids instead. But then tensor product becomes unruly (it's no longer a quotient of the direct product); the ``maybe'' type $\maybe A$ isn't a commutative monoid; and perhaps other complexities creep in.
+\noindent One way to perhaps solve (1-2) is to stop pussyfooting about with pointed types and use commutative monoids instead. But then tensor product becomes unruly (it's no longer a quotient of the direct product); the ``maybe'' type $\tmaybe A$ isn't a commutative monoid; and perhaps other complexities creep in.
 
 \noindent
 \todo{TODO:}
