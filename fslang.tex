@@ -11,7 +11,7 @@
 \usepackage[scaled=1.010417965903645]{inconsolata}
 \usepackage[scaled=0.95,proportional,semibold]{sourcesanspro}
 %\usepackage[osf,scaled=1.007,scaled=1.033,scaled=1.02,]{AlegreyaSans}
-\usepackage[euler-digits]{eulervm}
+\usepackage{eulervm}
 \edef\zeu@Scale{0.99}
 \PassOptionsToPackage{scaled=\zeu@Scale,bbscaled=\zeu@Scale,scrscaled=\zeu@Scale}{mathalfa}
 \RequirePackage[cal=cm]{mathalfa}
@@ -30,6 +30,7 @@
 \usepackage{amssymb}            %\multimap
 \usepackage{stmaryrd}           %\llbracket, \shortrightarrow
 \usepackage{array}              %\setlength\extrarowheight
+\usepackage{booktabs}           %\midrule
 
 \newcommand\crefrangeconjunction{--} % use en-dashes for ranges.
 \creflabelformat{equation}{#2#1#3}
@@ -49,6 +50,7 @@
 \newcommand\ox\otimes
 \newcommand\tbool{\ensuremath{2}}
 \newcommand\tmaybe[1]{\ensuremath{{#1}_{*}}}
+\renewcommand\tmaybe[1]{\ensuremath{\text{Maybe}~{#1}}}
 
 \newcommand\bnfeq{\Coloneqq}
 \newcommand\bnfor{\mathrel{\,|\,}}
@@ -101,10 +103,31 @@
 \newcommand\todo[1]{\ensuretext{\color{red}#1}}
 \newcommand\xxx{\todo{XXX}}
 
-%% \setlength\parindent{0pt}
-%% \setlength\parskip{2ex}
+\setlength\parindent{0pt}
+\setlength\parskip{2ex}
 
 \begin{document}
+
+
+\noindent\textsc{quick guide to notation}
+
+\newcommand\support{\ensuremath{\fname{support}}}
+\newcommand\supportof[1]{\ensuremath{\support~{#1}}}
+\newcommand\defeq{\triangleq}
+
+\begin{tabular}{llp{10cm}}%{rp{25mm}p{110mm}}
+  \it Syntax & \it Name & \it Interpretation\\
+  $A,B$ & Types & Sets\\
+  $A \to B$ & Functions & Functions\\
+  $P,Q$ & Pointed types & Sets with a designated `point' or `zero', written $\tnil$, or $\tnil_P$ to make the type explicit.
+  For instance, booleans with $\tnil = \text{false}$, or the integers with $\tnil = 0$.
+  \\
+  $P \lto Q$ & Point-preserving maps & Functions that preserve $\tnil$, that is, $f(\tnil_P) = \tnil_Q$.
+  \\
+  $A \fto P$ & Finite maps &
+  Functions $f : A \to P$ such that $\supportof{f} \defeq \{ x : f(x) \ne \tnil \}$ is finite.
+  We represent these in memory as \emph{input-output tables}, listing only pairs $f(x) = y$ where $y \ne \tnil$; finite support means there are finitely many such pairs.
+\end{tabular}
 
 
 \noindent
@@ -123,7 +146,7 @@
   \bnfor A \fto P
   \\
   \text{terms} & e &\bnfeq& x \bnfor \fn{x} e \bnfor e_1\<e_2
-  \bnfor (e_1, e_2) \bnfor \pi_i \<e \bnfor t
+  \bnfor (e_1,\, e_2) \bnfor \pi_i \<e \bnfor t
   \\
   \text{pointed terms} & t,u &\bnfeq&
   x \bnfor \fn{x} t \bnfor t \< u \bnfor t \< p
@@ -132,8 +155,11 @@
   &&&
   \tnil \bnfor \tjust e
   \bnfor \letjust x t u         %should this be a pattern?
+  \bnfor \leteq x t u
   \\
-  \text{support patterns} & p &\bnfeq& x \bnfor \peq e \bnfor (p,q) \bnfor \tjust p \bnfor ...
+  \text{support patterns} & p &\bnfeq& x
+  \bnfor \peq {\color{red} e}   %should this be a term or a pointed term?
+  \bnfor (p,q) \bnfor \tjust p \bnfor ...
   \\
   \text{contexts} & \G &\bnfeq& \emptycx \bnfor \G, \hyp x A
   \\
@@ -144,13 +170,13 @@
 \end{array}
 \]
 
-\vskip 1em
-
-\noindent
-\textsc{judgments}
+
+\noindent\textsc{judgments and their rough interpretation}
 
 \[
 \begin{array}{l@{\hskip 2em}l@{\hskip 2em}l}
+  \textit{Judgment} & \textit{Interpretation}
+  \\
   \cJ e A \G
   & \G \to A
   \\
@@ -166,10 +192,134 @@
 \noindent
 \todo{Maybe this should be redone to allow arbitrary nesting/interleaving of all three kinds of context. See ``PROBLEMS'', below. (Aren't finitely supported maps a graded monad over pointed sets? Or not?)}
 
-\vskip 1em
+
+\noindent\textsc{inference rules}
+\begin{mathpar}
+  %% UNIVERSAL RULES
+  \infer*[right=var]{~}{
+    \J x P \G {\hyp x P} {\emptycx}
+  }
 
-\noindent
-\textsc{inference rules and their rough denotational justifications}
+  \infer*[right=\tnil]{~}{
+    \J {\tnil} P \G \D \emptycx
+  }
+
+  %% NEED A LET RULE, TO LET US REORDER GROUNDING!
+  \infer*[right=let]{
+    \J t P \G {\D_1} {\O_1}\\
+    \J u Q {\G,\O_1} {\D_2} {\O_2}
+  }{
+    \J {\leteq x t u} Q \G {\D_1\cup\D_2} {\O_1,\O_2}
+  }
+  \\
+  %% PRODUCTS
+  \infer*[right=$\x$\,i]{
+    \J t P \G \D \O
+    \\
+    \J u Q \G \D \O
+  }{
+    \J {(t,u)} {P \x Q} \G \D \O
+  }
+
+  \infer*[right=$\x$\,e]{
+    \J t {P_1 \x P_2} \G \D \O
+  }{
+    \J {\pi_i\<t} {P_i} \G \D \O
+  }
+  \\
+  %% TENSOR PRODUCTS
+  \infer*[right=$\ox$\,i]{
+    \J t P \G {\D_1} {\O_1}
+    \\
+    \J s Q {\G\hs \O_1} {\D_2} {\O_2}
+  }{
+    \J{(t,s)}{P \ox Q}{\G}{\D_1 \cup \D_2}{\O_1\hs \O_2}
+  }
+
+  \infer*[right=$\ox$\,e]{
+    \J t {P \ox Q} \G {\D_1} {\O_1}
+    \\\\
+    \J s Q {\G\hs \O_1} {\D_2\hs \hyp{x}{P}\hs \hyp{y}{Q}} {\O_2}
+  }{
+    \J{\letpair{x}{y} t s}{Q}{\G}{\D_1 \cup \D_2}{\O_1\hs \O_2}
+  }
+  \\
+  %% LINEAR MAPS
+  \infer*[right=$\lto$\,i]{
+    \J t Q \G {\D, \hyp x P} {\emptycx}
+  }{
+    \J {\fn x t} {P \lto Q} \G \D {\emptycx}
+  }
+
+  \infer*[right=$\lto$\,e]{
+    \J t {P \lto Q} \G {\D_1} {\O_1}
+    \\
+    \J u {P} {\G,\O_1} {\D_2} {\O_2}
+  }{
+    \J{t\<u}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
+  }
+  \\
+  %% MAYBE
+  \infer*[right=just]{
+    \cJ e A \G
+  }{
+    \J {\tjust e} {\tmaybe A} \G \emptycx \emptycx
+  }
+
+  \infer*[right=let just]{
+    \J t {\tmaybe A} \G {\D_1} {\O_1}
+    \\
+    \J u P {\G, \O_1, \hyp x A} {\D_2} {\O_2}
+  }{
+    \J {\letjust x t u} {P} \G {\D_1 \cup \D_2} {\O_1,\O_2}
+  }
+  \\
+  %% FINITE MAPS
+  \infer*[right=$\fto$\,i]{
+    \J t P \G \D {\O, \hyp x A}
+  }{
+    \J {\fn x t} {A \fto P} \G \D \O
+  }
+
+  \infer*[right=$\fto$\,e]{
+    \J t {A \fto P} \G {\D_1} {\O_1}
+    \\
+    \pJ p A {\G,\O_1} {\D_2} {\O_2}
+  }{
+    \J {t\<p} P \G {\D_1\cup\D_2} {\O_1,\O_2}
+  }
+\end{mathpar}
+
+\emph{Pattern judgment, $\pJ p A \G \D \O$:}
+
+\begin{mathpar}
+  \infer*[right=p\,var]{~}{
+    \pJ x A \G \emptycx {\hyp x A}
+  }
+
+  \infer*[right=p\,$\x$]{
+    \pJ p A \G {\D_1} {\O_1}
+    \\
+    \pJ q B {\G,\O_1} {\D_2} {\O_2}
+  }{
+    \pJ {(p,q)} {A \x B} \G \D {\O_1,\O_2}
+  }
+
+  \infer*[right=p\,just]{
+    \pJ p A \G \D \O
+  }{
+    \pJ {\tjust p} {\tmaybe A} \G \D \O
+  }
+
+  \infer*[right=p\,eq]{
+    \cJ e A \G
+  }{
+    \pJ {\peq e} {A} \G \emptycx \emptycx
+  }
+\end{mathpar}
+
+
+\noindent\textsc{rough denotational justifications for selected rules}
 
 %% denotational function
 \newcommand\dmap[3]{{#1} \to {#2} \lto {#3} \fto}
@@ -218,9 +368,9 @@
   \infer*[right=$\lto$\,e]{
     \J t {P \lto Q} \G {\D_1} {\O_1}
     \\\\
-    \J t {P} {\G,\O_1} {\D_2} {\O_2}
+    \J u {P} {\G,\O_1} {\D_2} {\O_2}
   }{
-    \J{t\<s}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
+    \J{t\<u}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
   }
   &&
   %% TODO: note the implicit use of duplication here!
@@ -237,40 +387,6 @@
   %% \darg{\g}{(\d_1,\d_2)}{(\o_1,\o_2)} &\mapsto
   %% \den t \<\g \<\d_1 \<\o_1 \<(\den s \<(\g,\o_1) \<\d_2 \<\o_2)
 \end{align*}
-
-
-\noindent
-\todo{PROBLEMS:}
-\begin{enumerate}
-\item Can't define $\fname{or} : \tbool \x \tbool \lto \tbool$ within the language! I'm not sure how much of an issue this is. For instance, $\fname{exists} : (A \fto \tbool) \lto \tbool$ almost certainly needs to be primitive. And any commutative monoid $P$ where the point is the monoid's identity element should have methods $(\oplus) : P \times P \lto P$ and $\fname{sum} : (A \fto P) \lto P$; indeed, ``commutative monoid'' is essentially a typeclass with these two methods.
-
-  (Q: In general, does $P \times P \lto P$ give rise to $(A \fto P) \lto P$ and/or vice-versa? A: There's no guarantee $P \times P \lto P$ is commutative. However, $(A \fto P) \lto P$ should give rise to $P \x P \lto P$ because $P \x P \lto (1 + 1) \fto P$.)
-
-\item Can't express $\fname{forall} : (A \fto \tbool) \lto (A \to \tbool) \lto \tbool$, for two reasons:
-  \begin{enumerate}
-  \item $A \to \tbool$ isn't recognized as a pointed type.
-  \item Even if it were, we can't give proper intro/elim rules for it because it would require putting \emph{set} variables \emph{after} the linear context $\Delta$. Solution: maybe we need an ordered context which can mix set \& pointed variables? Or a sequence of alternating set/pointed contexts?
-  \end{enumerate}
-\end{enumerate}
-
-\noindent One way to perhaps solve (1-2) is to stop pussyfooting about with pointed types and use commutative monoids instead. But then tensor product becomes unruly (it's no longer a quotient of the direct product); the ``maybe'' type $\tmaybe A$ isn't a commutative monoid; and perhaps other complexities creep in.
-
-\noindent
-\todo{TODO:}
-
-\begin{enumerate}
-\item Think about what sideways information passing does to query planning.
-
-  Sometimes it's simple, eg $(\fn{x} f\<x \tand x > 17)$ where $f : A \fto \tbool$.
-
-\item Explain why we need $\Omega=\emptycx$ in ${\lto}\,\textsc{i}$.
-\item Explain/justify the implicit duplication (turning $\D_1 \cup \D_2 \lto \D_1 \ox \D_2$) in the semantics of ${\lto}\,\textsc{e}$ and ${\ox}\,\textsc{i}$.
-
-\item Why am I working with $\J t P \G \D \O$ as $\G \to \D \lto \O \fto P$ instead of putting the linear arguments after the f.s. ones, $\G \to \O \fto (\D \lto P)$?
-  Or do I want both and need an ordered stack of contexts?
-
-\item \strong{More example programs!} Ones which \emph{use} the $\D$ linear context in pattern matching / in combination with sideways information passing.
-\end{enumerate}
 
 
 \[
@@ -324,61 +440,41 @@
   }
 
   &
-  wub
+  \xxx
 \end{array}
 \]
 
 
 \noindent
-\todo{wub}
-\begin{mathpar}
-  \infer[$\lto$ elim]{
-    \J t {P \lto Q} \G {\D_1} {\O_1}
-    \\
-    \J t {P} {\G,\O_1} {\D_2} {\O_2}
-  }{
-    \J{t\<s}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
-  }
+\todo{\textsc{problems \& todos}}
+\begin{enumerate}
+\item Can't define $\fname{or} : \tbool \x \tbool \lto \tbool$ within the language! I'm not sure how much of an issue this is. For instance, $\fname{exists} : (A \fto \tbool) \lto \tbool$ almost certainly needs to be primitive. And any commutative monoid $P$ where the point is the monoid's identity element should have methods $(\oplus) : P \times P \lto P$ and $\fname{sum} : (A \fto P) \lto P$; indeed, ``commutative monoid'' is essentially a typeclass with these two methods.
 
-  \infer{
-    f \isa \G \to \D_1 \to \O_1 \fto P \lto Q
-    \\
-    g \isa \G \x \O_1 \to \D_2 \lto \O_2 \fto P
-  }{
-    \xxx \isa \G \to \D_1 \ox \D_2 \lto \O_1 \x \O_2 \fto Q
-  }
+  (Q: In general, does $P \times P \lto P$ give rise to $(A \fto P) \lto P$ and/or vice-versa? A: There's no guarantee $P \times P \lto P$ is commutative. However, $(A \fto P) \lto P$ should give rise to $P \x P \lto P$ because $P \x P \lto (1 + 1) \fto P$.)
 
-  \text{Note the silent use of duplication.}
-  \\
-  \infer[$\otimes$ intro]{
-    \J t P \G {\D_1} {\O_1}
-    \\
-    \J s Q {\G\hs \O_1} {\D_2} {\O_2}
-  }{
-    \J{(t,s)}{P \otimes Q}{\G}{\D_1 \cup \D_2}{\O_1\hs \O_2}
-  }
+\item Can't express $\fname{forall} : (A \fto \tbool) \lto (A \to \tbool) \lto \tbool$, for two reasons:
+  \begin{enumerate}
+  \item $A \to \tbool$ isn't recognized as a pointed type.
+    Could `fix' this by adding $P \bnfeq A \to P$, however...
+  \item We still can't give proper intro/elim rules for it because it would require putting \emph{set} variables \emph{after} the linear context $\Delta$. Solution: maybe we need an ordered context which can mix set \& pointed variables? Or a sequence of alternating set/pointed/fin.sup contexts?
+  \end{enumerate}
+\end{enumerate}
 
-  \infer[$\otimes$ elim]{
-    \J t {P_1 \otimes P_2} \G {\D_1} {\O_1}
-    \\
-    \J s Q {\G\hs \O_1} {\D_2\hs \hyp{x_1}{P_1}\hs \hyp{x_2}{P_2}} {\O_2}
-  }{
-    \J{\letpair{x_1}{x_2} t s}{Q}{\G}{\D_1 \cup \D_2}{\O_1\hs \O_2}
-  }
+\noindent One way to perhaps solve (1-2) is to stop pussyfooting about with pointed types and use commutative monoids instead. But then tensor product becomes unruly (it's no longer a quotient of the direct product); the ``maybe'' type $\tmaybe A$ isn't a commutative monoid; and perhaps other complexities creep in.
 
-  \infer[$\fto$ intro]{
-    \J t P \G \D {\O, \hyp x A}
-  }{
-    \J{\fn x t} {A \fto P} \G \D \O
-  }
+\begin{enumerate}
+\item Think about what sideways information passing does to query planning.
 
-  \infer[$\fto$ elim]{
-    \J t {A \fto P} \G {\D_1} {\O_1}
-    \\
-    \pJ p A {\G,\O_1} {\D_2} {\O_2}
-  }{
-    \J {t \<p} P \G {\D_1 \cup \D_2} {\O_1, \O_2}
-  }
-\end{mathpar}
+  Sometimes it's simple, eg $(\fn{x} f\<x \tand x > 17)$ where $f : A \fto \tbool$.
 
+\item Explain why we need $\Omega=\emptycx$ in ${\lto}\,\textsc{i}$.
+\item Explain/justify the implicit duplication (turning $\D_1 \cup \D_2 \lto \D_1 \ox \D_2$) in the semantics of ${\lto}\,\textsc{e}$ and ${\ox}\,\textsc{i}$.
+
+\item Why am I working with $\J t P \G \D \O$ as $\G \to \D \lto \O \fto P$ instead of putting the linear arguments after the f.s. ones, $\G \to \O \fto (\D \lto P)$?
+  Or do I want both and need an ordered stack of contexts?
+
+\item \strong{More example programs!} Ones which \emph{use} the $\D$ linear context in pattern matching / in combination with sideways information passing.
+\end{enumerate}
+
+
 \end{document}
