@@ -96,6 +96,9 @@
 \newcommand\J[5]{{#3} \cxsep {#4} \cxsep {#5} \,\vdash\, {#1} : {#2}}
 %\newcommand\pJ[5]{{#3} \cxsep {#4} \,\vdash\, {#1} : {#2} \dashv {#5}}
 \newcommand\pJ[5]{{#3} \cxsep {#4} \cxsep {#5} \,\vdash\, {#1} : {#2}}
+\renewcommand\pJ[5]{{#3} \cxsep {#4} \cxsep {#1} : {#2} \,\vdash\, {#5}}
+%% \renewcommand\pJ[5]{{#3} \cxsep {#4} \,\vdash\, {#1} : {#2} \rightsquigarrow {#5}}
+%% \renewcommand\pJ[5]{{#3} \cxsep {#4} \cxsep {#2} \,\vdash\, {#1} : {#5}}
 
 %% %% Hide terms and hypotheses.
 %% \renewcommand\J[5]{{#3} \cxsep {#4} \cxsep {#5} \,\vdash\, {#2}}
@@ -318,7 +321,7 @@
   }
 \end{mathpar}
 
-\emph{Pattern judgment, $\pJ p A \G \D \O$:}
+\emph{Pattern judgment, }$\pJ p A \G \D \O$:
 
 \begin{mathpar}
   \infer*[right=p\,var]{~}{
