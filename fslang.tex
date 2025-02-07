@@ -7,27 +7,55 @@
 ]{geometry}
 
 %% FONTS & TYPOGRAPHY
-\usepackage[sups,scaled=.96]{XCharter}
-\usepackage[scaled=1.010417965903645]{inconsolata}
-\usepackage[scaled=0.95,proportional,semibold]{sourcesanspro}
-%\usepackage[osf,scaled=1.007,scaled=1.033,scaled=1.02,]{AlegreyaSans}
-\usepackage{eulervm}
-\edef\zeu@Scale{0.99}
-\PassOptionsToPackage{scaled=\zeu@Scale,bbscaled=\zeu@Scale,scrscaled=\zeu@Scale}{mathalfa}
-\RequirePackage[cal=cm]{mathalfa}
-%% Make sure \mathbold and \mathvar are defined.
-\linespread{1.06667}            %eyeballed
-%% END FONTS & TYPOGRAPHY
+
+%% %% ---------- OPTION 1: CHARTER ----------
+%% \usepackage[sups,scaled=.96]{XCharter}
+%% \usepackage[scaled=1.010417965903645]{inconsolata}
+%% \usepackage[scaled=0.95,proportional,semibold]{sourcesanspro}
+%% %\usepackage[osf,scaled=1.007,scaled=1.033,scaled=1.02,]{AlegreyaSans}
+%% \usepackage{eulervm}
+%% \edef\zeu@Scale{0.99}
+%% \PassOptionsToPackage{scaled=\zeu@Scale,bbscaled=\zeu@Scale,scrscaled=\zeu@Scale}{mathalfa}
+%% \RequirePackage[cal=cm]{mathalfa}
+%% %% Make sure \mathbold and \mathvar are defined.
+%% \linespread{1.06667}            %eyeballed
+%% \usepackage{amsmath,amsthm}
+%% \usepackage{amssymb}            %\multimap
+
+%% ---------- OPTION 2: PALATINO ----------
+\usepackage[scaled=.96,largesc,nohelv]{newpxtext}
+\usepackage[scaled=1.0176]{biolinum}
+\usepackage[scaled=0.964203422764601]{inconsolata}
+\edef\zeu@Scale{.96}
+%% HACK: newpxtext doesn't respect fontaxes' \tbfigures! :( but it _does_
+%% define, eg., \tlfstyle! hm...
+\usepackage{fontaxes}
+\renewcommand\tbfigures{}
+\renewcommand\lnfigures{}
+%\linespread{1.023435141098595}
+\linespread{1.08}              % eyeballed 2025-02-06
+%% NEWPXMATH %%
+\usepackage[scaled=.96,vvarbb,smallerops]{newpxmath}
+\usepackage[bb=ams,bbscaled=.96,cal=cm]{mathalfa}
+%% %% EULER MATH %%
+%% \usepackage{eulervm}
+%% \PassOptionsToPackage{scaled=\zeu@Scale,bbscaled=\zeu@Scale,scrscaled=\zeu@Scale}{mathalfa}
+%% \usepackage[cal=cm]{mathalfa}
+%% \usepackage{amsmath,amsthm}
+%% \usepackage{amssymb}            %\multimap
+
+%% %% END FONTS & TYPOGRAPHY
 
 \usepackage[dvipsnames]{xcolor}
 %% cleveref must be loaded AFTER hyperref & amsmath, or it errors; and AFTER
 %% amsthm and BEFORE we define theorem styles, otherwise (eg) it calls lemmas
 %% "Theorem"s.
-\usepackage{hyperref,url,amsmath,amsthm}
+\usepackage{hyperref,url}
+%\usepackage{amsmath,amsthm}
 \usepackage[nameinlink,noabbrev]{cleveref}
 \usepackage{mathpartir}
 \usepackage{mathtools}          %\Coloneqq, \dblcolon
-\usepackage{amssymb}            %\multimap
+%\usepackage{amssymb}            %\multimap
 \usepackage{stmaryrd}           %\llbracket, \shortrightarrow
 \usepackage{array}              %\setlength\extrarowheight
 \usepackage{booktabs}           %\midrule
@@ -73,7 +101,7 @@
 %% \renewcommand\J[5]{{#3} \cxsep {#4} \cxsep {#5} \,\vdash\, {#2}}
 %% \renewcommand\hyp[2]{#2}
 
-\newcommand\fname\textsf        %function name
+\newcommand\fname\textit        %function name
 \newcommand\cname\text          %constructor name
 
 \newcommand\fnspace\:           %binder space
