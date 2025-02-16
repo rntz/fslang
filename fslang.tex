@@ -59,6 +59,7 @@
 \usepackage{stmaryrd}           %\llbracket, \shortrightarrow
 \usepackage{array}              %\setlength\extrarowheight
 \usepackage{booktabs}           %\midrule
+\usepackage{accents}            % for \underaccent
 
 \newcommand\crefrangeconjunction{--} % use en-dashes for ranges.
 \creflabelformat{equation}{#2#1#3}
@@ -71,6 +72,8 @@
 \newcommand\G\Gamma
 \newcommand\D\Delta
 \renewcommand\O\Omega
+\renewcommand\L\Lambda
+
 \newcommand\lto\multimap        % "linear \to"
 %\newcommand\fto{\underset{\textsf{fin}}{\to}}           % finite map
 \newcommand\fto{\Rightarrow}
@@ -80,11 +83,17 @@
 \newcommand\tmaybe[1]{\ensuremath{{#1}_{*}}}
 \renewcommand\tmaybe[1]{\ensuremath{\text{Maybe}~{#1}}}
 
+\newcommand\undertype[2]{\underaccent{\textsf{\upshape\scshape#1}}{#2}}
+\newcommand\eqt[1]{\undertype{eq}{#1}}
+
 \newcommand\bnfeq{\Coloneqq}
 \newcommand\bnfor{\mathrel{\,|\,}}
 
 %\newcommand\emptycx\varepsilon
 \newcommand\emptycx{{\cdot}}
+%\renewcommand\emptycx{\,}
+%\renewcommand\emptycx{\text{--}}
+%\renewcommand\emptycx{\textunderscore}
 \newcommand\hyp[2]{{#1} \of {#2}}
 \newcommand\hs{,}             %hypothesis separator
 
@@ -95,10 +104,13 @@
 \newcommand\cJ[3]{{#3} \,\vdash\, {#1} : {#2}}
 \newcommand\J[5]{{#3} \cxsep {#4} \cxsep {#5} \,\vdash\, {#1} : {#2}}
 %\newcommand\pJ[5]{{#3} \cxsep {#4} \,\vdash\, {#1} : {#2} \dashv {#5}}
-\newcommand\pJ[5]{{#3} \cxsep {#4} \cxsep {#5} \,\vdash\, {#1} : {#2}}
-\renewcommand\pJ[5]{{#3} \cxsep {#4} \cxsep {#1} : {#2} \,\vdash\, {#5}}
-%% \renewcommand\pJ[5]{{#3} \cxsep {#4} \,\vdash\, {#1} : {#2} \rightsquigarrow {#5}}
+%\newcommand\pJ[5]{{#3} \cxsep {#4} \cxsep {#5} \,\vdash\, {#1} : {#2}}
+\newcommand\pJ[5]{{#3} \cxsep {#4} \cxsep {#1} : {#2} \,\vdash\, {#5}}
+%\renewcommand\pJ[5]{{#3} \cxsep {#4} \,\vdash\, {#1} : {#2} \rightsquigarrow {#5}}
 %% \renewcommand\pJ[5]{{#3} \cxsep {#4} \cxsep {#2} \,\vdash\, {#1} : {#5}}
+
+\newcommand\ppJ[6]{{#3} \cxsep {#4} \cxsep {#1} : {#2} \,\vdash\, {#5} \cxsep {#6}}
+%\renewcommand\ppJ[6]{{#3} \cxsep {#4} \,\vdash\, {#1} : {#2} \rightsquigarrow {#5} \cxsep {#6}}
 
 %% %% Hide terms and hypotheses.
 %% \renewcommand\J[5]{{#3} \cxsep {#4} \cxsep {#5} \,\vdash\, {#2}}
@@ -111,9 +123,10 @@
 \newcommand\fn[1]{\lambda{#1}.\fnspace}
 \newcommand\<\;                 %function application space
 
-
 \newcommand\cnil{\cname{nil}}
 \newcommand\cjust{\cname{just}}
+\newcommand\ctrue{\cname{true}}
+\newcommand\cfalse{\cname{false}}
 
 \newcommand\tnil{\cnil}
 \newcommand\tjust[1]{\cjust\<{#1}}
@@ -123,6 +136,9 @@
 \newcommand\letpair[4]{\leteq{({#1}, {#2})}{#3}{#4}}
 \newcommand\tand{\mathrel{\textsf{and}}}
 \newcommand\tor{\mathrel{\textsf{or}}}
+\newcommand\ttrue{\ctrue}
+\newcommand\tfalse{\cfalse}
+\newcommand\tabsurd{\fname{absurd}\<}
 
 \newcommand\peq{{!}}
 
@@ -131,7 +147,8 @@
 \newcommand\isa{\mathrel{\,:\,}}
 \newcommand\den[1]{\llbracket{#1}\rrbracket}
 
-\newcommand\todo[1]{\ensuretext{\color{red}#1}}
+\newcommand\todocolor{\color{red}}
+\newcommand\todo[1]{\ensuretext{\todocolor #1}}
 \newcommand\xxx{\todo{XXX}}
 
 \setlength\parindent{0pt}
@@ -177,7 +194,7 @@
   \bnfor A \fto P
   \\
   \text{terms} & e &\bnfeq& x \bnfor \fn{x} e \bnfor e_1\<e_2
-  \bnfor (e_1,\, e_2) \bnfor \pi_i \<e \bnfor t
+  \bnfor (e_1,\, e_2) \bnfor \pi_i \<e \bnfor \tabsurd e \bnfor t
   \\
   \text{pointed terms} & t,u &\bnfeq&
   x \bnfor \fn{x} t \bnfor t \< u \bnfor t \< p
@@ -185,59 +202,120 @@
   \\
   &&&
   \tnil \bnfor \tjust e
-  \bnfor \letjust x t u         %should this be a pattern?
-  \bnfor \leteq x t u
+  \bnfor \letjust x t u
   \\
-  \text{support patterns} & p &\bnfeq& x
-  \bnfor \peq {\color{red} e}   %should this be a term or a pointed term?
-  \bnfor (p,q) \bnfor \tjust p \bnfor ...
+  &&& \leteq x t u
   \\
-  \text{contexts} & \G &\bnfeq& \emptycx \bnfor \G, \hyp x A
+  \text{patterns} & a,b &\bnfeq&
+  x
+  \bnfor p
+  \bnfor \peq {\todocolor e}   %should this be a term or a pointed term?
+  \bnfor (a, b)
   \\
-  \text{pointed contexts} & \D &\bnfeq& \emptycx \bnfor \D, \hyp x P
+  \text{pointed patterns} & p,q &\bnfeq&
+  x \bnfor \tjust a \bnfor (p,q)
   \\
-  \text{finite support contexts} & \O &\bnfeq& \emptycx \bnfor \O, \hyp x A
+  \text{contexts} & \G,\O &\bnfeq& \emptycx \bnfor \G, \hyp x A
   \\
+  \text{pointed contexts} & \D,\L % \Lambda \Psi
+  &\bnfeq& \emptycx \bnfor \D, \hyp x P
+  \\
+  %% \text{finite support contexts} & \O &\bnfeq& \emptycx \bnfor \O, \hyp x A
+  %% \\
 \end{array}
 \]
 
 
 \noindent\textsc{judgments and their rough interpretation}
 
-\[
-\begin{array}{l@{\hskip 2em}l@{\hskip 2em}l}
-  \textit{Judgment} & \textit{Interpretation}
+\begin{tabular}{l@{\hskip 2em}l@{\hskip 2em}l@{\hskip 2em}l}
+  \em Context & \em Example & \em Interpretation & \em Empty context interpretation\\
+  $\G,\O$
+  & $\hyp{x_1}{A_1},\, \dots,\, \hyp{x_n}{A_n}$
+  & $A_1 \times \dots \times A_n$
+  & $1 = \tmaybe{0}$
   \\
-  \cJ e A \G
-  & \G \to A
+  $\D,\L$
+  & $\hyp{x_1}{P_1},\ \, \dots,\, \hyp{x_n}{P_n}$
+  & $P_1 \ox \dots \ox P_n$
+  & $2 = \tmaybe{1} = \tmaybe{(\tmaybe{0})}$
+\end{tabular}
+
+\begin{tabular}{l@{\hskip 2em}l@{\hskip 2em}l}
+  \em Judgment & \em Interpretation
   \\
-  \J t P \G \D \O
-  & \G \to \D \lto \O \fto P
+  $\cJ e A \G$ & $\G \to A$
   \\
-  \pJ p A \G \D \O
-  & \G \to \D \lto A \to \tmaybe{\O}
-  & \textit{note the swapping of $A, \O$!}
-\end{array}
-\]
+  $\J t P \G \D \O$ & $\G \to \D \lto \O \fto P$
+  \\
+  $\pJ a A \G \D \O$
+  & $\G \to \D \lto A \to \tmaybe{\O}$
+  \\
+  $\ppJ p P \G \D \O \L$
+  & $\G \to \D \lto P \lto (\tmaybe{\O}) \ox \L$
+  %% & \textit{note the swapping of $A, \O$!}
+\end{tabular}
+
+%% \[
+%% \begin{array}{l@{\hskip 2em}l@{\hskip 2em}l@{\hskip 2em}l}
+%%   \textit{Context} & \textit{Example} & \textit{Interpretation}
+%%   & \textit{Empty context}
+%%   \\
+%%   \G,\O & \hyp{x_1}{A_1},\, \dots,\, \hyp{x_n}{A_n} & A_1 \times \dots \times A_n
+%%   & 1 = \tmaybe{0}
+%%   \\
+%%   \D    & \hyp{x_1}{P_1},\, \dots,\, \hyp{x_n}{P_n} & P_1 \ox \dots \ox P_n
+%%   & 2 = \tmaybe{1} = \tmaybe{(\tmaybe{0})}\\
+%%   \\
+%%   \\
+%%   \textit{Judgment} & \textit{Interpretation}
+%%   \\
+%%   \cJ e A \G
+%%   & \G \to A
+%%   \\
+%%   \J t P \G \D \O
+%%   & \G \to \D \lto \O \fto P
+%%   \\
+%%   \pJ a A \G \D \O
+%%   & \G \to \D \lto A \to \tmaybe{\O}
+%%   & \multicolumn{2}{l}{\todo{why not $\G \to A \to \D \lto \tmaybe{\O}$?}}
+%%   \\
+%%   \pJ p P \G \D \O
+%%   & \G \to \D \lto P \lto \O
+%%   %% & \textit{note the swapping of $A, \O$!}
+%% \end{array}
+%% \]
 
 \noindent
 \todo{Maybe this should be redone to allow arbitrary nesting/interleaving of all three kinds of context. See ``PROBLEMS'', below. (Aren't finitely supported maps a graded monad over pointed sets? Or not?)}
 
 
 \noindent\textsc{inference rules}
+
+\emph{Term typing, }$\cJ e A \G$
+\begin{mathpar}
+  \infer*[right=var]{\hyp x A \in \G}{\cJ x A \G}
+
+  \infer*[right=include]{\J t P \G \emptycx \emptycx}{\cJ t P \G}
+
+  \infer*[right=absurd]{\cJ e 0 \G}{\cJ {\tabsurd e} A \G}
+  \\
+  \text{and the other obvious rules...}
+\end{mathpar}
+
+
+\emph{Pointed term typing, }$\J t P \G \D \O$
 \begin{mathpar}
   %% UNIVERSAL RULES
-  \infer*[right=var]{~}{
-    \J x P \G {\hyp x P} {\emptycx}
-  }
+  \infer*[right=var]{~}{\J x P \G {\hyp x P} {\emptycx}}
 
-  \infer*[right=\tnil]{~}{
-    \J {\tnil} P \G \D \emptycx
-  }
+  \infer*[right=include]{\cJ e P \G}{\J e P \G \emptycx \emptycx}
 
-  %% NEED A LET RULE, TO LET US REORDER GROUNDING!
+  \infer*[right=nil]{~}{\J {\tnil} P \G \D \O}
+
   \infer*[right=let]{
-    \J t P \G {\D_1} {\O_1}\\
+    \J t P \G {\D_1} {\O_1}
+    \\
     \J u Q {\G,\O_1} {\D_2} {\O_2}
   }{
     \J {\leteq x t u} Q \G {\D_1\cup\D_2} {\O_1,\O_2}
@@ -291,13 +369,13 @@
   }
   \\
   %% MAYBE
-  \infer*[right=just]{
+  \infer*[right=maybe\,i]{
     \cJ e A \G
   }{
     \J {\tjust e} {\tmaybe A} \G \emptycx \emptycx
   }
 
-  \infer*[right=let just]{
+  \infer*[right=maybe\,e]{
     \J t {\tmaybe A} \G {\D_1} {\O_1}
     \\
     \J u P {\G, \O_1, \hyp x A} {\D_2} {\O_2}
@@ -321,31 +399,88 @@
   }
 \end{mathpar}
 
-\emph{Pattern judgment, }$\pJ p A \G \D \O$:
 
+\emph{Pattern typing, }$\pJ a A \G \D \O$
 \begin{mathpar}
-  \infer*[right=p\,var]{~}{
+  %% \infer*[right=include \todo{\em - not sound!! let $P = Q_1 \lto Q_2$ and $p = x$}]{
+  %%   \ppJ p P \G \D \O \L
+  %% }{
+  %%   \pJ p P \G \D {\O,\L}
+  %% }
+  \infer*[right=limited include]{
+    \ppJ p P \G \D \O \emptycx
+  }{
+    \pJ p P \G \D {\O}
+  }
+
+  \infer*[right=var]{~}{
     \pJ x A \G \emptycx {\hyp x A}
   }
 
-  \infer*[right=p\,$\x$]{
-    \pJ p A \G {\D_1} {\O_1}
+  \infer*[right=$\x$]{
+    \pJ a A \G {\D_1} {\O_1}
     \\
-    \pJ q B {\G,\O_1} {\D_2} {\O_2}
+    \pJ b B {\G,\O_1} {\D_2} {\O_2}
   }{
-    \pJ {(p,q)} {A \x B} \G \D {\O_1,\O_2}
+    \pJ {(a,b)} {A \x B} \G \D {\O_1,\O_2}
   }
 
-  \infer*[right=p\,just]{
-    \pJ p A \G \D \O
+  \infer*[right=eq]{
+    \cJ e {\eqt A} \G
   }{
-    \pJ {\tjust p} {\tmaybe A} \G \D \O
+    \pJ {\peq e} {\eqt A} \G \emptycx \emptycx
+  }
+\end{mathpar}
+
+The main motivation for \textsc{limited include} is matching on `$\cjust$' in a finite map application:
+\begin{mathpar}
+  \infer*[right=$\fto$\,e]{
+    \infer*[right=var]{~}{
+      \J f {\tmaybe{A} \fto P} \G {\hyp f {\tmaybe{A} \fto P}} \emptycx
+    }
+    \\
+    \infer*{
+      \infer*[right=just]{
+        \infer*[right=var]{~}{
+          \pJ x A \G \emptycx {\hyp x A}
+        }
+      }{
+        \ppJ {\tjust x} {\tmaybe A} \G \emptycx {\hyp x A} \emptycx
+      }
+    }{
+      \pJ {\tjust x} {\tmaybe A} \G \emptycx {\hyp x A}
+    }
+  }{
+    \J {f\<(\tjust x)} P \G {\hyp f {\tmaybe{A} \fto P}} {\hyp x A}
+  }
+\end{mathpar}
+
+However, \textsc{limited include} has several issues:
+\begin{enumerate}
+\item We need $\D = \emptycx$ in \textsc{limited include} because $\D$ gets tensored together while $\O$ gets cross-producted, and we can't convert $\D_\ox$ into $\D_\x$ in general.
+
+\item We must decide whether a cartesian pattern matches or fails, but we \emph{don't} need this for pointed patterns; this amounts to deciding ``equality with the point'' on the output of pointed pattern matching. This makes me nervous about the semantics of \textsc{limited include}. \todo{Do I have any problematic examples?}
+
+\item Finally, including pointed patterns in patterns causes syntactic ambiguity: does the pattern $x$ signify a cartesian variable or the inclusion of a pointed variable?
+\end{enumerate}
+
+\emph{Pointed pattern typing, }$\ppJ p P \G \D \O \L$
+\begin{mathpar}
+  \infer*[right=var]{~}{
+    \ppJ x P \G \D {\emptycx} {\hyp x P}
   }
 
-  \infer*[right=p\,eq]{
-    \cJ e A \G
+  \infer*[right=just]{
+    \pJ a A \G \D \O
   }{
-    \pJ {\peq e} {A} \G \emptycx \emptycx
+    \ppJ {\tjust a} {\tmaybe A} \G \D \O {\emptycx}
+  }
+
+  \infer*[right=$\ox$]{
+    \ppJ p P \G {\D_1} {\O_1} {\L_1}\\
+    \ppJ q Q \G {\D_2} {\O_2} {\L_2}
+  }{
+    \ppJ {(p,q)} {P \ox Q} \G {\D_1 \cup \D_2} {\O_1,\O_2} {\L_1, \L_2}
   }
 \end{mathpar}
 
@@ -474,6 +609,44 @@
   \xxx
 \end{array}
 \]
+
+
+\noindent\textsc{the structural problem: finite maps don't commute with functions}
+
+Although we haven't included it in our grammar, $A \to P$ is a pointed type, with $\tnil_{A \to P} = \fn x \tnil_P$.
+%
+Moreover, function spaces commute with point-preserving function spaces: $A \to (P \lto Q) \cong P \lto (A \to Q)$.
+%
+So we need not worry about the `relative order' of hypotheses in $\G$ and $\D$.
+%
+We can combine them into one context, or keep them separate, as we please.
+
+Unfortunately, functions and finitely supported maps do \emph{not} commute: $A \to (B \fto P) \ncong B \fto (A \to P)$. As a counterexample, consider equality:
+
+\begin{align*}
+\fname{eq} &: A \to A \fto \tbool
+&
+\fname{eq}' &\!\!\not\,\,: A \fto A \to \tbool
+\qquad\color{red}\textit{(ill-typed!)}
+\\
+\fname{eq}\<x \<y &= 
+\begin{cases}
+  \ttrue & \text{if }x = y\\
+  \tfalse & \text{otherwise}
+\end{cases}
+&
+\fname{eq}'\<y \<x &= 
+\begin{cases}
+  \ttrue & \text{if }x = y\\
+  \tfalse & \text{otherwise}
+\end{cases}
+\end{align*}
+
+Since $\tnil_\tbool = \tfalse$, for any $x : A$, there are finitely many $y : A$ (exactly one, in fact) such that $\fname{eq} \<x\<y \ne \tnil$. However, $\tnil_{A \to \tbool} = \fn x \tfalse$, so unless $A$ is finite there are infinitely many $y : A$ (all of them, in fact) such that $\fname{eq}'\<y \ne \tnil$.
+
+For the same reason, point-preserving and finite maps do not commute: $P \lto (A \fto Q) \ncong A \fto (P \lto Q)$. It is slightly more inconvenient to construct a counterexample here, but not especially difficult. \todo{Is there a direction of this non-isomorphism that does hold? ie. a map from one side to the other?}
+
+The consequence of this is \todo{that the rules for $\to$ and $\lto$ introduction have to have empty $\O$ contexts.}
 
 
 \noindent
