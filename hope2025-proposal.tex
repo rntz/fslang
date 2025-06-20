@@ -1,0 +1,493 @@
+\documentclass[sigplan,screen,dvipsnames,fleqn]{acmart}
+\settopmatter{printacmref=false}
+\setcopyright{none}
+\renewcommand\footnotetextcopyrightpermission[1]{}
+%\pagestyle{plain}
+
+
+%% ---- Top matter ----
+\title{Finite functional programming via graded effects and relevance types}
+\author{Michael Arntzenius}
+\affiliation{%
+  \institution{UC Berkeley}
+  \city{Berkeley}
+  \country{USA}
+}
+\email{daekharel@gmail.com}
+\acmConference{Higher Order Programming with Effects}{12 October 2025}{Singapore}
+
+
+%% ---- Packages ----
+%\usepackage{anyfontsize} % silence font size not available warnings by autoscaling fonts
+\usepackage{amsmath}
+%\usepackage{latexsym,stmaryrd}
+%\usepackage{mathtools}          % \dblcolon
+\usepackage{mathpartir}         % mathpar
+\usepackage{nccmath}            % fleqn (for code environment)
+
+%% \usepackage{minted}
+\usepackage{listings}           % lstlisting
+\lstset{language=prolog, columns=fullflexible,
+  basicstyle=\ttfamily, commentstyle=\color{Green}}
+
+\usepackage{hyperref,url}
+\usepackage[nameinlink,noabbrev]{cleveref}
+\newcommand\crefrangeconjunction{--} % use en-dashes for ranges.
+
+
+%% ---------- Code environment ----------
+\newlength\codeoffset
+\setlength\codeoffset{0pt}
+
+\NewEnviron{code}{
+  \begin{fleqn}[\codeoffset]
+    \begin{flalign*}
+      \setlength\arraycolsep{0pt} % necessary for flush left alignment.
+      \begin{array}{l}\BODY\end{array}
+  \end{flalign*}
+  \end{fleqn}
+}
+
+
+%% ---------- \negphantom command ----------
+%% https://tex.stackexchange.com/questions/316426/negative-phantom-inside-equations
+\makeatletter
+\newlength{\negph@wd}
+\DeclareRobustCommand{\negphantom}[1]{%
+  \ifmmode
+    \mathpalette\negph@math{#1}%
+  \else
+    \negph@do{#1}%
+  \fi
+}
+\newcommand{\negph@math}[2]{\negph@do{$\m@th#1#2$}}
+\newcommand{\negph@do}[1]{%
+  \settowidth{\negph@wd}{#1}%
+  \hspace*{-\negph@wd}%
+}\makeatother
+
+
+%% ---- Commands ----
+\newcommand{\todo}[1]{{\color{ACMRed}#1}}
+
+\newcommand\bnfeq{\Coloneqq}
+\newcommand\bnfor{\mathrel{\,|\,}}
+
+\newcommand\name[1]{\ensuremath{\mathit{#1}}}
+\newcommand\fnspace{\;}
+\newcommand\fn[1]{\lambda{#1}.\fnspace}
+\newcommand\<\;                 %function application space
+
+\newcommand\cto{\Rightarrow}    % "cartesian \to"
+\newcommand\lto\multimap        % "linear \to"
+%\newcommand\fto{\underset{\textsf{fin}}{\to}}           % finite map
+\newcommand\fto{\rightarrow}    % "finitely supported \to"
+\newcommand\x\times
+\newcommand\with{\mathbin{\&}}
+\newcommand\ox\otimes
+\newcommand\tbool{\name{bool}}
+\newcommand\tmaybe[1]{\ensuremath{{#1}_{*}}}
+\renewcommand\tmaybe[1]{\ensuremath{\name{maybe}~{#1}}}
+
+\newcommand\undertype[2]{\underaccent{\textsf{\upshape\scshape#1}}{#2}}
+\newcommand\eqt[1]{\undertype{eq}{#1}}
+
+\newcommand\G\Gamma
+\newcommand\D\Delta
+\renewcommand\O\Omega
+\renewcommand\L\Lambda
+
+%\newcommand\emptycx\varepsilon
+\newcommand\emptycx{{\cdot}}
+\newcommand\of{\mathbin{:}}
+\newcommand\cxsep{\mathbin{/}}
+\newcommand\hyp[2]{{#1} \of {#2}}
+
+\newcommand\cJ[3]{{#3} \,\vdash\, {#1} : {#2}}
+\newcommand\J[5]{{#3} \cxsep {#4} \cxsep {#5} \,\vdash\, {#1} : {#2}}
+%\newcommand\pJ[5]{{#3} \cxsep {#4} \cxsep {#1} : {#2} \,\vdash\, {#5}}
+
+\newcommand\const\name
+\newcommand\cname\text          %constructor name
+\newcommand\cnil{\cname{nil}}
+\newcommand\cjust{\cname{just}}
+\newcommand\ctrue{\cname{true}}
+\newcommand\cfalse{\cname{false}}
+
+\newcommand\tnil\cnil
+\newcommand\tjust[1]{\cjust\<{#1}}
+\newcommand\letin[2]{\textbf{let}~{#1}~\textbf{in}~{#2}}
+\newcommand\leteq[3]{\letin{{#1} = {#2}}{#3}}
+\newcommand\letjust[3]{\leteq{\tjust {#1}}{#2}{#3}}
+\newcommand\letpair[4]{\leteq{({#1}, {#2})}{#3}{#4}}
+\newcommand\ttrue{\ctrue}
+\newcommand\tfalse{\cfalse}
+\newcommand\tabsurd{\name{absurd}\<}
+\newcommand\tand{\mathrel{\mathbf{and}}}
+\newcommand\tor{\mathrel{\mathbf{or}}}
+
+
+\begin{document}
+\begin{abstract}
+  I propose unifying functional and logic/relational programming by treating predicates/relations as functions equipped with their support -- the set of inputs whose output is non-false.
+  For instance, the logic programming language Datalog, in which all relations are finite, is a language of finitely supported boolean functions.
+  %
+  Finite support allows representing the function, not as code, but as data -- as a table of input-output pairs -- making bulk operations more efficient.
+%
+  If we combine finitely supported functions, represented as data, and higher order functions, represented as code, in the same language, we get what I call \emph{finite functional programming.}
+  %
+  To this end, I demonstrate a simple type system to check finite support by treating variable grounding as a (co)effect.
+  %Aggregation and other Datalog extensions (such as bag and semiring semantics) are naturally handled by generalizing from boolean functions to arbitrary pointed output types.
+  %% \todo{do I actually do this? $\rightarrow$}
+  %% I sketch future work on semantics and implementation strategies, particularly for recursion.
+\end{abstract}
+
+\maketitle
+
+
+%% \section{Motivation}
+
+%% How do we type this? By treating variable grounding as an `effect,' of sorts. (or is it a coeffect)
+
+%% integrating relational and functional programming; Datalog in the large; modular and higher-order code.
+
+%% expanding Datalog to key-value maps eg semilattice semantics, semiring semantics.
+%% making it more natural to write aggregations etc.
+
+%% propose to think of logic programming as being about, not ``relations'', but \emph{functions}. a relation is really a function into booleans. once we take this point of view, key-value maps are an obvious generalization.
+
+%% what's special about relational programming compared with functional programming is that functions are \emph{not} treated as black-box input-output transformations, but can also be run ``backwards''. in particular, we can query the \emph{support} of a function.
+
+%% \todo{TODO}
+
+
+\section{Logic programming is (not) functional}
+
+Consider the following simple logic program to find mutual follows in a social network graph:
+
+\begin{lstlisting}
+follows(john, mary).
+follows(mary, john).
+... % many more follows() facts.
+mutuals(X,Y) :- follows(X,Y), follows(Y,X).
+\end{lstlisting}
+
+\noindent
+Semantically, predicates like \texttt{follows} and \texttt{mutuals} are functions into booleans.
+Following this intuition, we can translate this logic program into a functional one:
+
+\begin{code}
+\name{follows},\, \name{mutuals} : \name{user} \to \name{user} \to \tbool\\
+\name{follows} \<x \<y = (x == \const{john} \tand y == \const{mary})
+\\
+\phantom{\name{follows} \<x \<y =}
+\negphantom{{}\tor}
+\tor (x == \const{mary} \tand y == \const{john})
+\\
+\phantom{\name{follows} \<x \<y =}
+\negphantom{{}\tor}
+\tor \ldots
+\\
+\name{mutuals} \<x \<y = \name{follows} \<x \<y \mathrel{\mathbf{and}} \name{follows} \<y \<x
+\end{code}
+
+\noindent
+Unfortunately, this fails to capture the desired behavior of the logic program in two ways:
+
+\begin{description}
+\item[Performance:] Every call to \name{mutuals} does two linear searches by calling \name{follows}, where Datalog would do a quasilinear relational join \emph{once} and re-use its result as a look up table.%
+  %\footnote{We could solve this by memoizing \name{follows} and \name{mutuals}. Indeed, memoization foreshadows our approach, in that it (dynamically and lazily) turns behavior into data. However, memoization alone does not support enumeration, existential quantification, or aggregation.}
+
+\item[Semantics:] Functions in functional and imperative languages are directional: they take inputs to outputs.
+  Thus $\name{mutuals} \<x \<y$ checks whether specific users $x,y$ are mutuals; but we cannot use it to enumerate mutual follows, nor to find the mutuals $y$ of a given user $x$.
+\end{description}
+
+\noindent
+What's more, our na\"ive functional approach cannot handle \emph{existential quantification} (or in database parlance, \emph{projections}). This logic program finds directors and actors who have worked on the same film:
+
+\begin{lstlisting}
+directed_actor(Director, Actor) :-
+  directed_film(Director, Film),
+  starred_in(Film, Actor).
+\end{lstlisting}
+
+\noindent
+Since \texttt{Film} is not in the head of the rule, it is not enumerated by the relation \texttt{directed\textunderscore{}actor}; rather, the head is derivable if there \emph{exists} any \texttt{Film} that makes the body true.
+We can embed this functionally:
+
+\begin{code}
+%% \name{directedFilm} : \name{person} \to \name{film} \to \tbool = \dots\\
+%% \name{starredIn} : \name{film} \to \name{person} \to \tbool = \dots\\
+\name{directedActor} : \name{person} \to \name{person} \to \tbool\\
+\name{directedActor} \<\name{director} \<\name{actor} =\\
+\quad \name{exists}\<(\fn{\name{film}} \name{directedFilm} \<\name{director} \<\name{film}
+\\
+\quad \phantom{\name{exists}\<(\fn{\name{film}}}
+\negphantom{{}\tand{}}
+\tand \name{starredIn} \<\name{film} \<\name{actor})
+\end{code}
+
+\noindent
+This requires a function $\name{exists}_{\name{film}} : (\name{film} \to \tbool) \to \tbool$, or more generally $\name{exists}_\alpha : \forall\alpha.\ (\alpha \to \tbool) \to \tbool$.
+But there is no obvious way to implement $\name{exists}_{\name{film}}$ short of enumerating all films, and no way to implement $\name{exists}_\alpha$ at all.
+
+Logic programming supports existential quantification by rejecting input$\rightarrow$output directionality:
+much as a function is mathematically a set of input-output tuples, a logic programming predicate can enumerate its input-output tuples -- or rather, those whose output is true (any non-enumerated inputs are implicitly false).
+%
+We call these inputs the \emph{support} of a predicate.
+%
+If we can enumerate the support of $f : \name{film} \to \tbool$, calculating $\name{exists}\<f$ is simple: is the support non-empty?
+
+My hypothesis is that we can make the na\"ive functional translation of logic programs behave correctly if we capture \emph{functions of enumerable support.}
+%
+To simplify the problem, we focus here on \emph{finite} support, and sketch only a fragment of a type system for ensuring finite support, postponing metatheory and implementation.
+%
+Intriguingly, the typing rules for ensuring finite support resemble, though inexactly, type systems using graded (co)effects.
+
+%% Additionally, the functional style makes it natural to add two powerful features: (1) higher order computation, by allowing both finitely supported functions (represented as \emph{data,} e.g.\ a table) and arbitrary, possibly higher-order functions (represented as \emph{code}); and (2) finitely supported functions need not be boolean; finite support is definable for any \emph{pointed} type, that is, a type with a designated ``zero'' value \todo{TODO finish}
+
+%% \noindent
+%% \todo{TODO: point out that this is similar to matrix multiplication}
+%% \[
+%% (A \cdot B)_{ik} = \sum_j A_{ij} \cdot B_{jk}
+%% \]
+
+%% \begin{lstlisting}
+%% reach(start).
+%% reach(Y) :- reach(X), edge(X,Y).
+%% \end{lstlisting}
+
+
+%% ---------- TYPING RULES ----------
+\begin{figure*}
+
+  \[\begin{array}{rccl}
+    \text{types} & A,B &\bnfeq&
+    P
+    \bnfor A \cto B
+    \bnfor A \times B
+    %\bnfor 0
+    \bnfor \dots
+    \\
+    \text{pointed types} & P,Q &\bnfeq&
+    P \with Q \bnfor P \otimes Q
+    \bnfor P \lto Q
+    \bnfor A \fto P
+    %% \bnfor \tmaybe A
+    \bnfor \tbool
+    \\
+    \text{terms} & e &\bnfeq&
+    x
+    \bnfor t
+    \bnfor \fn{x} e \bnfor e_1\<e_2
+    \bnfor (e_1,\, e_2) \bnfor \pi_i \<e
+    %\bnfor \tabsurd e
+    \bnfor \dots
+    \\
+    \text{pointed terms} & t,u &\bnfeq&
+    x \bnfor \fn{x} t \bnfor t \< u \bnfor t \< x
+    \bnfor (t,u) \bnfor \pi_i \<t
+    \bnfor \letpair{x}{y}{t}{u}
+    \bnfor \leteq x t u
+    \bnfor \tnil
+    %\bnfor t \tand u \bnfor t \tor u
+    %\bnfor \tjust e \bnfor \letjust x t u
+    \\
+    \text{contexts} & \G,\O &\bnfeq& \emptycx \bnfor \G, \hyp x A
+    \\
+    \text{pointed contexts} & \D%,\L % \Lambda \Psi
+    &\bnfeq& \emptycx \bnfor \D, \hyp x P
+    \\
+    %% \text{finite support contexts} & \O &\bnfeq& \emptycx \bnfor \O, \hyp x A
+    %% \\
+  \end{array}\]
+
+  \begin{mathpar}
+    \infer*[right=include]{\J t P \G \emptycx \emptycx}{\cJ t P \G}
+
+    \infer*[right=var]{~}{\J x P \G {\hyp x P} {\emptycx}}
+
+    \infer*[right=nil]{~}{\J \tnil P \G \D \O}
+
+    %% FINITE MAPS
+    \infer*[right=$\fto$\,i]{
+      \J t P \G \D {\O, \hyp x A}
+    }{
+      \J {\fn x t} {A \fto P} \G \D \O
+    }
+
+    \infer*[right=$\fto$\,e]{
+      \J t {A \fto P} \G {\D} {\O}
+      %% \\\\
+      %% \pJ p A {\G,\O_1} {\D_2} {\O_2}
+    }{
+      \J {t\<x} P \G {\D} {\O, x : A}
+    }
+
+    \infer*[right=$\with$\,i]{
+      \J t P \G \D \O
+      \\\\
+      \J u Q \G \D \O
+    }{
+      \J {(t,u)} {P \with Q} \G \D \O
+    }
+
+    \infer*[right=$\with$\,e]{
+      \J t {P_1 \with P_2} \G \D \O
+    }{
+      \J {\pi_i\<t} {P_i} \G \D \O
+    }
+
+    \infer*[right=$\ox$\,i]{
+      \J t P \G {\D_1} {\O_1}
+      \\\\
+      \J s Q {\G, \O_1} {\D_2} {\O_2}
+    }{
+      \J{(t,s)}{P \ox Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
+    }
+
+    \infer*[right=$\ox$\,e]{
+      \J t {P \ox Q} \G {\D_1} {\O_1}
+      \\\\
+      \J s Q {\G, \O_1} {\D_2, \hyp{x}{P}, \hyp{y}{Q}} {\O_2}
+    }{
+      \J{\letpair{x}{y} t s}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
+    }
+
+    %% LINEAR MAPS
+    \infer*[right=$\lto$\,i]{
+      \J t Q \G {\D, \hyp x P} {\emptycx}
+    }{
+      \J {\fn x t} {P \lto Q} \G \D {\emptycx}
+    }
+
+    \infer*[right=$\lto$\,e]{
+      \J t {P \lto Q} \G {\D_1} {\O_1}
+      \\\\
+      \J u {P} {\G,\O_1} {\D_2} {\O_2}
+    }{
+      \J{t\<u}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
+    }
+
+    \infer*[right=let]{
+      \J t P \G {\D_1} {\O_1}
+      \\\\
+      \J u Q {\G, \O_1} {\D_2, x : P} {\O_2}
+    }{
+      \J {\leteq x t u} Q \G {\D_1 \cup \D_2} {\O_1,\O_2}
+    }
+  \end{mathpar}
+
+  \caption{Sketch of syntax and type system}
+  \label{fig-system}
+\end{figure*}
+
+
+\section{Type system}
+
+\newcommand\defeq\triangleq
+%\renewcommand\defeq{\overset{\text{def}}{=}}
+
+\Cref{fig-system} gives a sketch of the syntax and typing rules for a simply-typed $\lambda$-calculus capturing finite support, and \cref{fig-primitives} gives types for primitive functions on booleans.
+We consider two kinds of types, normal $A,B$ and pointed $P,Q$.
+A pointed type $P$ is a type with a designated point, $\tnil_P \in P$.
+A function $f : A \fto P$ is finitely supported iff $\name{support}\<f \defeq \{x \in A : f\<x \ne \tnil_P\}$ is finite.
+This generalizes (finite) support to non-boolean functions.
+
+\begin{figure}
+  \[\begin{array}{r@{\hskip 0.3em}l}
+  %\begin{align*}
+    \name{true} &: \tbool\\
+    \name{and} &: \tbool \ox \tbool \lto \tbool\\
+    \name{or} &: \tbool \with \tbool \lto \tbool\\
+    \name{exists} &: (A \fto \tbool) \lto \tbool\\
+    \name{eq} &: A \cto (A \fto \tbool)
+  %\end{align*}\vspace{-1.5\baselineskip}
+  \end{array}\]\vspace{-1\baselineskip}
+  \caption{Primitive functions}
+  \label{fig-primitives}
+\end{figure}
+
+We write $f : A \fto P$ for finitely supported maps, besides which we have two more kinds of map: unrestricted $g : A \cto B$ and point-preserving $h : P \lto Q$, meaning that $h(\tnil_P) = \tnil_Q$.
+%
+Point-preserving maps are useful because they preserve finite support: if $h$ preserves points then $\fn x h \<(f \<x)$ has finite support if $f$ does.
+
+We have two typing judgments, which we can gloss using our function types:
+
+\begin{center}
+  \begin{tabular}{l@{\hskip 2em}l}
+    \em Judgment & \em Rough interpretation
+    \\
+    $\cJ e A \G$ & $\G \cto A$
+    \\
+    $\J t P \G \D \O$ & $\G \cto (\D \lto (\O \fto P))$
+  \end{tabular}
+\end{center}
+
+\noindent
+The first, $\cJ e A \G$, types `unrestricted' terms that do not interact with finite support or pointed types; it is defined by the usual rules of simply typed $\lambda$ calculus (with $A \cto B$ as function type), which we omit for brevity, plus \textsc{include}.
+
+In the second, $\J t P \G \D \O$, the three typing contexts correspond to our three kinds of function, resembling linear-nonlinear logic.
+%
+The unrestricted context $\G$ obeys the usual structural rules.
+%
+The point-preserving context $\D$ obeys the substructural rules of \emph{relevance logic:} variables must be used \emph{at least} once.
+Dropping variables is unsound; for example, constant functions like $\fn x 5$ do not preserve \tnil.
+%
+Finally, the finitely supported context $\O$ does not even have a variable rule! After all, $\fn x x$ is not finitely supported.
+%
+Instead, eliminating a finitely supported variable requires applying a finitely supported map (\textsc{$\fto\,$e}).
+This resembles a monad graded by the context $\O$; applying a finitely supported map is graded monadic join.
+
+The unrestricted and finitely supported contexts interact via \emph{grounding.} For instance, in $\leteq x t u$, variables finitely supported by $t$ may be used \emph{unrestricted} in $u$ so long as $u$ uses $x$ in a point-preserving way.
+This internalizes the fact that point-preserving maps preserve finite support.
+
+Our pointed types have the two products characteristic of linear logic: the additive direct product $P \with Q$ of pairs with $\tnil_{P \with Q} = (\tnil_P, \tnil_Q)$; and the multiplicative tensor product $P \otimes Q$, which is the ``smash'' quotient of the direct product by $\tnil_{P \otimes Q} = (\tnil_P, y) = (x, \tnil_Q)$ for any $x : P$ or $y : Q$.
+The easiest example of this distinction is that \name{and} takes $\tbool \ox \tbool$, because $\name{and} \<(x,y)$ preserves points in both arguments: it is false ($= \tnil_\tbool$) if either $x$ or $y$ is. But $\name{or} \<(x,y) = \tnil$ only if both $x,y$ are $\tnil$, so $\name{or}$ accepts $\tbool \with \tbool$.
+
+
+%% \noindent
+%% \todo{NUMEROUS PROBLEMS:}
+
+%% 1. shouldn't $\leteq x t u$ be derivable as syntax sugar? what even is its cut reduction / $\beta$-reduction / substitution-based operational semantics?
+
+%% 2. how do we make \name{or} definable? what about \name{exists}?
+%% \name{or} is definable via outer-join property, $\name{outer} : \tmaybe \<A \with \tmaybe B \lto \tmaybe (A + B + A \times B)$? yech! and this doesn't handle exists. could have a ``comm. monoid'' typeclass, $P$ a c.mon if it admits $\name{plus} : P \with P \lto P$ and $\name{sum} : (A \fto P) \lto P$, but this doesn't allow defining \name{outer}, does it?
+
+
+%% \section{Challenges}
+
+%% \subsection{implementation strategies}
+
+%% when do you materialize?
+%% (at duplication, I guess?? hm, another layer of linear nonlinear???!?)
+
+%% \subsection{alternating contexts?}
+
+%% \subsection{recursively defined `finite' maps}
+
+%% Recursion: what should it do? how do we give it semantics, operational or denotational? how do we implement it?
+
+%% productive streaming nontermination a la lambda join?
+%% iterate to fixed point and only then yield a la Datalog?
+%% some hybrid?
+
+%% \subsection{interaction with normal recursive functions}
+
+%% should we even allow them? should we have a 2-level language where the functional bit is metaprogramming for the first-order finite bit?
+
+
+%% \section{Lipsum}
+%% \lipsum
+
+
+%% \section{Contributions}
+
+%% Our main contributions are: \todo{TODO}
+
+
+%% %% Bibliography
+%% \bibliographystyle{abbrvnat}
+%% \bibliography{datafun}
+
+\end{document}
