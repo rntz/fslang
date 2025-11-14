@@ -172,14 +172,14 @@
 \end{abstract}
 
 
-\section{Logic programming is (not) functional}
+\section{Logic Programming is (not) Functional Programming}
 
 Consider the following simple logic program to find mutual follows in a social network graph:
 
 \begin{lstlisting}
 follows(john, mary).
 follows(mary, john).
-... % many more follows() facts.
+% ... many more follows() facts.
 mutuals(X,Y) :- follows(X,Y), follows(Y,X).
 \end{lstlisting}
 
@@ -220,7 +220,7 @@ Following this intuition, we can translate this logic program directly into a fu
 
 \noindent
 However, functions in functional and imperative languages are unidirectional: they take inputs to outputs.
-Evaluating $\name{mutuals} \<x \<y$ will test whether fixed users $x, y$ are mutuals \emdash but unlike in logic programming, we cannot use it to enumerate mutual follows, e.g.\ find the mutuals $y$ of a fixed user $x$.%
+Evaluating $\name{mutuals} \<x \<y$ will test whether fixed users $x, y$ are mutuals \emdash but unlike in logic programming, we cannot use it to enumerate mutual follows, for instance, to find the mutuals $y$ of a fixed user $x$.%
 %% \footnotemark{}
 
 %% \footnotetext{%
@@ -231,7 +231,7 @@ Evaluating $\name{mutuals} \<x \<y$ will test whether fixed users $x, y$ are mut
 %%   Memoization alone, however, cannot handle existential quantification or aggregation, as we shall see.
 %% }
 
-For the same reason, direct functional translation cannot handle \emph{existential quantification} (or in database parlance, \emph{projections}). Consider this logic program to find directors and actors who have worked on the same film:
+For the same reason, direct functional translation cannot handle existential quantification (also called `projection' in databases). Consider this logic program to find directors and actors who have worked on the same film:
 
 \begin{lstlisting}
 directed_actor(Director, Actor) :-
@@ -240,7 +240,7 @@ directed_actor(Director, Actor) :-
 \end{lstlisting}
 
 \noindent
-Since \texttt{Film} does not appear in the head of the rule, the head is derivable if there \emph{exists} a \texttt{Film} satisfying the body.
+Since \texttt{Film} does not appear in the head of the rule, the head is derivable if there exists a \texttt{Film} satisfying the body.
 To embed this functionally, we could assume a function $\name{exists} : \fa{\alpha} (\alpha \to \bool) \to \bool$:
 
 \begin{code}
@@ -260,25 +260,28 @@ Yet how can we implement $\name{exists} \< f$ for an arbitrary type $\alpha$ and
 We are stymied by unidirectionality: all we can do with $f$ is give it inputs; since the input type is arbitrary, we cannot generate any.%
 \footnote{
   Of course, for specific types or functions we may be able to make headway.
-  One can define \name{exists} for any finite type $\alpha$ by enumerate-and-test.
+  One can define \name{exists} for any finite type $\alpha$ by enumeration.
   %% For arbitrary $f$, one might expect this is the best you can do:
-  As determining $\name{exists}\<f = \name{false}$ seems to require applying $f$ to every possible input, one might expect the infinite cases to be impossible.
-  But surprisingly, \name{exists} can be implemented for some infinite types by exploiting continuity \citep{seemingly-impossible-functional-programs}.
+  As determining $\name{exists}\<f = \name{false}$ seems to require applying $f$ to every possible input, one might expect the infinite cases to be impossible;
+  however, \name{exists} can be implemented for some infinite types by exploiting continuity \citep{seemingly-impossible-functional-programs}.
 }
 
-Logic programming supports existential quantification by rejecting input $\rightarrow$ output directionality:
+Logic programming implements existential quantification by rejecting input-output directionality:
 much as a function is a set of input-output tuples, a predicate can enumerate its tuples \emdash or rather, those whose output is true (any non-enumerated inputs are implicitly false).
 %
 We call these inputs the \emph{support} of a predicate.
 %
-If we can enumerate $f$'s support, calculating $\name{exists}\<f$ is simple: is the support non-empty?
+%Calculating $\name{exists}\<f$ means determining whether $f$'s support is non-empty.
+If we know $f$'s support, calculating $\name{exists}\<f$ is simple: is the support non-empty?
 
-This suggests we can make the direct functional translation of logic programs behave correctly if we equip our functions with \emph{enumerable support.}
+This suggests we can make the direct functional translation of logic programs behave correctly if we equip functions with a representation of their support.
 %
 %% "To simplify the problem" isn't enough motivation for finiteness!
-\todo{To simplify the problem,} we focus here on \emph{finite} support, and sketch only a fragment of a type system for ensuring finite support, postponing metatheory and implementation.
+In this paper we focus on \emph{finite} support. \todo{WHY? motivation! mention Datalog \& databases as inspiration?}
 %
-Intriguingly, the typing rules for ensuring finite support resemble, though inexactly, type systems for graded effects, as well as making use of \emph{relevance} typing (a substructural system where each variable must be used \emph{at least once,} a loosening of linear typing's \emph{exactly once}).
+\todo{ALSO, make the following more explicit/precise:} Intriguingly, the typing rules for ensuring finite support resemble, though inexactly, type systems for graded effects, as well as making use of relevance typing (a substructural system where each variable must be used \emph{at least once,} a loosening of linear typing's \emph{exactly once}).
+
+\todo{\bf LIST OF CONTRIBUTIONS GOES HERE}
 
 %% \footnotetext{
 %%   \emph{Productive} meaning that each enumeration step terminates; in particular we must be able to decide whether the support is empty.
