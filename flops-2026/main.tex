@@ -9,14 +9,6 @@
 %% % Used for displaying a sample figure. If possible, figure files should
 %% % be included in EPS format.
 
-\usepackage{hyperref}
-\usepackage[nameinlink]{cleveref}
-% If you use the hyperref package, please uncomment the following two lines
-% to display URLs in blue roman font according to Springer's eBook style:
-\usepackage{color}
-\renewcommand\UrlFont{\color{blue}\rmfamily}
-\urlstyle{rm}
-
 \title{Finite Functional Logic Programming}
 % If the paper title is too long for the running head, you can set
 % an abbreviated paper title here
@@ -35,6 +27,131 @@
 \email{daekharel@gmail.com}}
 
 
+%% ---- Packages ----
+
+\usepackage{color}
+\usepackage[dvipsnames,svgnames]{xcolor}
+
+\usepackage{natbib}
+
+%\usepackage{anyfontsize} % silence font size not available warnings by autoscaling fonts
+%\usepackage{amsmath}
+%\usepackage{latexsym,stmaryrd}
+%\usepackage{mathtools}          % \dblcolon
+\usepackage{mathpartir}         % mathpar
+\usepackage{nccmath}            % fleqn (for code environment)
+
+%\usepackage{minted}
+\usepackage{listings}           % lstlisting
+\lstset{language=prolog, columns=fullflexible,
+  basicstyle=\ttfamily, commentstyle=\color{Green}}
+
+\usepackage{hyperref,url}
+% If you use the hyperref package, please uncomment the following two lines
+% to display URLs in blue roman font according to Springer's eBook style:
+\renewcommand\UrlFont{\color{blue}\rmfamily}
+\urlstyle{rm}
+
+\usepackage[nameinlink,noabbrev]{cleveref}
+\newcommand\crefrangeconjunction{--} % use en-dashes for ranges.
+
+
+%% ---------- Code environment ----------
+\usepackage{environ}            %\NewEnviron
+\newlength\codeoffset
+\setlength\codeoffset{0pt}
+
+\NewEnviron{code}{
+  \begin{fleqn}[\codeoffset]
+    \begin{flalign*}
+      \setlength\arraycolsep{0pt} % necessary for flush left alignment.
+      \begin{array}{l}\BODY\end{array}
+  \end{flalign*}
+  \end{fleqn}
+}
+
+
+%% ---------- \negphantom command ----------
+%% https://tex.stackexchange.com/questions/316426/negative-phantom-inside-equations
+\makeatletter
+\newlength{\negph@wd}
+\DeclareRobustCommand{\negphantom}[1]{%
+  \ifmmode
+    \mathpalette\negph@math{#1}%
+  \else
+    \negph@do{#1}%
+  \fi
+}
+\newcommand{\negph@math}[2]{\negph@do{$\m@th#1#2$}}
+\newcommand{\negph@do}[1]{%
+  \settowidth{\negph@wd}{#1}%
+  \hspace*{-\negph@wd}%
+}\makeatother
+
+
+%% ---- Commands ----
+\newcommand\todo[1]{{\color{IndianRed}#1}}
+\newcommand\den[1]{\llbracket{#1}\rrbracket}
+
+\newcommand\bnfeq{\Coloneqq}
+\newcommand\bnfor{\mathrel{\,|\,}}
+
+\newcommand\name[1]{\ensuremath{\mathit{#1}}}
+\newcommand\fnspace{\;}
+\newcommand\fn[1]{\lambda{#1}.\fnspace}
+\newcommand\fa[1]{\forall{#1}.\ }
+\newcommand\<\;                 %function application space
+
+\newcommand\cto{\Rightarrow}    % "cartesian \to"
+\newcommand\lto\multimap        % "linear \to"
+%\newcommand\fto{\underset{\textsf{fin}}{\to}}           % finite map
+\newcommand\fto{\rightarrow}    % "finitely supported \to"
+\newcommand\x\times
+\newcommand\with{\mathbin{\&}}
+\newcommand\ox\otimes
+\newcommand\typename\text
+\newcommand\bool{\name{bool}}
+\newcommand\maybe[1]{\ensuremath{\typename{maybe}~{#1}}}
+
+%% need \usepackage{accent} for these
+%\newcommand\undertype[2]{\underaccent{\textsf{\upshape\scshape#1}}{#2}}
+%\newcommand\eqt[1]{\undertype{eq}{#1}}
+
+\newcommand\G\Gamma
+\newcommand\D\Delta
+\renewcommand\O\Omega
+\renewcommand\L\Lambda
+
+%\newcommand\emptycx\varepsilon
+\newcommand\emptycx{{\cdot}}
+\newcommand\of{\mathbin{:}}
+\newcommand\cxsep{\mathbin{/}}
+\newcommand\hyp[2]{{#1} \of {#2}}
+
+\newcommand\cJ[3]{{#3} \,\vdash\, {#1} : {#2}}
+\newcommand\J[5]{{#3} \cxsep {#4} \cxsep {#5} \,\vdash\, {#1} : {#2}}
+%\newcommand\pJ[5]{{#3} \cxsep {#4} \cxsep {#1} : {#2} \,\vdash\, {#5}}
+
+\newcommand\const\name
+\newcommand\cname\text          %constructor name
+\newcommand\cnil{\cname{nil}}
+\newcommand\cjust{\cname{just}}
+\newcommand\ctrue{\cname{true}}
+\newcommand\cfalse{\cname{false}}
+
+\newcommand\tnil\cnil
+\newcommand\tjust[1]{\cjust\<{#1}}
+\newcommand\letin[2]{\textbf{let}~{#1}~\textbf{in}~{#2}}
+\newcommand\leteq[3]{\letin{{#1} = {#2}}{#3}}
+\newcommand\letjust[3]{\leteq{\tjust {#1}}{#2}{#3}}
+\newcommand\letpair[4]{\leteq{({#1}, {#2})}{#3}{#4}}
+\newcommand\ttrue{\name{true}}
+\newcommand\tfalse{\name{false}}
+\newcommand\tabsurd{\text{absurd}\<}
+\newcommand\tand{\mathrel{\mathbf{and}}}
+\newcommand\tor{\mathrel{\mathbf{or}}}
+
+
 \begin{document}
 \maketitle              % typeset the header of the contribution
 
@@ -42,7 +159,7 @@
   I propose unifying functional and logic/relational programming by treating predicates/relations as functions equipped with their support -- the set of inputs whose output is non-false.
   For instance, the logic programming language Datalog, in which all relations are finite, is a language of finitely supported boolean functions.
   %
-  Finite support allows representing the function, not as code, but as data -- as a table of input-output pairs -- making bulk operations more efficient.
+  Finite support allows representing the function, not as code, but as data---as a table of input-output pairs---making bulk operations more efficient.
 %
   If we combine finitely supported functions, represented as data, and higher order functions, represented as code, in the same language, we get what I call \emph{finite functional programming.}
   %
@@ -51,10 +168,134 @@
   %% \todo{do I actually do this? $\rightarrow$}
   %% I sketch future work on semantics and implementation strategies, particularly for recursion.
 
-\keywords{First keyword  \and Second keyword \and Another keyword.}
+\keywords{\todo{TODO}: First keyword  \and Second keyword \and Another keyword.}
 \end{abstract}
 
-\section{First Section}
+
+\section{Logic programming is (not) functional}
+
+Consider the following simple logic program to find mutual follows in a social network graph:
+
+\begin{lstlisting}
+follows(john, mary).
+follows(mary, john).
+... % many more follows() facts.
+mutuals(X,Y) :- follows(X,Y), follows(Y,X).
+\end{lstlisting}
+
+\noindent
+Predicates like \texttt{follows} and \texttt{mutuals} denote functions into booleans.
+Following this intuition, we can translate this logic program directly into a functional one:
+
+\begin{code}
+\name{follows},\, \name{mutuals} : \name{user} \to \name{user} \to \bool\\
+\name{follows} \<x \<y = (\const{john} == x \tand \const{mary} == y)
+\\
+\phantom{\name{follows} \<x \<y =}
+\negphantom{{}\tor}
+\tor (\const{mary} == x \tand \const{john} == y)
+\\
+\phantom{\name{follows} \<x \<y =}
+\negphantom{{}\tor}
+\tor \ldots
+\\
+\name{mutuals} \<x \<y = \name{follows} \<x \<y \mathrel{\mathbf{and}} \name{follows} \<y \<x
+\end{code}
+
+%% \noindent
+%% Unfortunately, this fails to capture the desired behavior of the logic program in two ways:
+
+%% \begin{description}
+%% \item[Performance:] Every call to \name{mutuals} does two linear searches by calling \name{follows}, where Datalog would do a quasilinear relational join \emph{once} and re-use its result as a look up table.%
+%%   %\footnote{We could solve this by memoizing \name{follows} and \name{mutuals}. Indeed, memoization foreshadows our approach, in that it (dynamically and lazily) turns behavior into data. However, memoization alone does not support enumeration, existential quantification, or aggregation.}
+
+%% \item[Semantics:] Functions in functional and imperative languages are directional: they take inputs to outputs.
+%%   Thus $\name{mutuals} \<x \<y$ checks whether specific users $x,y$ are mutuals; but we cannot use it to enumerate mutual follows, nor to find the mutuals $y$ of a given user $x$.
+%% \end{description}
+
+\newcommand\emdash{\unskip\ ---\ \ignorespaces}
+\renewcommand\emdash{\unskip\thinspace---\thinspace\ignorespaces}
+%\renewcommand\emdash{\unskip\ --\ \ignorespaces}
+\renewcommand\emdash{\unskip---\ignorespaces}
+
+\noindent
+However, functions in functional and imperative languages are unidirectional: they take inputs to outputs.
+Evaluating $\name{mutuals} \<x \<y$ will test whether fixed users $x, y$ are mutuals \emdash but unlike in logic programming, we cannot use it to enumerate mutual follows, e.g.\ find the mutuals $y$ of a fixed user $x$.%
+%% \footnotemark{}
+
+%% \footnotetext{%
+%%   There is also the matter of efficiency.
+%%   Each call to $\name{mutuals} \<x \<y$ in a functional language performs two linear scans through \name{follows}.
+%%   Bottom-up logic programming languages like Datalog pre-compute tables for \texttt{follows} and \texttt{mutuals}, allowing logarithmic look-up.
+%%   However, top-down logic programming languages like Prolog and miniKanren use backtracking search, behaving similarly to our functional translation on this example; and memoization (\emph{tabling} in top-down logic programming) can amortize these costs over repeated tests.
+%%   Memoization alone, however, cannot handle existential quantification or aggregation, as we shall see.
+%% }
+
+For the same reason, direct functional translation cannot handle \emph{existential quantification} (or in database parlance, \emph{projections}). Consider this logic program to find directors and actors who have worked on the same film:
+
+\begin{lstlisting}
+directed_actor(Director, Actor) :-
+  directed_film(Director, Film),
+  starred_in(Film, Actor).
+\end{lstlisting}
+
+\noindent
+Since \texttt{Film} does not appear in the head of the rule, the head is derivable if there \emph{exists} a \texttt{Film} satisfying the body.
+To embed this functionally, we could assume a function $\name{exists} : \fa{\alpha} (\alpha \to \bool) \to \bool$:
+
+\begin{code}
+%% \name{directedFilm} : \name{person} \to \name{film} \to \bool = \dots\\
+%% \name{starredIn} : \name{film} \to \name{person} \to \bool = \dots\\
+\name{directedActor} : \name{person} \to \name{person} \to \bool\\
+\name{directedActor} \<\name{director} \<\name{actor} =\\
+\quad \name{exists}\<(\fn{\name{film}} \name{directedFilm} \<\name{director} \<\name{film}
+\\
+\quad \phantom{\name{exists}\<(\fn{\name{film}}}
+\negphantom{{}\tand{}}
+\tand \name{starredIn} \<\name{film} \<\name{actor})
+\end{code}
+
+\noindent
+Yet how can we implement $\name{exists} \< f$ for an arbitrary type $\alpha$ and an arbitrary function $f : \alpha \to \bool$?
+We are stymied by unidirectionality: all we can do with $f$ is give it inputs; since the input type is arbitrary, we cannot generate any.%
+\footnote{
+  Of course, for specific types or functions we may be able to make headway.
+  One can define \name{exists} for any finite type $\alpha$ by enumerate-and-test.
+  %% For arbitrary $f$, one might expect this is the best you can do:
+  As determining $\name{exists}\<f = \name{false}$ seems to require applying $f$ to every possible input, one might expect the infinite cases to be impossible.
+  But surprisingly, \name{exists} can be implemented for some infinite types by exploiting continuity \citep{seemingly-impossible-functional-programs}.
+}
+
+Logic programming supports existential quantification by rejecting input $\rightarrow$ output directionality:
+much as a function is a set of input-output tuples, a predicate can enumerate its tuples \emdash or rather, those whose output is true (any non-enumerated inputs are implicitly false).
+%
+We call these inputs the \emph{support} of a predicate.
+%
+If we can enumerate $f$'s support, calculating $\name{exists}\<f$ is simple: is the support non-empty?
+
+This suggests we can make the direct functional translation of logic programs behave correctly if we equip our functions with \emph{enumerable support.}
+%
+%% "To simplify the problem" isn't enough motivation for finiteness!
+\todo{To simplify the problem,} we focus here on \emph{finite} support, and sketch only a fragment of a type system for ensuring finite support, postponing metatheory and implementation.
+%
+Intriguingly, the typing rules for ensuring finite support resemble, though inexactly, type systems for graded effects, as well as making use of \emph{relevance} typing (a substructural system where each variable must be used \emph{at least once,} a loosening of linear typing's \emph{exactly once}).
+
+%% \footnotetext{
+%%   \emph{Productive} meaning that each enumeration step terminates; in particular we must be able to decide whether the support is empty.
+%% }
+
+%% Additionally, the functional style makes it natural to add two powerful features: (1) higher order computation, by allowing both finitely supported functions (represented as \emph{data,} e.g.\ a table) and arbitrary, possibly higher-order functions (represented as \emph{code}); and (2) finitely supported functions need not be boolean; finite support is definable for any \emph{pointed} type, that is, a type with a designated ``zero'' value \todo{TODO finish}
+
+%% \noindent
+%% \todo{TODO: point out that this is similar to matrix multiplication}
+%% \[
+%% (A \cdot B)_{ik} = \sum_j A_{ij} \cdot B_{jk}
+%% \]
+
+%% \begin{lstlisting}
+%% reach(start).
+%% reach(Y) :- reach(X), edge(X,Y).
+%% \end{lstlisting}
 
 
 %% END MATTER
