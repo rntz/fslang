@@ -160,7 +160,7 @@
 \maketitle              % typeset the header of the contribution
 
 \begin{abstract}
-  I propose unifying functional and logic/relational programming by treating predicates/relations as functions equipped with their support -- the set of inputs whose output is non-false.
+  I propose unifying functional and logic/relational programming by treating predicates/relations as functions equipped with their support---the set of inputs whose output is non-false.
   For instance, the logic programming language Datalog, in which all relations are finite, is a language of finitely supported boolean functions.
   %
   Finite support allows representing the function, not as code, but as data---as a table of input-output pairs---making bulk operations more efficient.
@@ -217,14 +217,9 @@ Following this intuition, we can translate this logic program directly into a fu
 %%   Thus $\name{mutuals} \<x \<y$ checks whether specific users $x,y$ are mutuals; but we cannot use it to enumerate mutual follows, nor to find the mutuals $y$ of a given user $x$.
 %% \end{description}
 
-\newcommand\emdash{\unskip\ ---\ \ignorespaces}
-\renewcommand\emdash{\unskip\thinspace---\thinspace\ignorespaces}
-%\renewcommand\emdash{\unskip\ --\ \ignorespaces}
-\renewcommand\emdash{\unskip---\ignorespaces}
-
 \noindent
 However, functions in functional and imperative languages are unidirectional: they take inputs to outputs.
-Evaluating $\name{mutuals} \<x \<y$ will test whether fixed users $x, y$ are mutuals \emdash but unlike in logic programming, we cannot use it to enumerate mutual follows, for instance, to find the mutuals $y$ of a fixed user $x$.%
+Evaluating $\name{mutuals} \<x \<y$ will test whether fixed users $x, y$ are mutuals---but unlike in logic programming, we cannot use it to enumerate mutual follows, for instance, to find the mutuals $y$ of a fixed user $x$.%
 %% \footnotemark{}
 
 %% \footnotetext{%
@@ -271,7 +266,7 @@ We are stymied by unidirectionality: all we can do with $f$ is give it inputs; s
 }
 
 Logic programming implements existential quantification by rejecting input-output directionality:
-much as a function is a set of input-output tuples, a predicate can enumerate its tuples \emdash or rather, those whose output is true (any non-enumerated inputs are implicitly false).
+much as a function is a set of input-output tuples, a predicate can enumerate its tuples---or rather, those whose output is true (any non-enumerated inputs are implicitly false).
 %
 We call these inputs the \emph{support} of a predicate.
 %
