@@ -36,11 +36,8 @@ Max Willsey\orcidID{0000-0001-8066-4218}% \and
 
 
 %% ---- Packages ----
-
 \usepackage{color}
 \usepackage[dvipsnames,svgnames]{xcolor}
-
-\usepackage{natbib}
 
 %\usepackage{anyfontsize} % silence font size not available warnings by autoscaling fonts
 %\usepackage{amsmath}
@@ -276,7 +273,7 @@ We are stymied by unidirectionality: all we can do with $f$ is give it inputs; s
   One can define \name{exists} for any finite type $\alpha$ by enumeration.
   %% For arbitrary $f$, one might expect this is the best you can do:
   Since determining $\name{exists}\<f = \name{false}$ seems to require applying $f$ to every possible input, one might expect the infinite cases to be impossible;
-  however, \name{exists} can be implemented for some infinite types by exploiting continuity \citep{seemingly-impossible-functional-programs}.
+  however, \name{exists} can be implemented for some infinite types by exploiting continuity~\cite{seemingly-impossible-functional-programs,DBLP:conf/lics/Escardo07}.
   However, our approach here is to presume knowledge, not of the structure of the type, but of the support of the function.
 }
 
@@ -405,5 +402,9 @@ Company X and owns stock in Company Y. Author C is a member of committee Z.
 %% \bibitem{ref_url1}
 %% LNCS Homepage, \url{http://www.springer.com/lncs}, last accessed 2023/10/25
 %% \end{thebibliography}
+
+
+\bibliographystyle{splncs04}
+\bibliography{fslang}
 
 \end{document}
