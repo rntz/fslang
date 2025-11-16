@@ -5,21 +5,25 @@
 % so please use T1 fonts in your manuscript whenever possible.
 % Other font encondings may result in incorrect characters.
 
-%% %% TEMPORARY: different fonts because I hate reading computer modern
+
+%% TEMPORARY: different fonts because I hate reading computer modern
 \PassOptionsToPackage{scaled=0.97}{XCharter}\linespread{1.0333}
 \usepackage{XCharter}
-\usepackage[scaled=0.96,proportional,semibold]{sourcesanspro}
+%\usepackage[scaled=0.965,proportional,semibold]{sourcesanspro}
+\usepackage[osf,scaled=1.0333]{AlegreyaSans}
+%\usepackage[scaled=1.08]{biolinum}
 \usepackage[scaled=1.021]{inconsolata}
 \usepackage[xcharter,scaled=1.0556,]{newtxmath}
 %\usepackage{mathastext}
 
-\title{Finite Functional Logic Programming}
+
+\title{Finite Functional Logic Programming\\via Pointed Types}
 % If the paper title is too long for the running head, you can set
 % an abbreviated paper title here
-%\titlerunning{Abbreviated paper title}
+%\titlerunning{Finite Functional Logic Programming via Pointed Types}
 
-\author{Michael Arntzenius\orcidID{0009-0002-0417-5636}%%  \and
-%% Second Author\inst{2,3}\orcidID{1111-2222-3333-4444} \and
+\author{Michael Arntzenius\orcidID{0009-0002-0417-5636} \and
+Max Willsey\orcidID{0000-0001-8066-4218}% \and
 %% Third Author\inst{3}\orcidID{2222--3333-4444-5555}
 }
 %
@@ -95,8 +99,11 @@
 
 %% ---- Commands ----
 \newcommand\todo[1]{{\color{IndianRed}#1}}
-\newcommand\den[1]{\llbracket{#1}\rrbracket}
 
+\newcommand\fslang{\ensuremath{\lambda_{\mathrm{FS}}}}
+\newcommand\Point{\ensuremath{\mathrm{Set}_{*}}}
+
+\newcommand\den[1]{\llbracket{#1}\rrbracket}
 \newcommand\bnfeq{\Coloneqq}
 \newcommand\bnfor{\mathrel{\,|\,}}
 
@@ -136,6 +143,7 @@
 \newcommand\J[5]{{#3} \cxsep {#4} \cxsep {#5} \,\vdash\, {#1} : {#2}}
 %\newcommand\pJ[5]{{#3} \cxsep {#4} \cxsep {#1} : {#2} \,\vdash\, {#5}}
 
+\newcommand\kword[1]{\ensuremath{\mathrm{#1}}}
 \newcommand\const\name
 \newcommand\cname\text          %constructor name
 \newcommand\cnil{\cname{nil}}
@@ -145,7 +153,7 @@
 
 \newcommand\tnil\cnil
 \newcommand\tjust[1]{\cjust\<{#1}}
-\newcommand\letin[2]{\textbf{let}~{#1}~\textbf{in}~{#2}}
+\newcommand\letin[2]{\kword{let}~{#1}~\kword{in}~{#2}}
 \newcommand\leteq[3]{\letin{{#1} = {#2}}{#3}}
 \newcommand\letjust[3]{\leteq{\tjust {#1}}{#2}{#3}}
 \newcommand\letpair[4]{\leteq{({#1}, {#2})}{#3}{#4}}
@@ -154,6 +162,12 @@
 \newcommand\tabsurd{\text{absurd}\<}
 \newcommand\tand{\mathrel{\mathbf{and}}}
 \newcommand\tor{\mathrel{\mathbf{or}}}
+
+\renewcommand\tand{\mathrel{\kword{and}}}
+\renewcommand\tor{\mathrel{\kword{or}}}
+
+%% \renewcommand\tand{\mathrel{\mathrm{\&\&}}}
+%% \renewcommand\tor{\mathrel{\mathrm{||}}}
 
 
 \begin{document}
@@ -167,12 +181,12 @@
 %
   If we combine finitely supported functions, represented as data, and higher order functions, represented as code, in the same language, we get what I call \emph{finite functional programming.}
   %
-  To this end, I demonstrate a simple type system to check finite support by treating variable grounding as a graded effect.
+  To this end, I demonstrate a simple type system to check finite support \todo{THIS IS NOT QUITE RIGHT, IT'S THE STATIC GRADING NOT THE RUNTIME EFFECT THAT MATTERS: by treating variable grounding as a graded effect.}
   %Aggregation and other Datalog extensions (such as bag and semiring semantics) are naturally handled by generalizing from boolean functions to arbitrary pointed output types.
   %% \todo{do I actually do this? $\rightarrow$}
   %% I sketch future work on semantics and implementation strategies, particularly for recursion.
 
-\keywords{\todo{TODO}: First keyword  \and Second keyword \and Another keyword.}
+\keywords{Logic programming \and Functional programming}
 \end{abstract}
 
 
@@ -203,7 +217,7 @@ Following this intuition, we can translate this logic program directly into a fu
 \negphantom{{}\tor}
 \tor \ldots
 \\
-\name{mutuals} \<x \<y = \name{follows} \<x \<y \mathrel{\mathbf{and}} \name{follows} \<y \<x
+\name{mutuals} \<x \<y = \name{follows} \<x \<y \tand \name{follows} \<y \<x
 \end{code}
 
 %% \noindent
@@ -258,11 +272,12 @@ To embed this functionally, we could assume a function $\name{exists} : \fa{\alp
 Yet how can we implement $\name{exists} \< f$ for an arbitrary type $\alpha$ and an arbitrary function $f : \alpha \to \bool$?
 We are stymied by unidirectionality: all we can do with $f$ is give it inputs; since the input type is arbitrary, we cannot generate any.%
 \footnote{
-  Of course, for specific types or functions we may be able to make headway.
+  Of course, for specific types we may be able to make headway.
   One can define \name{exists} for any finite type $\alpha$ by enumeration.
   %% For arbitrary $f$, one might expect this is the best you can do:
-  As determining $\name{exists}\<f = \name{false}$ seems to require applying $f$ to every possible input, one might expect the infinite cases to be impossible;
+  Since determining $\name{exists}\<f = \name{false}$ seems to require applying $f$ to every possible input, one might expect the infinite cases to be impossible;
   however, \name{exists} can be implemented for some infinite types by exploiting continuity \citep{seemingly-impossible-functional-programs}.
+  However, our approach here is to presume knowledge, not of the structure of the type, but of the support of the function.
 }
 
 Logic programming implements existential quantification by rejecting input-output directionality:
@@ -273,14 +288,40 @@ We call these inputs the \emph{support} of a predicate.
 %Calculating $\name{exists}\<f$ means determining whether $f$'s support is non-empty.
 If we know $f$'s support, calculating $\name{exists}\<f$ is simple: is the support non-empty?
 
-This suggests we can make the direct functional translation of logic programs behave correctly if we equip functions with a representation of their support.
+This suggests we can make the direct functional translation of logic programs behave correctly if we equip functions with some representation of their support.
 %
 %% "To simplify the problem" isn't enough motivation for finiteness!
-In this paper we focus on \emph{finite} support. \todo{WHY? motivation! mention Datalog \& databases as inspiration?}
+In this paper, inspired by bottom-up logic programming languages such as Datalog and by database query languages in general, we focus on \emph{finite} support;
+a function of finite support can then be represented as a key-value table.
+We make the following contributions:
 %
-\todo{ALSO, make the following more explicit/precise:} Intriguingly, the typing rules for ensuring finite support resemble, though inexactly, type systems for graded effects, as well as making use of relevance typing (a substructural system where each variable must be used \emph{at least once,} a loosening of linear typing's \emph{exactly once}).
+\begin{enumerate}
+\item We observe that defining the support of a function requires a point in its codomain, suggesting the category \Point\ of pointed sets and point-preserving maps is a suitable site for the semantics of a functional logic programming language.
 
-\todo{\bf LIST OF CONTRIBUTIONS GOES HERE (+ paper structure?)}
+\item We show maps with finite support form a graded monad/comonad on \Point.
+
+\item We show \Point\ forms a model of relevance, a relaxation of linearity in which variables must be used {at least once} rather than {exactly once.}
+
+\item We observe that in \Point, maps out of the tensor smash product $A \otimes B$ correspond to database {inner joins}, while maps out of the cartesian direct product $A \with B$ correspond to {outer joins}.
+
+\item We use these insights to construct a simply typed language \fslang\ that can express relational algebra and some forms of aggregation, whose type system guarantees finite support.
+
+%% \item We use these insights to construct a type system whose well typed terms have finite support, and which is expressive enough to capture relational algebra augmented with some forms of aggregation.
+
+\item We give a denotational semantics of \fslang\ in \Point.
+\end{enumerate}
+
+\noindent
+\todo{TODO: connect contributions to paper structure (section references).\\
+  TODO: any other contributions? something about tensor algebra / weighted logic programming?}
+
+\todo{Along the way we will observe other connections:
+  \begin{enumerate}
+  \item database inner/outer joins correspond to maps out of tensor/cartesian product on \Point\ respectively
+  \item the concept of variable grounding in bottom-up logic programming corresponds to the type system of a coeffect calculus for the graded comonad of finitely-supported maps
+  \item input/output modality corresponds to the distinction between computational functions (whose arguments are in ``input mode'') and finitely supported functions (whose argument is ``output mode'')
+  \end{enumerate}
+  }
 
 %% \footnotetext{
 %%   \emph{Productive} meaning that each enumeration step terminates; in particular we must be able to decide whether the support is empty.
@@ -300,7 +341,21 @@ In this paper we focus on \emph{finite} support. \todo{WHY? motivation! mention 
 %% \end{lstlisting}
 
 
-\section{\todo{WHAT COMES NEXT?}}
+\section{Support and pointed sets}
+
+\todo{\bf TODO WRITE}
+
+
+\section{Pointed sets and relevance}
+
+
+\section{Programming with pointed sets}
+
+
+\section{\fslang}
+
+
+\section{Semantics of \fslang}
 
 
 %% END MATTER
