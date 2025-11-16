@@ -1,14 +1,17 @@
 \documentclass[runningheads]{llncs}
 
 \usepackage[T1]{fontenc}
+
 % T1 fonts will be used to generate the final print and online PDFs,
 % so please use T1 fonts in your manuscript whenever possible.
 % Other font encondings may result in incorrect characters.
 
+\usepackage[utf8]{inputenc}
+\usepackage{CJKutf8}
+
 
 %% TEMPORARY: different fonts because I hate reading computer modern
-\PassOptionsToPackage{scaled=0.97}{XCharter}\linespread{1.0333}
-\usepackage{XCharter}
+\usepackage[scaled=0.97]{XCharter}\linespread{1.0333}
 %\usepackage[scaled=0.965,proportional,semibold]{sourcesanspro}
 \usepackage[osf,scaled=1.0333]{AlegreyaSans}
 %\usepackage[scaled=1.08]{biolinum}
@@ -17,14 +20,13 @@
 %\usepackage{mathastext}
 
 
-\title{Finite Functional Logic Programming\\via Pointed Types}
+\title{Finite Functional Logic Programming \\via Pointed Types}
 % If the paper title is too long for the running head, you can set
 % an abbreviated paper title here
 %\titlerunning{Finite Functional Logic Programming via Pointed Types}
 
-\author{Michael Arntzenius\orcidID{0009-0002-0417-5636} \and
-Max Willsey\orcidID{0000-0001-8066-4218}% \and
-%% Third Author\inst{3}\orcidID{2222--3333-4444-5555}
+\author{Michael Arntzenius\orcidID{0009-0002-0417-5636}
+  %\and Max Willsey\orcidID{0000-0001-8066-4218}
 }
 %
 \authorrunning{M. Arntzenius}
@@ -51,7 +53,7 @@ Max Willsey\orcidID{0000-0001-8066-4218}% \and
 \lstset{language=prolog, columns=fullflexible,
   basicstyle=\ttfamily, commentstyle=\color{Green}}
 
-\usepackage{hyperref,url}
+\usepackage{url,hyperref}
 % If you use the hyperref package, please uncomment the following two lines
 % to display URLs in blue roman font according to Springer's eBook style:
 \renewcommand\UrlFont{\color{blue}\rmfamily}
@@ -285,23 +287,25 @@ We call these inputs the \emph{support} of a predicate.
 %Calculating $\name{exists}\<f$ means determining whether $f$'s support is non-empty.
 If we know $f$'s support, calculating $\name{exists}\<f$ is simple: is the support non-empty?
 
-This suggests we can make the direct functional translation of logic programs behave correctly if we equip functions with some representation of their support.
+This suggests we can make the direct functional translation of logic programs behave correctly if we equip functions with %some representation of
+their support.
 %
 %% "To simplify the problem" isn't enough motivation for finiteness!
-In this paper, inspired by bottom-up logic programming languages such as Datalog and by database query languages in general, we focus on \emph{finite} support;
-a function of finite support can then be represented as a key-value table.
+Inspired by databases and bottom-up logic programming languages such as Datalog, we focus on \emph{finite} support;
+a function with finite support can be represented as a key-value table.
 We make the following contributions:
 %
 \begin{enumerate}
 \item We observe that defining the support of a function requires a point in its codomain, suggesting the category \Point\ of pointed sets and point-preserving maps is a suitable site for the semantics of a functional logic programming language.
 
-\item We show maps with finite support form a graded monad/comonad on \Point.
-
 \item We show \Point\ forms a model of relevance, a relaxation of linearity in which variables must be used {at least once} rather than {exactly once.}
 
-\item We observe that in \Point, maps out of the tensor smash product $A \otimes B$ correspond to database {inner joins}, while maps out of the cartesian direct product $A \with B$ correspond to {outer joins}.
+\item We show maps with finite support form a graded monad/comonad on \Point.
 
-\item We use these insights to construct a simply typed language \fslang\ that can express relational algebra and some forms of aggregation, whose type system guarantees finite support.
+%% \item We observe that in \Point, maps out of the tensor smash product $A \otimes B$ correspond to database {inner joins}, while maps out of the cartesian direct product $A \with B$ correspond to {outer joins}.
+
+\item We %use these insights to
+  construct a simply typed language \fslang\ that can express relational algebra and some forms of aggregation, whose type system guarantees finite support.
 
 %% \item We use these insights to construct a type system whose well typed terms have finite support, and which is expressive enough to capture relational algebra augmented with some forms of aggregation.
 
@@ -309,16 +313,40 @@ We make the following contributions:
 \end{enumerate}
 
 \noindent
+Along the way we will observe other curious connections:
+%
+\begin{enumerate}
+\item Database inner joins are point-preserving maps out of the smash product $A \otimes B$ of pointed sets, while outer joins map out of the direct product $A \with B$.
+\item Input/output modes in logic programming correspond to procedural functions and finitely supported functions respectively.
+  %% Mistral Contrastin's paper on moding has some relevant citations
+  %% "Automatic Reordering for Dataflow Safety of Datalog"
+  %% https://www.cs.kent.ac.uk/people/staff/dao7/publ/ppdp18-dataflow-reordering.pdf
+  %%
+  %% oldest citation is Mellish, "Abstract Interpretation of Prolog Programs",
+  %% https://link.springer.com/content/pdf/10.1007/3-540-16492-8_95.pdf
+  %%
+  %% Mercury had an in/out mode system; cited in Contrastin's paper.
+\item Checking a rule is well-moded corresponds to a coeffect system for the graded comonad of finitely-supported maps.
+\end{enumerate}
+
+%% min / goth / maru
+\begin{center}
+\noindent\begin{CJK*}{UTF8}{min}
+%始めましょう. % hajimemashou. = let's begin.
+さあ始めましょう！ % saa hajimemashou! = let's begin!
+%さあ、行きましょう！ % saa, ikimashou! = let's get going! or let's go!
+%さあ、行きましょうか？ % saa, ikimashou ka? = let's get going, shall we?
+%さあ、始めましょうか？ % saa, hajimemashou ka? = shall we begin?
+\end{CJK*}
+\qquad
+%So, let's get going, shall we?
+Let's get started!
+%Shall we begin?
+\end{center}
+
+\noindent
 \todo{TODO: connect contributions to paper structure (section references).\\
   TODO: any other contributions? something about tensor algebra / weighted logic programming?}
-
-\todo{Along the way we will observe other connections:
-  \begin{enumerate}
-  \item database inner/outer joins correspond to maps out of tensor/cartesian product on \Point\ respectively
-  \item the concept of variable grounding in bottom-up logic programming corresponds to the type system of a coeffect calculus for the graded comonad of finitely-supported maps
-  \item input/output modality corresponds to the distinction between computational functions (whose arguments are in ``input mode'') and finitely supported functions (whose argument is ``output mode'')
-  \end{enumerate}
-  }
 
 %% \footnotetext{
 %%   \emph{Productive} meaning that each enumeration step terminates; in particular we must be able to decide whether the support is empty.
@@ -346,9 +374,7 @@ We make the following contributions:
 \section{Pointed sets and relevance}
 
 
-\section{Programming with pointed sets}
-
-
+%% \section{Programming with pointed sets}
 \section{\fslang}
 
 
