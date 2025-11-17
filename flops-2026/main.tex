@@ -26,7 +26,7 @@
 %\titlerunning{Finite Functional Logic Programming via Pointed Types}
 
 \author{Michael Arntzenius\orcidID{0009-0002-0417-5636}
-  %\and Max Willsey\orcidID{0000-0001-8066-4218}
+  \and Max Willsey\orcidID{0000-0001-8066-4218}
 }
 %
 \authorrunning{M. Arntzenius}
@@ -98,18 +98,22 @@
 
 %% ---- Commands ----
 \newcommand\todo[1]{{\color{IndianRed}#1}}
+\newcommand\xxx{\todo{\bf XXX}}
 
 \newcommand\fslang{\ensuremath{\lambda_{\mathrm{FS}}}}
-\newcommand\Point{\ensuremath{\mathrm{Set}_{*}}}
+\newcommand\catname[1]{\ensuremath{\mathrm{#1}}}
+\newcommand\Point{\ensuremath{\catname{Set}_{*}}}
+\DeclareMathOperator{\support}{supp}
 
 \newcommand\den[1]{\llbracket{#1}\rrbracket}
 \newcommand\bnfeq{\Coloneqq}
 \newcommand\bnfor{\mathrel{\,|\,}}
 
 \newcommand\name[1]{\ensuremath{\mathit{#1}}}
-\newcommand\fnspace{\;}
+\newcommand\fnspace{\:}
 \newcommand\fn[1]{\lambda{#1}.\fnspace}
-\newcommand\fa[1]{\forall{#1}.\ }
+\newcommand\fa[1]{\forall{#1}.\fnspace}
+\newcommand\ex[1]{\exists{#1}.\fnspace}
 \newcommand\<\;                 %function application space
 
 \newcommand\cto{\Rightarrow}    % "cartesian \to"
@@ -144,20 +148,21 @@
 
 \newcommand\kword[1]{\ensuremath{\mathrm{#1}}}
 \newcommand\const\name
-\newcommand\cname\text          %constructor name
+%\newcommand\cname\text          %constructor name
+\newcommand\cname\name
 \newcommand\cnil{\cname{nil}}
 \newcommand\cjust{\cname{just}}
 \newcommand\ctrue{\cname{true}}
 \newcommand\cfalse{\cname{false}}
 
-\newcommand\tnil\cnil
+\newcommand\nil\cnil
 \newcommand\tjust[1]{\cjust\<{#1}}
 \newcommand\letin[2]{\kword{let}~{#1}~\kword{in}~{#2}}
 \newcommand\leteq[3]{\letin{{#1} = {#2}}{#3}}
 \newcommand\letjust[3]{\leteq{\tjust {#1}}{#2}{#3}}
 \newcommand\letpair[4]{\leteq{({#1}, {#2})}{#3}{#4}}
-\newcommand\ttrue{\name{true}}
-\newcommand\tfalse{\name{false}}
+\newcommand\true{\name{true}}
+\newcommand\false{\name{false}}
 \newcommand\tabsurd{\text{absurd}\<}
 \newcommand\tand{\mathrel{\mathbf{and}}}
 \newcommand\tor{\mathrel{\mathbf{or}}}
@@ -367,6 +372,81 @@ Let's get started!
 
 
 \section{Support and pointed sets}
+
+We've seen that the support of a boolean function $f$ is the set $\{ x \in A : f(x) \ne \false \}$.
+%
+Generalizing this, we write $P,Q$ for sets with a designated element (``pointed sets'') and $\nil_P \in P$ for the designated element (the ``point'').
+For instance, we regard $\bool$ as pointed with $\nil_\bool = \false$.
+We define the support of a function $f : A \to P$ into a pointed set to be $\support f = \{ x \in A : f(x) \ne \nil_P \}$.
+%
+If one considers $\nil_P$ as an uninteresting, default value, the support of a function consists of those inputs with interesting, non-default outputs.
+
+It may seem hasty to immediately generalize from booleans to pointed sets.
+%
+After all, boolean functions suffice to express logical predicates.
+%
+For this we beg the reader's patience; it will become clear as the paper progresses what this generality buys us.
+
+
+%% ---------- EXPLAINING WHAT GENERALIZATION BUYS US WITH EXAMPLES ----------
+%% It may seem hasty to immediately generalize from booleans to pointed sets.
+%% %
+%% After all, boolean functions suffice to express logical predicates.
+%% %
+%% So let's explore a few examples of what this generality buys us:
+
+%% \paragraph{Curried functions}
+%% It is clear what the support of a binary predicate $f : A \times B \to \bool$ is.
+%% But what is the support of its currying, $g : A \to B \to \bool$?
+%% Well, the codomain of $g$ is $B \to \bool$.
+%% Functions into a pointed set $B \to P$ naturally form a pointed set with $\nil_{B \to P} = \name{const} \<\nil_P$, the constantly \nil\ function. Therefore $\support g = \{ a \in A : (\fn b f(x,y)) \ne \name{const}\< \false \} = \{ a \in A : \ex{b} f(x,y) \ne \false \}$.
+%% Thus generalizing to pointed sets lets us cleanly articulate the support of a curried predicate, and therefore what it means for one to be finitely supported.
+%% \todo{also show that currying/uncurrying preserve finite support!}
+
+%% \noindent\todo{
+%%   1. tensor algebra. maybe matrix multiplication? $\support \{ (i,k) \mapsto \sum_j f(i,j) \cdot g(j,k) \} = \{\}$.
+%%   \\
+%%   2. support of a curried function.
+%%   \\
+%%   3. a point-preserving map contracts support and therefore preserves finite support. introduce category \Point.e/
+%%   \\
+%%   4. what about mapping a multi-argument function?
+%%   }
+
+
+%% ---------- OLD VERSION OF INTRO ----------
+%% We have seen that the support of a boolean function $f : A \to \bool$ is the set $\{ x \in A : f(x) \ne \false \}$.
+%% %
+%% Boolean functions suffice to express predicates or relations; however, it behooves us to generalize beyond them, for two reasons:
+%% %
+%% \begin{enumerate}
+
+%% \item To expose compositional structure.
+%%   For instance, it will let us describe:
+%%   (a) the support of a curried function $f : A \to B \to \bool$;
+%%   (b) when a transformation on a function's outputs will preserve finite support;
+%%   and
+%%   (c) distinct types for boolean \emph{and/or} that reflect their distinct effects on a function's support.
+
+%% \item To generalize from relational algebra (in which tuples are present or absent) to tensor algebra (in which a tuple is mapped to a value, such as a real number); equivalently, from logic programming to weighted logic programming.
+%% \end{enumerate}
+
+%% %% To generalize,
+%% %% For this we must choose an element of the codomain to play the role of \false.\footnotemark{}
+
+%% \noindent
+%% %Consider some existing mathematical notions of support:
+%% To this end, we must choose an element of the codomain to play the role of \false.
+%% %
+%% In analysis, for example, a real-valued function has support $\{ x \in A : f(x) \ne 0 \}$.
+%% %
+%% In algebra, a map into a monoid $M$ with identity element $\varepsilon$ has support $\{ x \in A : f(x) \ne \varepsilon \}$.
+%% %
+%% In general, we write $P,Q$ for sets with a designated element (``pointed sets'') and $\nil_P \in P$ for this element (the ``point'' of $P$).
+%% The support of a function $f : A \to P$ is the set $\support f = \{ x \in A : f(x) \ne \nil_P \}$.
+
+%% \footnotetext{\todo{explain why we pick \false\ not \true: because the support is the range of ``interesting'' outputs.}}
+
 
 \todo{\bf TODO WRITE}
 
