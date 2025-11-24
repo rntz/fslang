@@ -9,6 +9,8 @@
 \usepackage[utf8]{inputenc}
 \usepackage{CJKutf8}
 
+\hyphenation{co-domain}
+
 
 %% TEMPORARY: different fonts because I hate reading computer modern
 \usepackage[scaled=0.97]{XCharter}\linespread{1.0333}
@@ -20,7 +22,8 @@
 %\usepackage{mathastext}
 
 
-\title{Finite Functional Logic Programming \\via Pointed Types}
+\title{Finite Functional Programming}
+%\title{Finite Functional Logic Programming \\via Pointed Types}
 % If the paper title is too long for the running head, you can set
 % an abbreviated paper title here
 %\titlerunning{Finite Functional Logic Programming via Pointed Types}
@@ -378,7 +381,7 @@ The support of a boolean function $f$ is the set $\{ x \in A : f(x) \ne \false \
 %Such functions suffice to express logical predicates, but it will be useful to generalize further:
 It will be useful to generalize beyond booleans,
 firstly, to expose compositional structure---for instance, to define the support of a curried function $f : A \to B \to \bool$;
-and secondly, to generalize from boolean logic (or relational algebra) and existential quantification (or projection) to weighted logic programming (or tensor algebra) and aggregation.
+and secondly, to generalize from boolean logic and existential quantification (or relational algebra and projection, respectively) to weighted logic programming and aggregation (or tensor algebra and contraction).
 
 Therefore we write $P,Q$ for sets with a designated element (``pointed sets'') and $\nil_P \in P$ for the designated element (the ``point'').
 For instance, we regard $\bool$ as pointed with $\nil_\bool = \false$.
@@ -461,7 +464,23 @@ If one considers $\nil_P$ as an uninteresting, default value, a function's suppo
 %% \footnotetext{\todo{explain why we pick \false\ not \true: because the support is the range of ``interesting'' outputs.}}
 
 
-\todo{\bf TODO WRITE}
+\todo{{\bf TODO WRITE}. Want to cover: 
+  \begin{itemize}
+  \item define/notate finitely supported maps (fs maps)
+  \item fs maps are a pointed set
+  \item fs maps seem to form a graded (co)monad? tantalizing but...
+  \item but to map over fs maps we need \nil-preserving maps.
+  \end{itemize}
+  alternative story:
+  \begin{itemize}
+  \item define/notate finitely supported maps (fs maps)
+  \item fs maps are a pointed set
+  \item what can I do with a fs map? look up in it, clearly.
+  \item can we compose fs maps? not really
+  \item can I map over a fs map? yes, but only if I preserve the point!
+  \item category \Point\ of point-preserving maps
+  \end{itemize}
+}
 
 
 \section{Pointed sets and relevance}
@@ -469,6 +488,8 @@ If one considers $\nil_P$ as an uninteresting, default value, a function's suppo
 
 %% \section{Programming with pointed sets}
 \section{\fslang}
+
+\subsection{Decidably pointed sets}
 
 
 \section{Semantics of \fslang}
