@@ -170,14 +170,13 @@
 \newcommand\true{\name{true}}
 \newcommand\false{\name{false}}
 \newcommand\tabsurd{\text{absurd}\<}
-\newcommand\tand{\mathrel{\mathbf{and}}}
-\newcommand\tor{\mathrel{\mathbf{or}}}
-
-\renewcommand\tand{\mathrel{\kword{and}}}
-\renewcommand\tor{\mathrel{\kword{or}}}
+\newcommand\tand{\mathrel{\kword{and}}}
+\newcommand\tor{\mathrel{\kword{or}}}
 
 %% \renewcommand\tand{\mathrel{\mathrm{\&\&}}}
 %% \renewcommand\tor{\mathrel{\mathrm{||}}}
+%% \newcommand\tand{\mathrel{\mathbf{and}}}
+%% \newcommand\tor{\mathrel{\mathbf{or}}}
 
 
 \begin{document}
@@ -254,7 +253,7 @@ Evaluating $\name{mutuals} \<x \<y$ will test whether fixed users $x, y$ are mut
 %%   Memoization alone, however, cannot handle existential quantification or aggregation, as we shall see.
 %% }
 
-For the same reason, direct functional translation cannot handle existential quantification (also called `projection' in databases). Consider this logic program to find directors and actors who have worked on the same film:
+For the same reason, direct functional translation cannot handle existential quantification (also called `projection' in databases). Consider this logic program to find directors and actors who have worked on the same film: \todo{replace with ``costarred'' example?}
 
 \begin{lstlisting}
 directed_actor(Director, Actor) :-
@@ -488,6 +487,8 @@ The set of naturals less than three is finite; its complement is not.
 For the same reason, we cannot compose a finite map $g : A \fto P$ with an arbitrary function $f : P \to Q$ and expect the result to be finitely supported.
 %
 However, we \emph{can} do this if we know $f$ preserves \nil, that is, if $f(\nil_P) = \nil_Q$.
+
+\todo{{\bf badly need motivation}. should we head straight to example programs using the types we've introduced? use examples from talk (costarred, filmography, path, ...)? maybe what we should ask is: (1) can we mechanize the reasoning that lets us conclude these are finitely supported in a type system? and (2) if so, what are the types of $\kword{and}/\kword{or}$? and explicitly flag that this will take us down a rabbithole.}
 
 \todo{{\bf TODO WRITE}. Want to cover: 
   \begin{itemize}
