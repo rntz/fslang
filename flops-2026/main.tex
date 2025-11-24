@@ -23,6 +23,7 @@
 
 
 \title{Finite Functional Programming}
+\subtitle{or, LAMBDA: The Ultimate Predicate}
 %\title{Finite Functional Logic Programming \\via Pointed Types}
 % If the paper title is too long for the running head, you can set
 % an abbreviated paper title here
@@ -119,10 +120,12 @@
 \newcommand\ex[1]{\exists{#1}.\fnspace}
 \newcommand\<\;                 %function application space
 
-\newcommand\cto{\Rightarrow}    % "cartesian \to"
+%\newcommand\cto{\Rightarrow}    % "cartesian \to"
+\newcommand\cto\to
 \newcommand\lto\multimap        % "linear \to"
+\newcommand\fto\Rightarrow
 %\newcommand\fto{\underset{\textsf{fin}}{\to}}           % finite map
-\newcommand\fto{\rightarrow}    % "finitely supported \to"
+%\newcommand\fto{\rightarrow}    % "finitely supported \to"
 \newcommand\x\times
 \newcommand\with{\mathbin{\&}}
 \newcommand\ox\otimes
@@ -464,6 +467,15 @@ If one considers $\nil_P$ as an uninteresting, default value, a function's suppo
 %% \footnotetext{\todo{explain why we pick \false\ not \true: because the support is the range of ``interesting'' outputs.}}
 
 
+\newcommand\pwild\textunderscore
+
+We write $A \fto P = \{ f \in A \to P : \support f ~\text{is finite} \}$ for the finitely supported maps from $A$ to $P$.
+Naturally this is a pointed set with $\nil_{A \fto P} = \fn{x} \nil_P$:
+the boring, default finite map is the one with empty support. But what can we do with finitely supported maps?
+We can apply them (this is look-up in a key-value table), of course.
+Can we compose them?
+Unfortunately, the composition of two f.s.\ maps, may not have finite support:
+
 \todo{{\bf TODO WRITE}. Want to cover: 
   \begin{itemize}
   \item define/notate finitely supported maps (fs maps)
@@ -476,6 +488,9 @@ If one considers $\nil_P$ as an uninteresting, default value, a function's suppo
   \item define/notate finitely supported maps (fs maps)
   \item fs maps are a pointed set
   \item what can I do with a fs map? look up in it, clearly.
+  \item I can curry/uncurry: $A \fto B \fto P \cong A \times B \fto P$.
+  \item can I tell whether a $\lambda$-expression is finitely supported?
+    intuitively, yes, but it's not obvious how to mechanize this
   \item can we compose fs maps? not really
   \item can I map over a fs map? yes, but only if I preserve the point!
   \item category \Point\ of point-preserving maps
@@ -488,6 +503,8 @@ If one considers $\nil_P$ as an uninteresting, default value, a function's suppo
 
 %% \section{Programming with pointed sets}
 \section{\fslang}
+
+\todo{I want examples of what we can do in \fslang\ before we give its syntax/typing rules precisely. How do I approach this? Maybe I give examples and motivate typing rules (esp. for $\otimes$ intro) by them?}
 
 \subsection{Decidably pointed sets}
 
