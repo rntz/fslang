@@ -373,21 +373,35 @@ Let's get started!
 
 \section{Support and pointed sets}
 
-We've seen that the support of a boolean function $f$ is the set $\{ x \in A : f(x) \ne \false \}$.
+The support of a boolean function $f$ is the set $\{ x \in A : f(x) \ne \false \}$.
 %
-Generalizing this, we write $P,Q$ for sets with a designated element (``pointed sets'') and $\nil_P \in P$ for the designated element (the ``point'').
+%Such functions suffice to express logical predicates, but it will be useful to generalize further:
+It will be useful to generalize beyond booleans,
+firstly, to expose compositional structure---for instance, to define the support of a curried function $f : A \to B \to \bool$;
+and secondly, to generalize from boolean logic (or relational algebra) and existential quantification (or projection) to weighted logic programming (or tensor algebra) and aggregation.
+
+Therefore we write $P,Q$ for sets with a designated element (``pointed sets'') and $\nil_P \in P$ for the designated element (the ``point'').
 For instance, we regard $\bool$ as pointed with $\nil_\bool = \false$.
 We define the support of a function $f : A \to P$ into a pointed set to be $\support f = \{ x \in A : f(x) \ne \nil_P \}$.
 %
-If one considers $\nil_P$ as an uninteresting, default value, the support of a function consists of those inputs with interesting, non-default outputs.
+If one considers $\nil_P$ as an uninteresting, default value, a function's support contains those inputs with interesting, non-default outputs.
 
-It may seem hasty to immediately generalize from booleans to pointed sets.
-%
-After all, boolean functions suffice to express logical predicates.
-%
-For this we beg the reader's patience; it will become clear as the paper progresses what this generality buys us.
+%% ---------- OLD VERSION ----------
 
-
+%% We've seen that the support of a boolean function $f$ is the set $\{ x \in A : f(x) \ne \false \}$.
+%% %
+%% Generalizing this, we write $P,Q$ for sets with a designated element (``pointed sets'') and $\nil_P \in P$ for the designated element (the ``point'').
+%% For instance, we regard $\bool$ as pointed with $\nil_\bool = \false$.
+%% We define the support of a function $f : A \to P$ into a pointed set to be $\support f = \{ x \in A : f(x) \ne \nil_P \}$.
+%% %
+%% If one considers $\nil_P$ as an uninteresting, default value, the support of a function consists of those inputs with interesting, non-default outputs.
+
+%% It may seem hasty to immediately generalize from booleans to pointed sets.
+%% %
+%% After all, boolean functions suffice to express logical predicates.
+%% %
+%% For this we beg the reader's patience; it will become clear as the paper progresses what this generality buys us.
+
 %% ---------- EXPLAINING WHAT GENERALIZATION BUYS US WITH EXAMPLES ----------
 %% It may seem hasty to immediately generalize from booleans to pointed sets.
 %% %
@@ -413,7 +427,6 @@ For this we beg the reader's patience; it will become clear as the paper progres
 %%   4. what about mapping a multi-argument function?
 %%   }
 
-
 %% ---------- OLD VERSION OF INTRO ----------
 %% We have seen that the support of a boolean function $f : A \to \bool$ is the set $\{ x \in A : f(x) \ne \false \}$.
 %% %
