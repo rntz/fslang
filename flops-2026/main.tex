@@ -302,16 +302,19 @@ This suggests we can make the direct functional translation of logic programs be
 their support.
 %
 %% "To simplify the problem" isn't enough motivation for finiteness!
-Inspired by databases and bottom-up logic programming languages such as Datalog, we focus on \emph{finite} support;
-a function with finite support can be represented as a key-value table.
+Inspired by databases and bottom-up logic programming languages such as Datalog, we focus on {finite} support.
+Since functions with finite support can be represented as key-value tables, we will also call them \emph{finite maps.}
+%We will suggestively call functions with finite support \emph{finite maps,} as they can be represented by a key-value table rather.
+%Observe that a function with finite support can be represented as a key-value table; we will suggestively refer to functions with finite support as \emph{finite maps.}
+%A function with finite support can be represented as a key-value table, and for brevity we will call functions with finite support simply \emph{finite maps.}
 We make the following contributions:
 %
 \begin{enumerate}
-\item We observe that defining the support of a function requires a point in its codomain, suggesting the category \Point\ of pointed sets and point-preserving maps is a suitable site for the semantics of a functional logic programming language.
+\item We observe that defining a function's support requires a point in its codomain, suggesting the category \Point\ of pointed sets and point-preserving maps is a suitable site for the semantics of a functional logic programming language.
 
 \item We show \Point\ forms a model of relevance, a relaxation of linearity in which variables must be used {at least once} rather than {exactly once.}
 
-\item We show maps with finite support form a graded monad/comonad on \Point.
+\item We show finite maps form a graded monad/comonad on \Point.
 
 %% \item We observe that in \Point, maps out of the tensor smash product $A \otimes B$ correspond to database {inner joins}, while maps out of the cartesian direct product $A \with B$ correspond to {outer joins}.
 
@@ -328,7 +331,7 @@ Along the way we will observe other curious connections:
 %
 \begin{enumerate}
 \item Database inner joins are point-preserving maps out of the smash product $A \otimes B$ of pointed sets, while outer joins map out of the direct product $A \with B$.
-\item Input/output modes in logic programming correspond to procedural functions and finitely supported functions respectively.
+\item Input/output modes in logic programming correspond to procedural functions and finite maps respectively.
   %% Mistral Contrastin's paper on moding has some relevant citations
   %% "Automatic Reordering for Dataflow Safety of Datalog"
   %% https://www.cs.kent.ac.uk/people/staff/dao7/publ/ppdp18-dataflow-reordering.pdf
@@ -337,7 +340,7 @@ Along the way we will observe other curious connections:
   %% https://link.springer.com/content/pdf/10.1007/3-540-16492-8_95.pdf
   %%
   %% Mercury had an in/out mode system; cited in Contrastin's paper.
-\item Checking a rule is well-moded corresponds to a coeffect system for the graded comonad of finitely-supported maps.
+\item Checking a rule is well-moded corresponds to a coeffect system for the graded comonad of finite maps.
 \end{enumerate}
 
 %% min / goth / maru
@@ -468,13 +471,23 @@ If one considers $\nil_P$ as an uninteresting, default value, a function's suppo
 
 
 \newcommand\pwild\textunderscore
+\newcommand\nat{\mathbb{N}}
 
-We write $A \fto P = \{ f \in A \to P : \support f ~\text{is finite} \}$ for the finitely supported maps from $A$ to $P$.
-Naturally this is a pointed set with $\nil_{A \fto P} = \fn{x} \nil_P$:
-the boring, default finite map is the one with empty support. But what can we do with finitely supported maps?
-We can apply them (this is look-up in a key-value table), of course.
+We write $A \fto P = \{ f \in A \to P : \support f ~\text{is finite} \}$ for the finitely supported functions from $A$ to $P$.
+Naturally this is a pointed set with $\nil_{A \fto P} = \fn{x} \nil_P$;
+the boring, default finite map is the one with empty support.
+What can we do with finite maps?
+We can of course apply them---this is look-up in a key-value table.
+We can also curry and uncurry them: $A \times B \fto P \cong A \fto B \fto P$.
+\todo{this corresponds to moving between a flat representation and a nested trie-like one; should I mention this?}
 Can we compose them?
-Unfortunately, the composition of two f.s.\ maps, may not have finite support:
+Unfortunately, the composition of two finite maps may not have finite support:
+e.g.\ take $\fn{x} x < 3 : \nat \fto \bool$ followed by $\name{not} : \bool \fto \bool$.
+The set of naturals less than three is finite; its complement is not.
+
+For the same reason, we cannot compose a finite map $g : A \fto P$ with an arbitrary function $f : P \to Q$ and expect the result to be finitely supported.
+%
+However, we \emph{can} do this if we know $f$ preserves \nil, that is, if $f(\nil_P) = \nil_Q$.
 
 \todo{{\bf TODO WRITE}. Want to cover: 
   \begin{itemize}
