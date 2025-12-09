@@ -124,7 +124,7 @@
 \newcommand\cto\to
 \newcommand\lto\multimap        % "linear \to"
 \newcommand\fto\Rightarrow
-%\newcommand\fto{\underset{\textsf{fin}}{\to}}           % finite map
+%\renewcommand\fto{\underset{\textsf{fin}}{\to}}           % finite map
 %\newcommand\fto{\rightarrow}    % "finitely supported \to"
 \newcommand\x\times
 \newcommand\with{\mathbin{\&}}
@@ -183,17 +183,25 @@
 \maketitle              % typeset the header of the contribution
 
 \begin{abstract}
-  I propose unifying functional and logic/relational programming by treating predicates/relations as functions equipped with their support---the set of inputs whose output is non-false.
-  For instance, the logic programming language Datalog, in which all relations are finite, is a language of finitely supported boolean functions.
-  %
-  Finite support allows representing the function, not as code, but as data---as a table of input-output pairs---making bulk operations more efficient.
-%
-  If we combine finitely supported functions, represented as data, and higher order functions, represented as code, in the same language, we get what I call \emph{finite functional programming.}
-  %
-  To this end, I demonstrate a simple type system to check finite support \todo{THIS IS NOT QUITE RIGHT, IT'S THE STATIC GRADING NOT THE RUNTIME EFFECT THAT MATTERS: by treating variable grounding as a graded effect.}
-  %Aggregation and other Datalog extensions (such as bag and semiring semantics) are naturally handled by generalizing from boolean functions to arbitrary pointed output types.
-  %% \todo{do I actually do this? $\rightarrow$}
-  %% I sketch future work on semantics and implementation strategies, particularly for recursion.
+We propose unifying functional and logic/relational programming by treating predicates/relations as functions equipped with their support---the set of inputs whose output is non-false.
+For instance, the logic programming language Datalog, in which all relations are finite, is a language of finitely supported boolean functions.
+Finite support allows representing the function, not as code, but as data---as a table of input-output pairs---making bulk operations more efficient.
+Aggregation and weighted logic programming are naturally handled by generalizing the definition of support from booleans to other pointed sets.
+We refer to the combination of finitely supported functions, represented as data, with higher order functions, represented as code, as \emph{finite functional programming.}
+To this end, we demonstrate a simple type system to check finite support, using a combination of graded coeffects to check variable grounding and relevance types to model pointed sets.
+
+%% %% ---------- OLD ABSTRACT ----------
+%%   I propose unifying functional and logic/relational programming by treating predicates/relations as functions equipped with their support---the set of inputs whose output is non-false.
+%%   For instance, the logic programming language Datalog, in which all relations are finite, is a language of finitely supported boolean functions.
+%%   %
+%%   Finite support allows representing the function, not as code, but as data---as a table of input-output pairs---making bulk operations more efficient.
+%% %
+%%   If we combine finitely supported functions, represented as data, and higher order functions, represented as code, in the same language, we get what I call \emph{finite functional programming.}
+%%   %
+%%   To this end, I demonstrate a simple type system to check finite support \todo{THIS IS NOT QUITE RIGHT, IT'S THE STATIC GRADING NOT THE RUNTIME EFFECT THAT MATTERS: by treating variable grounding as a graded effect.}
+%%   %Aggregation and other Datalog extensions (such as bag and semiring semantics) are naturally handled by generalizing from boolean functions to arbitrary pointed output types.
+%%   %% \todo{do I actually do this? $\rightarrow$}
+%%   %% I sketch future work on semantics and implementation strategies, particularly for recursion.
 
 \keywords{Logic programming \and Functional programming}
 \end{abstract}
@@ -303,6 +311,7 @@ their support.
 %% "To simplify the problem" isn't enough motivation for finiteness!
 Inspired by databases and bottom-up logic programming languages such as Datalog, we focus on {finite} support.
 Since functions with finite support can be represented as key-value tables, we will also call them \emph{finite maps.}
+\todo{maybe I should discuss the ``goal'' here: a language with procedural higher-order functions, but also finite maps which are guaranteed finitely supported, represented as tables, and computed like database queries. should this go after or before contribution list? I guess it's a nice pr\'ecis of \fslang.}
 %We will suggestively call functions with finite support \emph{finite maps,} as they can be represented by a key-value table rather.
 %Observe that a function with finite support can be represented as a key-value table; we will suggestively refer to functions with finite support as \emph{finite maps.}
 %A function with finite support can be represented as a key-value table, and for brevity we will call functions with finite support simply \emph{finite maps.}
@@ -385,8 +394,8 @@ The support of a boolean function $f$ is the set $\{ x \in A : f(x) \ne \false \
 %
 %Such functions suffice to express logical predicates, but it will be useful to generalize further:
 It will be useful to generalize beyond booleans,
-firstly, to expose compositional structure---for instance, to define the support of a curried function $f : A \to B \to \bool$;
-and secondly, to generalize from boolean logic and existential quantification (or relational algebra and projection, respectively) to weighted logic programming and aggregation (or tensor algebra and contraction).
+firstly to expose compositional structure---for instance, to define the support of a curried function $f : A \to B \to \bool$;
+and secondly to generalize from boolean logic and existential quantification (or relational algebra and projection, respectively) to weighted logic programming and aggregation (or tensor algebra and contraction).
 
 Therefore we write $P,Q$ for sets with a designated element (``pointed sets'') and $\nil_P \in P$ for the designated element (the ``point'').
 For instance, we regard $\bool$ as pointed with $\nil_\bool = \false$.
@@ -477,20 +486,25 @@ Naturally this is a pointed set with $\nil_{A \fto P} = \fn{x} \nil_P$;
 the boring, default finite map is the one with empty support.
 What can we do with finite maps?
 We can of course apply them---this is look-up in a key-value table.
-We can also curry and uncurry them: $A \times B \fto P \cong A \fto B \fto P$.
+We can also curry and uncurry them: $A \times B \fto P \cong A \fto (B \fto P)$.
 \todo{this corresponds to moving between a flat representation and a nested trie-like one; should I mention this?}
+
 Can we compose them?
+%
 Unfortunately, the composition of two finite maps may not have finite support:
 e.g.\ take $\fn{x} x < 3 : \nat \fto \bool$ followed by $\name{not} : \bool \fto \bool$.
 The set of naturals less than three is finite; its complement is not.
-
+%
 For the same reason, we cannot compose a finite map $g : A \fto P$ with an arbitrary function $f : P \to Q$ and expect the result to be finitely supported.
 %
-However, we \emph{can} do this if we know $f$ preserves \nil, that is, if $f(\nil_P) = \nil_Q$.
+However, we \emph{can} compose a finite map with a function $f$ if $f(\nil_P) = \nil_Q$.
+%
+These are the \emph{point-preserving maps}, which we notate $P \lto Q = \{ f \in P \to Q : f(\nil_P) = \nil_Q \}$.
+The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps as morphisms; what we have just observed is that, for any set $A$, there is a functor $F_A : \Point \to \Point$ given by $F_A(P) = A \fto P$.
 
 \todo{{\bf badly need motivation}. should we head straight to example programs using the types we've introduced? use examples from talk (costarred, filmography, path, ...)? maybe what we should ask is: (1) can we mechanize the reasoning that lets us conclude these are finitely supported in a type system? and (2) if so, what are the types of $\kword{and}/\kword{or}$? and explicitly flag that this will take us down a rabbithole.}
 
-\todo{{\bf TODO WRITE}. Want to cover: 
+\todo{{\bf TODO WRITE}. Want to cover:
   \begin{itemize}
   \item define/notate finitely supported maps (fs maps)
   \item fs maps are a pointed set
@@ -528,20 +542,21 @@ However, we \emph{can} do this if we know $f$ preserves \nil, that is, if $f(\ni
 
 %% END MATTER
 \begin{credits}
-\subsubsection{\ackname} A bold run-in heading in small font size at the end of the paper is
-used for general acknowledgments, for example: This study was funded
-by X (grant number Y).
+%% \subsubsection{\ackname} A bold run-in heading in small font size at the end of the paper is
+%% used for general acknowledgments, for example: This study was funded
+%% by X (grant number Y).
 
 \subsubsection{\discintname}
-It is now necessary to declare any competing interests or to specifically
-state that the authors have no competing interests. Please place the
-statement with a bold run-in heading in small font size beneath the
-(optional) acknowledgments\footnote{If EquinOCS, our proceedings submission
-system, is used, then the disclaimer can be provided directly in the system.},
-for example: The authors have no competing interests to declare that are
-relevant to the content of this article. Or: Author A has received research
-grants from Company W. Author B has received a speaker honorarium from
-Company X and owns stock in Company Y. Author C is a member of committee Z.
+The authors have no competing interests to declare that are relevant to the content of this article.
+%% It is now necessary to declare any competing interests or to specifically
+%% state that the authors have no competing interests. Please place the
+%% statement with a bold run-in heading in small font size beneath the
+%% (optional) acknowledgments\footnote{If EquinOCS, our proceedings submission
+%% system, is used, then the disclaimer can be provided directly in the system.},
+%% for example: The authors have no competing interests to declare that are
+%% relevant to the content of this article. Or: Author A has received research
+%% grants from Company W. Author B has received a speaker honorarium from
+%% Company X and owns stock in Company Y. Author C is a member of committee Z.
 \end{credits}
 
 %% %
