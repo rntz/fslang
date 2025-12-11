@@ -283,14 +283,14 @@ To embed this functionally, we could assume a function $\name{exists} : \fa{\alp
 
 \begin{code}
 %% \name{directedFilm} : \name{person} \to \name{film} \to \bool = \dots\\
-%% \name{starredIn} : \name{film} \to \name{person} \to \bool = \dots\\
+%% \name{starsIn} : \name{film} \to \name{person} \to \bool = \dots\\
 \name{directedActor} : \name{person} \to \name{person} \to \bool\\
 \name{directedActor} \;\name{director} \;\name{actor} =\\
 \quad \name{exists}\;(\fn{\name{film}} \name{directedFilm} \;\name{director} \;\name{film}
 \\
 \quad \phantom{\name{exists}\;(\fn{\name{film}}}
 \negphantom{{}\tand{}}
-\tand \name{starredIn} \;\name{film} \;\name{actor})
+\tand \name{starsIn} \;\name{film} \;\name{actor})
 \end{code}
 
 \noindent
@@ -538,31 +538,31 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
 
 %% \begin{code}
 %% %% \name{directedFilm} : \name{person} \to \name{film} \to \bool = \dots\\
-%% %% \name{starredIn} : \name{film} \to \name{person} \to \bool = \dots\\
+%% %% \name{starsIn} : \name{film} \to \name{person} \to \bool = \dots\\
 %% \name{directedActor} : \name{person} \to \name{person} \to \bool\\
 %% \name{directedActor} \;\name{director} \;\name{actor} =\\
 %% \quad \name{exists}\;(\fn{\name{film}} \name{directedFilm} \;\name{director} \;\name{film}
 %% \\
 %% \quad \phantom{\name{exists}\;(\fn{\name{film}}}
 %% \negphantom{{}\tand{}}
-%% \tand \name{starredIn} \;\name{film} \;\name{actor})
+%% \tand \name{starsIn} \;\name{film} \;\name{actor})
 %% \end{code}
 
 \begin{code}
-  \name{costarred} : \name{person} \fto \name{person} \fto \bool\\
-  \name{costarred} \;x \;y =
-  \name{exists} \;(\fn{\name{film}} \name{starredIn} \;\name{film} \;x
-  \tand \name{starredIn} \;\name{film} y)
+  \name{costars} : \name{person} \fto \name{person} \fto \bool\\
+  \name{costars} \;x \;y =
+  \name{exists} \;(\fn{\name{film}} \name{starsIn} \;\name{film} \;x
+  \tand \name{starsIn} \;\name{film} y)
   %% \\
-  %% \phantom{\name{costarred} \;x \;y = \name{exists} \;(\fn{\name{film}}}
+  %% \phantom{\name{costars} \;x \;y = \name{exists} \;(\fn{\name{film}}}
   %% \negphantom{{}\tand{}}
-  %% \tand \name{starredIn} \;\name{film} \;y)
+  %% \tand \name{starsIn} \;\name{film} \;y)
 \end{code}
 
 \begin{code}
   \name{filmCount} : \name{person} \fto \nat_0\\
   \name{filmCount} \;\name{actor} = \name{sum} \;(\fn{\name{film}}
-    \twhen{\name{starredIn} \;\name{film} \;\name{actor}}{1}
+    \twhen{\name{starsIn} \;\name{film} \;\name{actor}}{1}
   )
 \end{code}
 
@@ -570,7 +570,7 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
   \tcomment{N.B.\ We leave semantics for recursion to future work.}
   \\
   \name{path} : \name{person} \fto \name{person} \fto \bool\\
-  \name{path} \;x \;y = \name{costarred} \;x \;y
+  \name{path} \;x \;y = \name{costars} \;x \;y
   \tor \name{exists} (\fn{z} \name{path} \;x \;z \tand \name{path} \;z \;y)
 \end{code}
 
