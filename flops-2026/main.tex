@@ -544,7 +544,7 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
 %% \tand \name{starredIn} \;\name{film} \;\name{actor})
 %% \end{code}
 
-\newcommand\tcomment[1]{\color{black!60}\textsf{\##1}}
+\newcommand\tcomment[1]{\color{black!60}\textsf{\#\ #1}}
 
 \begin{code}
   \name{costarred} : \name{person} \fto \name{person} \fto \bool\\
@@ -563,14 +563,14 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
   )
   \\
   \\
-  \color{black!60} \textsf{\# N.B.\ We leave semantics for recursion to future work.}
+  \tcomment{N.B.\ We leave semantics for recursion to future work.}
   \\
   \name{path} : \name{person} \fto \name{person} \fto \bool\\
   \name{path} \;x \;y = \name{costarred} \;x \;y
   \tor \name{exists} (\fn{z} \name{path} \;x \;z \tand \name{path} \;z \;y)
   \\
   \\
-  \color{black!60} \textsf{}
+  \tcomment{We can map over the keys of a f.s. map if we can sum over its value type}
   \\
   \name{map} : (A \to B) \to (A \fto \nat_0) \lto (B \fto \nat_0)\\
   \name{map} \;f \;\name{count} \;b =
