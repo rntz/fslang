@@ -102,8 +102,10 @@
 
 
 %% ---- Commands ----
+\newcommand\strong[1]{{\bfseries#1}}
 \newcommand\todo[1]{{\color{IndianRed}#1}}
-\newcommand\xxx{\todo{\bf XXX}}
+\newcommand\TODO[1]{\todo{\strong{TODO}: #1}}
+\newcommand\xxx{\todo{\strong{XXX}}}
 
 \newcommand\fslang{\ensuremath{\lambda_{\mathrm{FS}}}}
 \newcommand\catname[1]{\ensuremath{\mathrm{#1}}}
@@ -334,6 +336,7 @@ We make the following contributions:
 
 \item We %use these insights to
   construct a simply typed language \fslang\ that can express relational algebra and some forms of aggregation, whose type system guarantees finite support.
+  \TODO{but we still support non-finite possibly higher order functions.}
 
 %% \item We use these insights to construct a type system whose well typed terms have finite support, and which is expressive enough to capture relational algebra augmented with some forms of aggregation.
 
