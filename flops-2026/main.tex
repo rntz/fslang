@@ -12,16 +12,6 @@
 \hyphenation{co-domain}
 
 
-%% TEMPORARY: different fonts because I hate reading computer modern
-\usepackage[scaled=0.97]{XCharter}\linespread{1.0333}
-%\usepackage[scaled=0.965,proportional,semibold]{sourcesanspro}
-\usepackage[osf,scaled=1.0333]{AlegreyaSans}
-%\usepackage[scaled=1.08]{biolinum}
-\usepackage[scaled=1.021]{inconsolata}
-\usepackage[xcharter,scaled=1.0556,]{newtxmath}
-%\usepackage{mathastext}
-
-
 \title{Finite Functional Programming}
 \subtitle{or, LAMBDA: The Ultimate Predicate}
 %\title{Finite Functional Logic Programming \\via Pointed Types}
@@ -46,6 +36,7 @@
 \usepackage[dvipsnames,svgnames]{xcolor}
 
 %\usepackage{anyfontsize} % silence font size not available warnings by autoscaling fonts
+\usepackage{amssymb}            % \multimap, \mathbb
 %\usepackage{amsmath}
 %\usepackage{latexsym,stmaryrd}
 %\usepackage{mathtools}          % \dblcolon
@@ -65,6 +56,16 @@
 
 \usepackage[nameinlink,noabbrev]{cleveref}
 \newcommand\crefrangeconjunction{--} % use en-dashes for ranges.
+
+
+%% TEMPORARY: different fonts because I hate reading computer modern
+\usepackage[scaled=0.97]{XCharter}\linespread{1.0333}
+%\usepackage[scaled=0.965,proportional,semibold]{sourcesanspro}
+\usepackage[osf,scaled=1.0333]{AlegreyaSans}
+%\usepackage[scaled=1.08]{biolinum}
+\usepackage[scaled=1.021]{inconsolata}
+\usepackage[xcharter,scaled=1.0556,]{newtxmath}
+%\usepackage{mathastext}
 
 
 %% ---------- Code environment ----------
@@ -118,7 +119,7 @@
 \newcommand\fn[1]{\lambda{#1}.\fnspace}
 \newcommand\fa[1]{\forall{#1}.\fnspace}
 \newcommand\ex[1]{\exists{#1}.\fnspace}
-\newcommand\<\;                 %function application space
+%\newcommand\<\;                 %function application space
 
 %\newcommand\cto{\Rightarrow}    % "cartesian \to"
 \newcommand\cto\to
@@ -162,16 +163,20 @@
 \newcommand\cfalse{\cname{false}}
 
 \newcommand\nil\cnil
-\newcommand\tjust[1]{\cjust\<{#1}}
+\newcommand\tjust[1]{\cjust\;{#1}}
 \newcommand\letin[2]{\kword{let}~{#1}~\kword{in}~{#2}}
 \newcommand\leteq[3]{\letin{{#1} = {#2}}{#3}}
 \newcommand\letjust[3]{\leteq{\tjust {#1}}{#2}{#3}}
 \newcommand\letpair[4]{\leteq{({#1}, {#2})}{#3}{#4}}
 \newcommand\true{\name{true}}
 \newcommand\false{\name{false}}
-\newcommand\tabsurd{\text{absurd}\<}
+\newcommand\tabsurd{\text{absurd}\;}
 \newcommand\tand{\mathrel{\kword{and}}}
 \newcommand\tor{\mathrel{\kword{or}}}
+%\newcommand\twhen[2]{\kword{when} \;({#1}) \;{#2}}
+%\newcommand\twhen[2]{\kword{if} \;{#1}\; \kword{then} \;{#2}}
+\newcommand\twhen[2]{{#2} ~\kword{when}~ {#1}}
+\newcommand\teq[2]{{#1} == {#2}}
 
 %% \renewcommand\tand{\mathrel{\mathrm{\&\&}}}
 %% \renewcommand\tor{\mathrel{\mathrm{||}}}
@@ -183,7 +188,7 @@
 \maketitle              % typeset the header of the contribution
 
 \begin{abstract}
-We propose unifying functional and logic/relational programming by treating predicates/relations as functions equipped with their support---the set of inputs whose output is non-false.
+We propose unifying functional and logic/relational programming by treating predicates/relations as functions equipped with their support: the set of inputs whose output is nonzero.
 For instance, the logic programming language Datalog is a language of finitely supported boolean functions.
 Finite support allows representing the function, not as code, but as data---as a table of input-output pairs---making bulk operations more efficient.
 Aggregation and weighted logic programming are naturally handled by generalizing the definition of support from booleans to other pointed sets.
@@ -224,17 +229,17 @@ Following this intuition, we can translate this logic program directly into a fu
 
 \begin{code}
 \name{follows},\, \name{mutuals} : \name{user} \to \name{user} \to \bool\\
-\name{follows} \<x \<y = (\const{john} == x \tand \const{mary} == y)
+\name{follows} \;x \;y = (\const{john} == x \tand \const{mary} == y)
 \\
-\phantom{\name{follows} \<x \<y =}
+\phantom{\name{follows} \;x \;y =}
 \negphantom{{}\tor}
 \tor (\const{mary} == x \tand \const{john} == y)
 \\
-\phantom{\name{follows} \<x \<y =}
+\phantom{\name{follows} \;x \;y =}
 \negphantom{{}\tor}
 \tor \ldots
 \\
-\name{mutuals} \<x \<y = \name{follows} \<x \<y \tand \name{follows} \<y \<x
+\name{mutuals} \;x \;y = \name{follows} \;x \;y \tand \name{follows} \;y \;x
 \end{code}
 
 %% \noindent
@@ -245,17 +250,17 @@ Following this intuition, we can translate this logic program directly into a fu
 %%   %\footnote{We could solve this by memoizing \name{follows} and \name{mutuals}. Indeed, memoization foreshadows our approach, in that it (dynamically and lazily) turns behavior into data. However, memoization alone does not support enumeration, existential quantification, or aggregation.}
 
 %% \item[Semantics:] Functions in functional and imperative languages are directional: they take inputs to outputs.
-%%   Thus $\name{mutuals} \<x \<y$ checks whether specific users $x,y$ are mutuals; but we cannot use it to enumerate mutual follows, nor to find the mutuals $y$ of a given user $x$.
+%%   Thus $\name{mutuals} \;x \;y$ checks whether specific users $x,y$ are mutuals; but we cannot use it to enumerate mutual follows, nor to find the mutuals $y$ of a given user $x$.
 %% \end{description}
 
 \noindent
 However, functions in functional and imperative languages are unidirectional: they take inputs to outputs.
-Evaluating $\name{mutuals} \<x \<y$ will test whether fixed users $x, y$ are mutuals---but unlike in logic programming, we cannot use it to enumerate mutual follows, for instance, to find the mutuals $y$ of a fixed user $x$.%
+Evaluating $\name{mutuals} \;x \;y$ will test whether fixed users $x, y$ are mutuals---but unlike in logic programming, we cannot use it to enumerate mutual follows, for instance, to find the mutuals $y$ of a fixed user $x$.%
 %% \footnotemark{}
 
 %% \footnotetext{%
 %%   There is also the matter of efficiency.
-%%   Each call to $\name{mutuals} \<x \<y$ in a functional language performs two linear scans through \name{follows}.
+%%   Each call to $\name{mutuals} \;x \;y$ in a functional language performs two linear scans through \name{follows}.
 %%   Bottom-up logic programming languages like Datalog pre-compute tables for \texttt{follows} and \texttt{mutuals}, allowing logarithmic look-up.
 %%   However, top-down logic programming languages like Prolog and miniKanren use backtracking search, behaving similarly to our functional translation on this example; and memoization (\emph{tabling} in top-down logic programming) can amortize these costs over repeated tests.
 %%   Memoization alone, however, cannot handle existential quantification or aggregation, as we shall see.
@@ -277,22 +282,22 @@ To embed this functionally, we could assume a function $\name{exists} : \fa{\alp
 %% \name{directedFilm} : \name{person} \to \name{film} \to \bool = \dots\\
 %% \name{starredIn} : \name{film} \to \name{person} \to \bool = \dots\\
 \name{directedActor} : \name{person} \to \name{person} \to \bool\\
-\name{directedActor} \<\name{director} \<\name{actor} =\\
-\quad \name{exists}\<(\fn{\name{film}} \name{directedFilm} \<\name{director} \<\name{film}
+\name{directedActor} \;\name{director} \;\name{actor} =\\
+\quad \name{exists}\;(\fn{\name{film}} \name{directedFilm} \;\name{director} \;\name{film}
 \\
-\quad \phantom{\name{exists}\<(\fn{\name{film}}}
+\quad \phantom{\name{exists}\;(\fn{\name{film}}}
 \negphantom{{}\tand{}}
-\tand \name{starredIn} \<\name{film} \<\name{actor})
+\tand \name{starredIn} \;\name{film} \;\name{actor})
 \end{code}
 
 \noindent
-Yet how can we implement $\name{exists} \< f$ for an arbitrary type $\alpha$ and an arbitrary function $f : \alpha \to \bool$?
+Yet how can we implement $\name{exists} \; f$ for an arbitrary type $\alpha$ and an arbitrary function $f : \alpha \to \bool$?
 We are stymied by unidirectionality: all we can do with $f$ is give it inputs; since the input type is arbitrary, we cannot generate any.%
 \footnote{
   Of course, for specific types we may be able to make headway.
   One can define \name{exists} for any finite type $\alpha$ by enumeration.
   %% For arbitrary $f$, one might expect this is the best you can do:
-  Since determining $\name{exists}\<f = \name{false}$ seems to require applying $f$ to every possible input, one might expect the infinite cases to be impossible;
+  Since determining $\name{exists}\;f = \name{false}$ seems to require applying $f$ to every possible input, one might expect the infinite cases to be impossible;
   however, \name{exists} can be implemented for some infinite types by exploiting continuity~\cite{seemingly-impossible-functional-programs,DBLP:conf/lics/Escardo07}.
   However, our approach here is to presume knowledge, not of the structure of the type, but of the support of the function.
 }
@@ -302,8 +307,8 @@ much as a function is a set of input-output tuples, a predicate can enumerate it
 %
 We call these inputs the \emph{support} of a predicate.
 %
-%Calculating $\name{exists}\<f$ means determining whether $f$'s support is non-empty.
-If we know $f$'s support, calculating $\name{exists}\<f$ is simple: is the support non-empty?
+%Calculating $\name{exists}\;f$ means determining whether $f$'s support is non-empty.
+If we know $f$'s support, calculating $\name{exists}\;f$ is simple: is the support non-empty?
 
 This suggests we can make the direct functional translation of logic programs behave correctly if we equip functions with %some representation of
 their support.
@@ -430,7 +435,7 @@ If one considers $\nil_P$ as an uninteresting, default value, a function's suppo
 %% It is clear what the support of a binary predicate $f : A \times B \to \bool$ is.
 %% But what is the support of its currying, $g : A \to B \to \bool$?
 %% Well, the codomain of $g$ is $B \to \bool$.
-%% Functions into a pointed set $B \to P$ naturally form a pointed set with $\nil_{B \to P} = \name{const} \<\nil_P$, the constantly \nil\ function. Therefore $\support g = \{ a \in A : (\fn b f(x,y)) \ne \name{const}\< \false \} = \{ a \in A : \ex{b} f(x,y) \ne \false \}$.
+%% Functions into a pointed set $B \to P$ naturally form a pointed set with $\nil_{B \to P} = \name{const} \;\nil_P$, the constantly \nil\ function. Therefore $\support g = \{ a \in A : (\fn b f(x,y)) \ne \name{const}\; \false \} = \{ a \in A : \ex{b} f(x,y) \ne \false \}$.
 %% Thus generalizing to pointed sets lets us cleanly articulate the support of a curried predicate, and therefore what it means for one to be finitely supported.
 %% \todo{also show that currying/uncurrying preserve finite support!}
 
@@ -524,6 +529,53 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
   \item category \Point\ of point-preserving maps
   \end{itemize}
 }
+
+\subsection{EXAMPLE PROGRAMS}
+
+%% \begin{code}
+%% %% \name{directedFilm} : \name{person} \to \name{film} \to \bool = \dots\\
+%% %% \name{starredIn} : \name{film} \to \name{person} \to \bool = \dots\\
+%% \name{directedActor} : \name{person} \to \name{person} \to \bool\\
+%% \name{directedActor} \;\name{director} \;\name{actor} =\\
+%% \quad \name{exists}\;(\fn{\name{film}} \name{directedFilm} \;\name{director} \;\name{film}
+%% \\
+%% \quad \phantom{\name{exists}\;(\fn{\name{film}}}
+%% \negphantom{{}\tand{}}
+%% \tand \name{starredIn} \;\name{film} \;\name{actor})
+%% \end{code}
+
+\newcommand\tcomment[1]{\color{black!60}\textsf{\##1}}
+
+\begin{code}
+  \name{costarred} : \name{person} \fto \name{person} \fto \bool\\
+  \name{costarred} \;x \;y =
+  \name{exists} \;(\fn{\name{film}} \name{starredIn} \;\name{film} \;x
+  \tand \name{starredIn} \;\name{film} y)
+  %% \\
+  %% \phantom{\name{costarred} \;x \;y = \name{exists} \;(\fn{\name{film}}}
+  %% \negphantom{{}\tand{}}
+  %% \tand \name{starredIn} \;\name{film} \;y)
+  \\
+  \\
+  \name{filmCount} : \name{person} \fto \nat_0\\
+  \name{filmCount} \;\name{actor} = \name{sum} \;(\fn{\name{film}}
+    \twhen{\name{starredIn} \;\name{film} \;\name{actor}}{1}
+  )
+  \\
+  \\
+  \color{black!60} \textsf{\# N.B.\ We leave semantics for recursion to future work.}
+  \\
+  \name{path} : \name{person} \fto \name{person} \fto \bool\\
+  \name{path} \;x \;y = \name{costarred} \;x \;y
+  \tor \name{exists} (\fn{z} \name{path} \;x \;z \tand \name{path} \;z \;y)
+  \\
+  \\
+  \color{black!60} \textsf{}
+  \\
+  \name{map} : (A \to B) \to (A \fto \nat_0) \lto (B \fto \nat_0)\\
+  \name{map} \;f \;\name{count} \;b =
+    \name{sum} \;(\fn{a} \twhen{\teq{f\;a}{b}}{\name{count} \;a} )
+\end{code}
 
 
 \section{Pointed sets and relevance}
