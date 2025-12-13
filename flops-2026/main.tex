@@ -414,14 +414,14 @@ The support of a boolean function $f$ is the set $\{ x \in A : f(x) \ne \false \
 %
 %Such functions suffice to express logical predicates, but it will be useful to generalize further:
 It will be useful to generalize beyond booleans,
-firstly to expose compositional structure---for instance, to define the support of a curried function $f : A \to B \to \bool$;
+firstly to expose compositional structure, for instance, to define the support of a curried function $f : A \to B \to \bool$;
 and secondly to generalize from boolean logic and existential quantification (or relational algebra and projection, respectively) to weighted logic programming and aggregation (or tensor algebra and contraction).
 
-Therefore we write $P,Q$ for sets with a designated element (``pointed sets'') and $\nil_P \in P$ for the designated element (the ``point'').
+To this end we write $P,Q$ for sets with a designated element (``pointed sets'') and $\nil_P \in P$ for the designated element (the ``point'').
 For instance, we regard $\bool$ as pointed with $\nil_\bool = \false$.
 We define the support of a function $f : A \to P$ into a pointed set to be $\support f = \{ x \in A : f(x) \ne \nil_P \}$.
 %
-If one considers $\nil_P$ as an uninteresting, default value, a function's support contains those inputs with interesting, non-default outputs.
+If one regards $\nil_P$ as an uninteresting, default value, a function's support contains those inputs with interesting, non-default outputs.
 
 %% ---------- OLD VERSION ----------
 
@@ -599,12 +599,9 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
 \end{code}
 
 \begin{code}
+  \tcomment{examples of inner joins}\\
   \name{intersect} : (A \fto \bool) \otimes (A \fto bool) \lto (A \fto \bool)\\
   \name{intersect} \<f \<g \<x = f\<x \tand g\<x\\
-  \\
-  \name{union} : (A \fto \bool) \with (A \fto \bool) \lto (A \fto \bool)\\
-  \name{union} \<\name{fg} \<x =
-    {\pi_1 \<\name{fg} \<x} \tor {\pi_2 \<\name{fg} \<x}\\
   \\
   \name{cross} : (A \fto \bool) \otimes (B \fto bool) \lto (A \times B \fto \bool)\\
   \name{cross} \<f \<g \<(x,y) = f\<x \tand g\<y\\
@@ -613,6 +610,13 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
   \lto (A \fto C \fto \bool)\\
   \name{join} \<f \<g \<a \<c =
     \name{exists}\<(\fn{b} f\<a \<b \tand g \<b \<c)
+\end{code}
+
+\begin{code}
+  \tcomment{examples of outer joins}\\
+  \name{union} : (A \fto \bool) \with (A \fto \bool) \lto (A \fto \bool)\\
+  \name{union} \<\name{fg} \<x =
+    {\pi_1 \<\name{fg} \<x} \tor {\pi_2 \<\name{fg} \<x}
 \end{code}
 
 
