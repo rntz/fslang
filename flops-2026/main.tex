@@ -606,11 +606,21 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
   \name{cross} : (A \fto \bool) \otimes (B \fto bool) \lto (A \times B \fto \bool)\\
   \name{cross} \<f \<g \<(x,y) = f\<x \tand g\<y\\
   \\
-  \name{join} : (A \fto B \fto \bool) \otimes (B \fto C \fto \bool)
+  \name{join} : (A \fto B \fto \bool) \otimes (B \fto C \fto bool) \lto (A \fto B \fto C \fto \bool)\\
+  \name{join} \<f \<g \<(a,b,c) = f\<a\<b \tand g\<b\<c\\
+  \\
+  \name{compose} : (A \fto B \fto \bool) \otimes (B \fto C \fto \bool)
   \lto (A \fto C \fto \bool)\\
-  \name{join} \<f \<g \<a \<c =
-    \name{exists}\<(\fn{b} f\<a \<b \tand g \<b \<c)
+  \name{compose} \<f \<g \<a \<c =
+    \name{exists}\<(\fn{b} \name{join} \<f \<g \<a \<b \<c)\\
+  \\
+  \name{joinWith} : (A \times B \to \bool) \to (A \fto \bool) \lto (B \fto \bool) \lto (A \fto B \fto \bool)\\
+  \name{joinWith} \<\name{test} \<f \<g \<a \<b =
+    f\<a \tand g\<b \tand \name{test}\<(a,b)
 \end{code}
+
+\noindent
+\todo{explain that these can all be curried.}
 
 \begin{code}
   \tcomment{examples of outer joins}\\
@@ -618,6 +628,9 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
   \name{union} \<\name{fg} \<x =
     {\pi_1 \<\name{fg} \<x} \tor {\pi_2 \<\name{fg} \<x}
 \end{code}
+
+\noindent
+\todo{explain why this CANNOT be curried: $(A \fto \bool) \lto (A \fto \bool) \lto (A \fto \bool)$ promises that if its first argument is \nil, i.e.\ the empty set, then its result is, too. union doesn't have this property.}
 
 
 \section{Pointed sets and relevance}
