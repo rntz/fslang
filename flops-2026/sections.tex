@@ -1,0 +1,269 @@
+\documentclass[runningheads]{llncs}
+
+\usepackage[T1]{fontenc}
+
+% T1 fonts will be used to generate the final print and online PDFs,
+% so please use T1 fonts in your manuscript whenever possible.
+% Other font encondings may result in incorrect characters.
+
+\usepackage[utf8]{inputenc}
+\usepackage{CJKutf8}
+
+\hyphenation{co-domain}
+
+
+\title{Finite Functional Programming}
+\subtitle{or, LAMBDA: The Ultimate Predicate}
+%\title{Finite Functional Logic Programming \\via Pointed Types}
+% If the paper title is too long for the running head, you can set
+% an abbreviated paper title here
+%\titlerunning{Finite Functional Logic Programming via Pointed Types}
+
+\author{Michael Arntzenius\orcidID{0009-0002-0417-5636}
+  \and Max Willsey\orcidID{0000-0001-8066-4218}
+}
+%
+\authorrunning{M. Arntzenius}
+% First names are abbreviated in the running head.
+% If there are more than two authors, 'et al.' is used.
+%
+\institute{University of California, Berkeley, USA\\
+\email{daekharel@gmail.com}}
+
+
+%% ---- Packages ----
+\usepackage{color}
+\usepackage[dvipsnames,svgnames]{xcolor}
+
+%\usepackage{anyfontsize} % silence font size not available warnings by autoscaling fonts
+\usepackage{amssymb}            % \multimap, \mathbb
+%\usepackage{amsmath}
+%\usepackage{latexsym,stmaryrd}
+%\usepackage{mathtools}          % \dblcolon
+\usepackage{mathpartir}         % mathpar
+\usepackage{nccmath}            % fleqn (for code environment)
+
+%\usepackage{minted}
+\usepackage{listings}           % lstlisting
+\lstset{language=prolog, columns=fullflexible,
+  basicstyle=\ttfamily, commentstyle=\color{Green}}
+
+\usepackage{url,hyperref}
+% If you use the hyperref package, please uncomment the following two lines
+% to display URLs in blue roman font according to Springer's eBook style:
+\renewcommand\UrlFont{\color{blue}\rmfamily}
+\urlstyle{rm}
+
+\usepackage[nameinlink,noabbrev]{cleveref}
+\newcommand\crefrangeconjunction{--} % use en-dashes for ranges.
+
+
+%% TEMPORARY: different fonts because I hate reading computer modern
+\usepackage[scaled=0.97]{XCharter}\linespread{1.0333}
+%\usepackage[scaled=0.965,proportional,semibold]{sourcesanspro}
+\usepackage[osf,scaled=1.0333]{AlegreyaSans}
+%\usepackage[scaled=1.08]{biolinum}
+\usepackage[scaled=1.021]{inconsolata}
+\usepackage[xcharter,scaled=1.0556,]{newtxmath}
+%\usepackage{mathastext}
+
+
+%% ---------- Code environment ----------
+\usepackage{environ}            %\NewEnviron
+\newlength\codeoffset
+\setlength\codeoffset{0pt}
+
+\NewEnviron{code}{
+  \begin{fleqn}[\codeoffset]
+    \begin{flalign*}
+      \setlength\arraycolsep{0pt} % necessary for flush left alignment.
+      \begin{array}{l}\BODY\end{array}
+  \end{flalign*}
+  \end{fleqn}
+}
+
+
+%% ---------- \negphantom command ----------
+%% https://tex.stackexchange.com/questions/316426/negative-phantom-inside-equations
+\makeatletter
+\newlength{\negph@wd}
+\DeclareRobustCommand{\negphantom}[1]{%
+  \ifmmode
+    \mathpalette\negph@math{#1}%
+  \else
+    \negph@do{#1}%
+  \fi
+}
+\newcommand{\negph@math}[2]{\negph@do{$\m@th#1#2$}}
+\newcommand{\negph@do}[1]{%
+  \settowidth{\negph@wd}{#1}%
+  \hspace*{-\negph@wd}%
+}\makeatother
+
+
+%% ---- Commands ----
+\newcommand\strong[1]{{\bfseries#1}}
+\newcommand\todo[1]{{\color{IndianRed}#1}}
+\newcommand\TODO[1]{\todo{\strong{TODO}: #1}}
+\newcommand\xxx{\todo{\strong{XXX}}}
+
+\newcommand\fslang{\ensuremath{\lambda_{\mathrm{FS}}}}
+\newcommand\catname[1]{\ensuremath{\mathrm{#1}}}
+\newcommand\Point{\ensuremath{\catname{Set}_{*}}}
+\DeclareMathOperator{\support}{supp}
+
+\newcommand\den[1]{\llbracket{#1}\rrbracket}
+\newcommand\bnfeq{\Coloneqq}
+\newcommand\bnfor{\mathrel{\,|\,}}
+
+\newcommand\name[1]{\ensuremath{\mathit{#1}}}
+%\newcommand\<\;                 %function application space
+\newcommand\<\:                 %function application space
+\newcommand\fnspace{\<}         %space after a binder
+\newcommand\fn[1]{\lambda{#1}.\fnspace}
+\newcommand\fa[1]{\forall{#1}.\fnspace}
+\newcommand\ex[1]{\exists{#1}.\fnspace}
+
+%\newcommand\cto{\Rightarrow}    % "cartesian \to"
+\newcommand\cto\to
+\newcommand\lto\multimap        % "linear \to"
+\newcommand\fto\Rightarrow
+%\renewcommand\fto{\underset{\textsf{fin}}{\to}}           % finite map
+%\newcommand\fto{\rightarrow}    % "finitely supported \to"
+\newcommand\x\times
+\newcommand\with{\mathbin{\&}}
+\newcommand\ox\otimes
+\newcommand\typename\text
+\newcommand\bool{\name{bool}}
+\newcommand\maybe[1]{\ensuremath{\typename{maybe}~{#1}}}
+
+%% need \usepackage{accent} for these
+%\newcommand\undertype[2]{\underaccent{\textsf{\upshape\scshape#1}}{#2}}
+%\newcommand\eqt[1]{\undertype{eq}{#1}}
+
+\newcommand\G\Gamma
+\newcommand\D\Delta
+\renewcommand\O\Omega
+\renewcommand\L\Lambda
+
+%\newcommand\emptycx\varepsilon
+\newcommand\emptycx{{\cdot}}
+\newcommand\of{\mathbin{:}}
+\newcommand\cxsep{\mathbin{/}}
+\newcommand\hyp[2]{{#1} \of {#2}}
+
+\newcommand\cJ[3]{{#3} \,\vdash\, {#1} : {#2}}
+\newcommand\J[5]{{#3} \cxsep {#4} \cxsep {#5} \,\vdash\, {#1} : {#2}}
+%\newcommand\pJ[5]{{#3} \cxsep {#4} \cxsep {#1} : {#2} \,\vdash\, {#5}}
+
+\newcommand\kword[1]{\ensuremath{\mathrm{#1}}}
+\newcommand\const\name
+%\newcommand\cname\text          %constructor name
+%\newcommand\cname\name
+\newcommand\cname\textsf
+%\newcommand\cnil{\cname{nil}}
+\newcommand\cjust{\cname{just}}
+%\newcommand\ctrue{\cname{true}}
+%\newcommand\cfalse{\cname{false}}
+
+\newcommand\nil{\name{nil}}
+\newcommand\true{\name{true}}
+\newcommand\false{\name{false}}
+
+\newcommand\letin[1]{\kword{let}~{#1}~\kword{in}~}
+\newcommand\leteq[2]{\letin{{#1} = {#2}}}
+\newcommand\tjust[1]{\cjust\<{#1}}
+\newcommand\letjust[3]{\leteq{\tjust {#1}}{#2}{#3}}
+\newcommand\letpair[4]{\leteq{({#1}, {#2})}{#3}{#4}}
+\newcommand\tabsurd{\kword{absurd}\<}
+\newcommand\tand{\mathrel{\kword{and}}}
+\newcommand\tor{\mathrel{\kword{or}}}
+%% \renewcommand\tand{~\kword{and}~}
+%% \renewcommand\tor{~\kword{or}~}
+%\newcommand\twhen[2]{\kword{when} \<({#1}) \<{#2}}
+\newcommand\twhen[2]{\kword{if}~ {#1} ~\kword{then}~ {#2}}
+%\newcommand\twhen[2]{{#1} \Rightarrow {#2}}
+%\newcommand\twhen[2]{{#2} \mathrel{\kword{when}} {#1}}
+%\newcommand\teq[2]{\name{eq} \<{#1} \<{#2}}
+\newcommand\teq[2]{{#1} = {#2}}
+%\newcommand\teq[2]{{#1} \mathrel{\kword{is}} {#2}}
+%\newcommand\teq[2]{{#2} \gets {#1}}
+\newcommand\tcomment[1]{\color{black!60}\textsf{\#\ #1}}
+
+%% \renewcommand\tand{\mathrel{\mathrm{\&\&}}}
+%% \renewcommand\tor{\mathrel{\mathrm{||}}}
+%% \newcommand\tand{\mathrel{\mathbf{and}}}
+%% \newcommand\tor{\mathrel{\mathbf{or}}}
+
+\newcommand\pwild\textunderscore
+\newcommand\nat{\mathbb{N}}
+
+
+\begin{document}
+\maketitle              % typeset the header of the contribution
+
+\begin{abstract}
+We propose unifying functional and logic/relational programming by treating predicates/relations as functions equipped with their support: the set of inputs whose output is nonzero.
+For instance, the logic programming language Datalog is a language of finitely supported boolean functions.
+Finite support allows representing the function, not as code, but as data---as a table of input-output pairs---making bulk operations more efficient.
+Aggregation and weighted logic programming are naturally handled by generalizing the definition of support from booleans to other pointed sets.
+We refer to the combination of finitely supported functions, represented as data, with higher order functions, represented as code, as \emph{finite functional programming.}
+To this end, we demonstrate a simple type system to check finite support, using a combination of graded coeffects to check variable grounding and relevance types to model pointed sets.
+
+%% %% ---------- OLD ABSTRACT ----------
+%%   I propose unifying functional and logic/relational programming by treating predicates/relations as functions equipped with their support---the set of inputs whose output is non-false.
+%%   For instance, the logic programming language Datalog, in which all relations are finite, is a language of finitely supported boolean functions.
+%%   %
+%%   Finite support allows representing the function, not as code, but as data---as a table of input-output pairs---making bulk operations more efficient.
+%% %
+%%   If we combine finitely supported functions, represented as data, and higher order functions, represented as code, in the same language, we get what I call \emph{finite functional programming.}
+%%   %
+%%   To this end, I demonstrate a simple type system to check finite support \todo{THIS IS NOT QUITE RIGHT, IT'S THE STATIC GRADING NOT THE RUNTIME EFFECT THAT MATTERS: by treating variable grounding as a graded effect.}
+%%   %Aggregation and other Datalog extensions (such as bag and semiring semantics) are naturally handled by generalizing from boolean functions to arbitrary pointed output types.
+%%   %% \todo{do I actually do this? $\rightarrow$}
+%%   %% I sketch future work on semantics and implementation strategies, particularly for recursion.
+
+\keywords{Logic programming \and Functional programming \and Categorical semantics \and Linear types \and Coeffects}
+\end{abstract}
+
+
+\section{Logic programming is (not) functional programming}
+
+
+%\section{Support and pointed sets}
+%\section{What is the point of support?}
+%\section{What is support? What is the point?}
+\section{Support, pointedly}
+
+
+\section{Why not just...?}
+
+
+\section{A finitely supported map from examples to booleans}
+%\section{\fslang\ as she is wrote}
+%\section{A finite set of finite functional programs}
+%\section{Some finite functional programs}
+
+
+%\section{Pointed sets and relevance}
+%\section{Points, relevantly}
+%\section{The relevance of relevance}
+%\section{The importance of being relevant}
+\section{The relevance of being relevant}
+
+\section{Context hopping}
+
+
+%% \section{Programming with pointed sets}
+%\section{\fslang}
+%\section{\fslang\ as she is typed}
+
+%\section{Decidably pointed sets}
+%\section{Recovering maybes}
+\section{Curing maybe-addiction with class}
+
+
+%\section{Semantics of \fslang}
+\section{What does it all mean?}
+
+\end{document}
