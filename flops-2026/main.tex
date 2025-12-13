@@ -117,11 +117,12 @@
 \newcommand\bnfor{\mathrel{\,|\,}}
 
 \newcommand\name[1]{\ensuremath{\mathit{#1}}}
-\newcommand\fnspace{\:}
+%\newcommand\<\;                 %function application space
+\newcommand\<\:                 %function application space
+\newcommand\fnspace{\<}         %space after a binder
 \newcommand\fn[1]{\lambda{#1}.\fnspace}
 \newcommand\fa[1]{\forall{#1}.\fnspace}
 \newcommand\ex[1]{\exists{#1}.\fnspace}
-%\newcommand\<\;                 %function application space
 
 %\newcommand\cto{\Rightarrow}    % "cartesian \to"
 \newcommand\cto\to
@@ -158,27 +159,35 @@
 \newcommand\kword[1]{\ensuremath{\mathrm{#1}}}
 \newcommand\const\name
 %\newcommand\cname\text          %constructor name
-\newcommand\cname\name
-\newcommand\cnil{\cname{nil}}
+%\newcommand\cname\name
+\newcommand\cname\textsf
+%\newcommand\cnil{\cname{nil}}
 \newcommand\cjust{\cname{just}}
-\newcommand\ctrue{\cname{true}}
-\newcommand\cfalse{\cname{false}}
+%\newcommand\ctrue{\cname{true}}
+%\newcommand\cfalse{\cname{false}}
 
-\newcommand\nil\cnil
-\newcommand\tjust[1]{\cjust\;{#1}}
-\newcommand\letin[2]{\kword{let}~{#1}~\kword{in}~{#2}}
-\newcommand\leteq[3]{\letin{{#1} = {#2}}{#3}}
-\newcommand\letjust[3]{\leteq{\tjust {#1}}{#2}{#3}}
-\newcommand\letpair[4]{\leteq{({#1}, {#2})}{#3}{#4}}
+\newcommand\nil{\name{nil}}
 \newcommand\true{\name{true}}
 \newcommand\false{\name{false}}
-\newcommand\tabsurd{\text{absurd}\;}
+
+\newcommand\letin[1]{\kword{let}~{#1}~\kword{in}~}
+\newcommand\leteq[2]{\letin{{#1} = {#2}}}
+\newcommand\tjust[1]{\cjust\<{#1}}
+\newcommand\letjust[3]{\leteq{\tjust {#1}}{#2}{#3}}
+\newcommand\letpair[4]{\leteq{({#1}, {#2})}{#3}{#4}}
+\newcommand\tabsurd{\kword{absurd}\<}
 \newcommand\tand{\mathrel{\kword{and}}}
 \newcommand\tor{\mathrel{\kword{or}}}
-%\newcommand\twhen[2]{\kword{when} \;({#1}) \;{#2}}
-%\newcommand\twhen[2]{\kword{if} \;{#1}\; \kword{then} \;{#2}}
-\newcommand\twhen[2]{{#2} ~\kword{when}~ {#1}}
-\newcommand\teq[2]{{#1} == {#2}}
+%% \renewcommand\tand{~\kword{and}~}
+%% \renewcommand\tor{~\kword{or}~}
+%\newcommand\twhen[2]{\kword{when} \<({#1}) \<{#2}}
+\newcommand\twhen[2]{\kword{if}~ {#1} ~\kword{then}~ {#2}}
+%\newcommand\twhen[2]{{#1} \Rightarrow {#2}}
+%\newcommand\twhen[2]{{#2} \mathrel{\kword{when}} {#1}}
+%\newcommand\teq[2]{\name{eq} \<{#1} \<{#2}}
+\newcommand\teq[2]{{#1} = {#2}}
+%\newcommand\teq[2]{{#1} \mathrel{\kword{is}} {#2}}
+%\newcommand\teq[2]{{#2} \gets {#1}}
 \newcommand\tcomment[1]{\color{black!60}\textsf{\#\ #1}}
 
 %% \renewcommand\tand{\mathrel{\mathrm{\&\&}}}
@@ -232,17 +241,17 @@ Following this intuition, we can translate this logic program directly into a fu
 
 \begin{code}
 \name{follows},\, \name{mutuals} : \name{user} \to \name{user} \to \bool\\
-\name{follows} \;x \;y = (\const{john} == x \tand \const{mary} == y)
+\name{follows} \<x \<y = (\const{john} == x \tand \const{mary} == y)
 \\
-\phantom{\name{follows} \;x \;y =}
+\phantom{\name{follows} \<x \<y =}
 \negphantom{{}\tor}
 \tor (\const{mary} == x \tand \const{john} == y)
 \\
-\phantom{\name{follows} \;x \;y =}
+\phantom{\name{follows} \<x \<y =}
 \negphantom{{}\tor}
 \tor \ldots
 \\
-\name{mutuals} \;x \;y = \name{follows} \;x \;y \tand \name{follows} \;y \;x
+\name{mutuals} \<x \<y = \name{follows} \<x \<y \tand \name{follows} \<y \<x
 \end{code}
 
 %% \noindent
@@ -253,28 +262,28 @@ Following this intuition, we can translate this logic program directly into a fu
 %%   %\footnote{We could solve this by memoizing \name{follows} and \name{mutuals}. Indeed, memoization foreshadows our approach, in that it (dynamically and lazily) turns behavior into data. However, memoization alone does not support enumeration, existential quantification, or aggregation.}
 
 %% \item[Semantics:] Functions in functional and imperative languages are directional: they take inputs to outputs.
-%%   Thus $\name{mutuals} \;x \;y$ checks whether specific users $x,y$ are mutuals; but we cannot use it to enumerate mutual follows, nor to find the mutuals $y$ of a given user $x$.
+%%   Thus $\name{mutuals} \<x \<y$ checks whether specific users $x,y$ are mutuals; but we cannot use it to enumerate mutual follows, nor to find the mutuals $y$ of a given user $x$.
 %% \end{description}
 
 \noindent
 However, functions in functional and imperative languages are unidirectional: they take inputs to outputs.
-Evaluating $\name{mutuals} \;x \;y$ will test whether fixed users $x, y$ are mutuals---but unlike in logic programming, we cannot use it to enumerate mutual follows, for instance, to find the mutuals $y$ of a fixed user $x$.%
+Evaluating $\name{mutuals} \<x \<y$ will test whether fixed users $x, y$ are mutuals---but unlike in logic programming, we cannot use it to enumerate mutual follows, for instance, to find the mutuals $y$ of a fixed user $x$.%
 %% \footnotemark{}
 
 %% \footnotetext{%
 %%   There is also the matter of efficiency.
-%%   Each call to $\name{mutuals} \;x \;y$ in a functional language performs two linear scans through \name{follows}.
+%%   Each call to $\name{mutuals} \<x \<y$ in a functional language performs two linear scans through \name{follows}.
 %%   Bottom-up logic programming languages like Datalog pre-compute tables for \texttt{follows} and \texttt{mutuals}, allowing logarithmic look-up.
 %%   However, top-down logic programming languages like Prolog and miniKanren use backtracking search, behaving similarly to our functional translation on this example; and memoization (\emph{tabling} in top-down logic programming) can amortize these costs over repeated tests.
 %%   Memoization alone, however, cannot handle existential quantification or aggregation, as we shall see.
 %% }
 
-For the same reason, direct functional translation cannot handle existential quantification (also called `projection' in databases). Consider this logic program to find directors and actors who have worked on the same film: \todo{replace with ``costarred'' example?}
+For the same reason, direct functional translation cannot handle existential quantification (also called `projection' in databases). Consider this logic program to find actors who have appeared in the same film:
 
 \begin{lstlisting}
-directed_actor(Director, Actor) :-
-  directed_film(Director, Film),
-  starred_in(Film, Actor).
+costars(Actor1, Actor2) :-
+  stars(Film, Actor1),
+  stars(Film, Actor2).
 \end{lstlisting}
 
 \noindent
@@ -284,23 +293,25 @@ To embed this functionally, we could assume a function $\name{exists} : \fa{\alp
 \begin{code}
 %% \name{directedFilm} : \name{person} \to \name{film} \to \bool = \dots\\
 %% \name{starsIn} : \name{film} \to \name{person} \to \bool = \dots\\
-\name{directedActor} : \name{person} \to \name{person} \to \bool\\
-\name{directedActor} \;\name{director} \;\name{actor} =\\
-\quad \name{exists}\;(\fn{\name{film}} \name{directedFilm} \;\name{director} \;\name{film}
+\name{costars} : \name{person} \to \name{person} \to \bool\\
+\name{costars} \<\name{actor1} \<\name{actor2} =\\
+\quad \name{exists}\<(\fn{\name{film}}
+%\name{directedFilm} \<\name{director} \<\name{film}
+\name{stars} \<\name{film} \<\name{actor1}
 \\
-\quad \phantom{\name{exists}\;(\fn{\name{film}}}
+\quad \phantom{\name{exists}\<(\fn{\name{film}}}
 \negphantom{{}\tand{}}
-\tand \name{starsIn} \;\name{film} \;\name{actor})
+\tand \name{stars} \<\name{film} \<\name{actor2})
 \end{code}
 
 \noindent
-Yet how can we implement $\name{exists} \; f$ for an arbitrary type $\alpha$ and an arbitrary function $f : \alpha \to \bool$?
+Yet how can we implement $\name{exists} \< f$ for an arbitrary type $\alpha$ and an arbitrary function $f : \alpha \to \bool$?
 We are stymied by unidirectionality: all we can do with $f$ is give it inputs; since the input type is arbitrary, we cannot generate any.%
 \footnote{%
   Of course, for specific types we may be able to make headway.
   One can define \name{exists} for any finite type $\alpha$ by enumeration.
   %% For arbitrary $f$, one might expect this is the best you can do:
-  Since determining $\name{exists}\;f = \name{false}$ seems to require applying $f$ to every possible input, one might expect the infinite cases to be impossible;
+  Since determining $\name{exists}\<f = \false$ seems to require applying $f$ to every possible input, one might expect the infinite cases to be impossible;
   however, \name{exists} can be implemented for some infinite types by exploiting continuity~\cite{seemingly-impossible-functional-programs,DBLP:conf/lics/Escardo07}.
   However, our approach here is to presume knowledge, not of the structure of the type, but of the support of the function.
 }
@@ -310,8 +321,8 @@ much as a function is a set of input-output tuples, a predicate can enumerate it
 %
 We call these inputs the \emph{support} of a predicate.
 %
-%Calculating $\name{exists}\;f$ means determining whether $f$'s support is non-empty.
-If we know $f$'s support, calculating $\name{exists}\;f$ is simple: is the support non-empty?
+%Calculating $\name{exists}\<f$ means determining whether $f$'s support is non-empty.
+If we know $f$'s support, calculating $\name{exists}\<f$ is simple: is the support non-empty?
 
 This suggests we can make the direct functional translation of logic programs behave correctly if we equip functions with %some representation of
 their support.
@@ -439,7 +450,7 @@ If one considers $\nil_P$ as an uninteresting, default value, a function's suppo
 %% It is clear what the support of a binary predicate $f : A \times B \to \bool$ is.
 %% But what is the support of its currying, $g : A \to B \to \bool$?
 %% Well, the codomain of $g$ is $B \to \bool$.
-%% Functions into a pointed set $B \to P$ naturally form a pointed set with $\nil_{B \to P} = \name{const} \;\nil_P$, the constantly \nil\ function. Therefore $\support g = \{ a \in A : (\fn b f(x,y)) \ne \name{const}\; \false \} = \{ a \in A : \ex{b} f(x,y) \ne \false \}$.
+%% Functions into a pointed set $B \to P$ naturally form a pointed set with $\nil_{B \to P} = \name{const} \<\nil_P$, the constantly \nil\ function. Therefore $\support g = \{ a \in A : (\fn b f(x,y)) \ne \name{const}\< \false \} = \{ a \in A : \ex{b} f(x,y) \ne \false \}$.
 %% Thus generalizing to pointed sets lets us cleanly articulate the support of a curried predicate, and therefore what it means for one to be finitely supported.
 %% \todo{also show that currying/uncurrying preserve finite support!}
 
@@ -507,6 +518,7 @@ The set of naturals less than three is finite; its complement is not.
 For the same reason, we cannot compose a finite map $g : A \fto P$ with an arbitrary function $f : P \to Q$ and expect the result to be finitely supported.
 %
 However, we \emph{can} compose a finite map with a function $f$ if $f(\nil_P) = \nil_Q$.
+\todo{because it can only contract the support.}
 %
 These are the \emph{point-preserving maps}, which we notate $P \lto Q = \{ f \in P \to Q : f(\nil_P) = \nil_Q \}$.
 The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps as morphisms; what we have just observed is that, for any set $A$, there is a functor $F_A : \Point \to \Point$ given by $F_A(P) = A \fto P$.
@@ -538,48 +550,69 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
 
 %% \begin{code}
 %% %% \name{directedFilm} : \name{person} \to \name{film} \to \bool = \dots\\
-%% %% \name{starsIn} : \name{film} \to \name{person} \to \bool = \dots\\
+%% %% \name{stars} : \name{film} \to \name{person} \to \bool = \dots\\
 %% \name{directedActor} : \name{person} \to \name{person} \to \bool\\
-%% \name{directedActor} \;\name{director} \;\name{actor} =\\
-%% \quad \name{exists}\;(\fn{\name{film}} \name{directedFilm} \;\name{director} \;\name{film}
+%% \name{directedActor} \<\name{director} \<\name{actor} =\\
+%% \quad \name{exists}\<(\fn{\name{film}} \name{directedFilm} \<\name{director} \<\name{film}
 %% \\
-%% \quad \phantom{\name{exists}\;(\fn{\name{film}}}
+%% \quad \phantom{\name{exists}\<(\fn{\name{film}}}
 %% \negphantom{{}\tand{}}
-%% \tand \name{starsIn} \;\name{film} \;\name{actor})
+%% \tand \name{stars} \<\name{film} \<\name{actor})
 %% \end{code}
 
 \begin{code}
   \name{costars} : \name{person} \fto \name{person} \fto \bool\\
-  \name{costars} \;x \;y =
-  \name{exists} \;(\fn{\name{film}} \name{starsIn} \;\name{film} \;x
-  \tand \name{starsIn} \;\name{film} \;y)
+  \name{costars} \<x \<y =
+  \name{exists} \<(\fn{\name{film}} \name{stars} \<\name{film} \<x
+  \tand \name{stars} \<\name{film} \<y)
   %% \\
-  %% \phantom{\name{costars} \;x \;y = \name{exists} \;(\fn{\name{film}}}
+  %% \phantom{\name{costars} \<x \<y = \name{exists} \<(\fn{\name{film}}}
   %% \negphantom{{}\tand{}}
-  %% \tand \name{starsIn} \;\name{film} \;y)
+  %% \tand \name{stars} \<\name{film} \<y)
 \end{code}
 
 \begin{code}
   \name{filmCount} : \name{person} \fto \nat_0\\
-  \name{filmCount} \;\name{actor} = \name{sum} \;(\fn{\name{film}}
-    \twhen{\name{starsIn} \;\name{film} \;\name{actor}}{1}
+  \name{filmCount} \<\name{actor} = \name{sum} \<(\fn{\name{film}}
+    \twhen{\name{stars} \<\name{film} \<\name{actor}}{1}
   )
 \end{code}
 
 \begin{code}
   \tcomment{N.B.\ We leave semantics for recursion to future work.}
   \\
-  \name{path} : \name{person} \fto \name{person} \fto \bool\\
-  \name{path} \;x \;y = \name{costars} \;x \;y
-  \tor \name{exists} (\fn{z} \name{path} \;x \;z \tand \name{path} \;z \;y)
+  \name{connected} : \name{person} \fto \name{person} \fto \bool\\
+  \name{connected} \<x \<y = \name{costars} \<x \<y
+  \tor \name{exists}\< (\fn{z} \name{connected} \<x \<z \tand \name{connected} \<z \<y)
 \end{code}
 
 \begin{code}
-  \tcomment{We can map over the keys of a f.s. map if we can sum over its value type}
+  \tcomment{We can map over the keys of a f.s. map if we can sum over its value type.}
   \\
   \name{map} : (A \to B) \to (A \fto \nat_0) \lto (B \fto \nat_0)\\
-  \name{map} \;f \;\name{count} \;b =
-    \name{sum} \;(\fn{a} \twhen{\teq{f\;a}{b}}{\name{count} \;a} )
+  \name{map} \<f \<\name{count} \<b =
+    %\name{sum} \<(\fn{a} \twhen{\teq{f\<a}{b}}{\name{count} \<a} )
+    \name{sum} \<(\fn{a}
+      \leteq{n}{\name{count}\<a}
+      \twhen{\teq{f\<a}{b}}{n}
+    )
+\end{code}
+
+\begin{code}
+  \name{intersect} : (A \fto \bool) \otimes (A \fto bool) \lto (A \fto \bool)\\
+  \name{intersect} \<f \<g \<x = f\<x \tand g\<x\\
+  \\
+  \name{union} : (A \fto \bool) \with (A \fto \bool) \lto (A \fto \bool)\\
+  \name{union} \<\name{fg} \<x =
+    {\pi_1 \<\name{fg} \<x} \tor {\pi_2 \<\name{fg} \<x}\\
+  \\
+  \name{cross} : (A \fto \bool) \otimes (B \fto bool) \lto (A \times B \fto \bool)\\
+  \name{cross} \<f \<g \<(x,y) = f\<x \tand g\<y\\
+  \\
+  \name{join} : (A \fto B \fto \bool) \otimes (B \fto C \fto \bool)
+  \lto (A \fto C \fto \bool)\\
+  \name{join} \<f \<g \<a \<c =
+    \name{exists}\<(\fn{b} f\<a \<b \tand g \<b \<c)
 \end{code}
 
 
