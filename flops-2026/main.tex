@@ -587,16 +587,15 @@ costars = {(x,y) for (film1, x) in stars
 \end{verbatim}
 
 \noindent
-This isn't a particularly good implementation strategy for this query---%
-and that is what we have expressed here: an implementation strategy.
-Set comprehensions achieve a high level of concision, but nonetheless require us to give an explicit strategy for enumerating the support of a query.
-
+Now, this isn't a particularly good implementation strategy for this query---%
+but that \emph{is} what we have expressed here: an implementation strategy.
+Set comprehensions are nicely concise, but nonetheless require us to give an explicit strategy for enumerating the support of a query.
+%
 We aim to move up a level of abstraction, so that
-(1) the finiteness of a query's support is inferred from its logical structure, rather than needing to structure queries around enumeration strategies, and
-(2) we leave the question of \emph{how} to execute a query up to the language,
-just as logic and database query languages do.\footnotemark{}
+(1) a query's support is inferred from its logical structure, rather than needing to structure queries around enumeration strategies, and
+(2) we defer the question of \emph{how} to execute a query to the compiler, as logic and database query languages do.\footnotemark{}
 
-\footnotetext{This avoidance of comprehensions also distinguishes our approach from Datafun~\TODO{cite}---although admittedly, Datafun's semantics are deliberately declarative, allowing an optimizing compiler, in principle, to rewrite its set comprehensions into efficient query plans.}
+\footnotetext{This avoidance of comprehensions also distinguishes us from Datafun~\cite{datafun}---at least syntactically: since Datafun's semantics are declarative, an optimizing compiler could in principle rewrite its set comprehensions into efficient query plans.}
 
 This explains the need for a type system for checking finite support.
 But why pointed sets and not just booleans?
