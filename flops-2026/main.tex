@@ -105,7 +105,7 @@
 \newcommand\strong[1]{{\bfseries#1}}
 \newcommand\todo[1]{{\color{IndianRed}#1}}
 \newcommand\TODO[1]{\todo{\strong{TODO}: #1}}
-\newcommand\xxx{\todo{\strong{XXX}}}
+\newcommand\xxx{\text{\todo{\strong{XXX}}}}
 
 \newcommand\fslang{\ensuremath{\lambda_{\mathrm{FS}}}}
 \newcommand\catname[1]{\ensuremath{\mathrm{#1}}}
@@ -156,7 +156,7 @@
 \newcommand\J[5]{{#3} \cxsep {#4} \cxsep {#5} \,\vdash\, {#1} : {#2}}
 %\newcommand\pJ[5]{{#3} \cxsep {#4} \cxsep {#1} : {#2} \,\vdash\, {#5}}
 
-\newcommand\kword[1]{\ensuremath{\mathrm{#1}}}
+\newcommand\kword[1]{\ensuremath{\textrm{#1}}}
 \newcommand\const\name
 %\newcommand\cname\text          %constructor name
 %\newcommand\cname\name
@@ -184,6 +184,7 @@
 \newcommand\twhen[2]{\kword{if}~ {#1} ~\kword{then}~ {#2}}
 %\newcommand\twhen[2]{{#1} \Rightarrow {#2}}
 %\newcommand\twhen[2]{{#2} \mathrel{\kword{when}} {#1}}
+\newcommand\tfilter{~\kword{when}~}
 %\newcommand\teq[2]{\name{eq} \<{#1} \<{#2}}
 \newcommand\teq[2]{{#1} = {#2}}
 %\newcommand\teq[2]{{#1} \mathrel{\kword{is}} {#2}}
@@ -525,6 +526,7 @@ However, we \emph{can} compose a finite map with a function $f$ if $f(\nil_P) = 
 %
 These are the \emph{point-preserving maps}, which we notate $P \lto Q = \{ f \in P \to Q : f(\nil_P) = \nil_Q \}$.
 The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps as morphisms; what we have just observed is that, for any set $A$, there is a functor $F_A : \Point \to \Point$ given by $F_A(P) = A \fto P$.
+\todo{EXPLAIN: if finitely supported maps are our \emph{raison d'\^etre,} point-preserving maps are how we're going to manipulate and combine them. (THIS LEADS DIRECTLY INTO DISCUSSING and/or AND THUS $\otimes$/$\with$!}
 
 \todo{{\bf badly need motivation}. should we head straight to example programs using the types we've introduced? use examples from talk (costarred, filmography, path, ...)? maybe what we should ask is: (1) can we mechanize the reasoning that lets us conclude these are finitely supported in a type system? and (2) if so, what are the types of $\kword{and}/\kword{or}$? and explicitly flag that this will take us down a rabbithole.}
 
@@ -561,9 +563,51 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
 
 \subsection{Why not just...?}
 
+\subsubsection{SHORT/OLD VERSION}
 \todo{\emph{Somewhere} we should put \emph{something} about the hard bit being trying to do this while being higher-order. First-order pointed types are all just maybe-types. Point-preserving maps $\maybe A \lto \maybe B$ are just functions $A \to \maybe{B}$. Finitely supported maps $A \fto \maybe B$ are just dictionaries, $\name{Map} \<A \<B$, like you'd find in any programming language's standard library. The interesting bit is going higher-order in the output (currying), e.g.\ $A \fto B \fto P$ or $P \lto Q \lto R$. Also, having maps into types that are first-order/decidably pointed but you don't want to make the maybe explicit, like $A \fto \nat_0$. Also writing the functions as if they're functions, $\lambda x. t$ rather than having to explicitly tabulate support. $\gets$ BULLETED LIST OF ADVANTAGES. Maybe this gets its own section, titled ``Why not just...?''}
 
-\todo{I think this can only happen \emph{after} we explain our notation for fs maps and point-preserving maps. Otherwise nothing we're saying makes sense?}
+\vspace{1\baselineskip}
+
+\todo{This section needs work, very rough draft. also, where does it belong? \strong{\sffamily HEY MAX, YOU ASKED FOR THIS SECTION: WHERE DOES IT BELONG?}}
+
+Why are we doing this when plenty of languages have built-in data structures for finite maps? What is the advantage? Well: they don't let you write our example programs in the natural way. For instance,
+  
+\begin{code}
+  \name{costars} \<x \<y = \name{exists} \;(\fn{\name{film}} \name{stars}\<\name{film}\<x \tand \name{stars}\<\name{film}\<y)
+\end{code}
+
+\noindent
+You can of course implement this using your favorite language's finite maps, dictionary, or set types.
+In Python, for instance, we can use set comprehensions:
+
+\begin{verbatim}
+costars = {(x,y) for (film1, x) in stars
+                 for (film2, y) in stars
+                 if film1 == film2}
+\end{verbatim}
+
+\noindent
+This isn't a particularly good implementation strategy for this query---%
+and that is what we have expressed here: an implementation strategy.
+Set comprehensions achieve a high level of concision, but nonetheless require us to give an explicit strategy for enumerating the support of a query.
+
+We aim to move up a level of abstraction, so that
+(1) the finiteness of a query's support is inferred from its logical structure, rather than needing to structure queries around enumeration strategies, and
+(2) we leave the question of \emph{how} to execute a query up to the language,
+just as logic and database query languages do.\footnotemark{}
+
+\footnotetext{This avoidance of comprehensions also distinguishes our approach from Datafun~\TODO{cite}---although admittedly, Datafun's semantics are deliberately declarative, allowing an optimizing compiler, in principle, to rewrite its set comprehensions into efficient query plans.}
+
+This explains the need for a type system for checking finite support.
+But why pointed sets and not just booleans?
+\todo{for the reasons I already gave: generalizing to tensor algebra, handling aggregations, and compositional expressiveness like currying.}
+
+Still, why do we need a complicated type system for point-preserving maps \todo{with all these funny types and rules?}
+\todo{
+Any pointed set is isomorphic to an option type, right? And a point-preserving map $\maybe A \lto \maybe B$ is just a map $A \to \maybe B$!
+well, (a) yes but sometimes you don't want to think of it that way, eg the naturals $\nat$ are isomorphic to a maybe type but that means you need a different addition function.
+and (b), no! most higher-order types are \emph{not} isomorphic to option types because it's not decidable whether something is \nil.
+}
 
 
 \section{A finitely supported map from examples to booleans}
@@ -596,7 +640,8 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
 \begin{code}
   \name{filmCount} : \name{person} \fto \nat_0\\
   \name{filmCount} \<\name{actor} = \name{sum} \<(\fn{\name{film}}
-    \twhen{\name{stars} \<\name{film} \<\name{actor}}{1}
+    %\twhen{\name{stars} \<\name{film} \<\name{actor}}{1}
+    1 \tfilter {\name{stars} \<\name{film} \<\name{actor}}
   )
 \end{code}
 
@@ -610,12 +655,14 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
 \begin{code}
   \tcomment{We can map over the keys of a f.s. map if we can sum over its value type.}\\
   \tcomment{Hold this example back until we know the typing rules \& can explain why it's so awkward.}\\
+  \tcomment{ALSO, how would my theoretical WCOI implementation strategy handle this?}\\
   \name{map} : (A \to B) \to (A \fto \nat_0) \lto (B \fto \nat_0)\\
   \name{map} \<f \<\name{count} \<b =
     %\name{sum} \<(\fn{a} \twhen{\teq{f\<a}{b}}{\name{count} \<a} )
     \name{sum} \<(\fn{a}
-      \leteq{n}{\name{count}\<a}
-      \twhen{\teq{f\<a}{b}}{n}
+      %% \leteq{n}{\name{count}\<a}
+      %% \twhen{\teq{f\<a}{b}}{n}
+      \name{count}\<a \tfilter \teq{f\<a}{b}
     )
 \end{code}
 
@@ -630,22 +677,28 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
   \name{cross} \<f \<g \<x \<y = f\<x \tand g\<y\\
 \end{code}
 
-\begin{code}
-  \name{join} : (A \fto B \fto \bool) \lto (B \fto C \fto bool) \lto (A \fto B \fto C \fto \bool)\\
-  \name{join} \<f \<g \<a \<b \<c = f\<a\<b \tand g\<b\<c\\
-\end{code}
+%% \begin{code}
+%%   \name{join} : (A \fto B \fto \bool) \lto (B \fto C \fto bool) \lto (A \fto B \fto C \fto \bool)\\
+%%   \name{join} \<f \<g \<a \<b \<c = f\<a\<b \tand g\<b\<c\\
+%% \end{code}
 
 \begin{code}
   \name{compose} : (A \fto B \fto \bool) \lto (B \fto C \fto \bool)
   \lto (A \fto C \fto \bool)\\
   \name{compose} \<f \<g \<a \<c =
-    \name{exists}\<(\fn{b} \name{join} \<f \<g \<a \<b \<c)\\
+    \name{exists}\<(\fn{b}
+      %\name{join} \<f \<g \<a \<b \<c
+      f\<a\<b \tand g\<b\<c
+    )
 \end{code}
 
 \begin{code}
-  \name{joinWith} : (A \to B \to \bool) \to (A \fto \bool) \lto (B \fto \bool) \lto (A \fto B \fto \bool)\\
+  %% \name{joinWith} : (A \to B \to \bool) \to (A \fto \bool) \lto (B \fto \bool) \lto (A \fto B \fto \bool)\\
+  %% \name{joinWith} \<\name{test} \<f \<g \<a \<b =
+  %%   f\<a \tand g\<b \tand \name{test}\<a \<b
+  \name{joinWith} : (A \to B \to \bool) \to (A \fto P) \lto (B \fto Q) \lto (A \fto B \fto P \otimes Q)\\
   \name{joinWith} \<\name{test} \<f \<g \<a \<b =
-    f\<a \tand g\<b \tand \name{test}\<a \<b
+    (f\<a, g\<b) \tfilter \name{test}\<a \<b
 \end{code}
 
 \noindent
@@ -664,17 +717,24 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
 
 %\section{Pointed sets and relevance}
 %\section{Points, relevantly}
-\section{The relevance of being relevant}
+\section{The relevance of being relevant} % explains how relevance typing works
+
+\TODO{explain how relevance typing works for point-preserving maps}
+
+
 \section{Context hopping}
+
+\TODO{explain how we add another context for finitely supported variables and how that works, especially the funky $\otimes$ rule with context hopping.}
 
 
 %% \section{Programming with pointed sets}
 \section{\fslang\ as she is typed}
 
-\todo{I want examples of what we can do in \fslang\ before we give its syntax/typing rules precisely. How do I approach this? Maybe I give examples and motivate typing rules (esp. for $\otimes$ intro) by them?}
+%% \todo{I want examples of what we can do in \fslang\ before we give its syntax/typing rules precisely. How do I approach this? Maybe I give examples and motivate typing rules (esp. for $\otimes$ intro) by them?}
 
-%\subsection{Decidably pointed sets}
-\subsection{Curing maybe-addiction with class}
+
+%\section{Decidably pointed sets}
+\section{Curing maybe-addiction with class}
 
 
 %\section{Semantics of \fslang}
