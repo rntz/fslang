@@ -195,6 +195,9 @@
 %% \newcommand\tand{\mathrel{\mathbf{and}}}
 %% \newcommand\tor{\mathrel{\mathbf{or}}}
 
+\newcommand\pwild\textunderscore
+\newcommand\nat{\mathbb{N}}
+
 
 \begin{document}
 \maketitle              % typeset the header of the contribution
@@ -220,11 +223,11 @@ To this end, we demonstrate a simple type system to check finite support, using 
 %%   %% \todo{do I actually do this? $\rightarrow$}
 %%   %% I sketch future work on semantics and implementation strategies, particularly for recursion.
 
-\keywords{Logic programming \and Functional programming}
+\keywords{Logic programming \and Functional programming \and Categorical semantics \and Linear types \and Coeffects}
 \end{abstract}
 
 
-\section{Logic Programming is (not) Functional Programming}
+\section{Logic programming is (not) functional programming}
 
 Consider the following simple logic program to find mutual follows in a social network graph:
 
@@ -408,7 +411,10 @@ Let's get started!
 %% \end{lstlisting}
 
 
-\section{Support and pointed sets}
+%\section{Support and pointed sets}
+%\section{What is the point of support?}
+%\section{What is support? What is the point?}
+\section{Support, pointedly}
 
 The support of a boolean function $f$ is the set $\{ x \in A : f(x) \ne \false \}$.
 %
@@ -498,9 +504,6 @@ If one regards $\nil_P$ as an uninteresting, default value, a function's support
 %% \footnotetext{\todo{explain why we pick \false\ not \true: because the support is the range of ``interesting'' outputs.}}
 
 
-\newcommand\pwild\textunderscore
-\newcommand\nat{\mathbb{N}}
-
 We write $A \fto P = \{ f \in A \to P : \support f ~\text{is finite} \}$ for the finitely supported functions from $A$ to $P$.
 Naturally this is a pointed set with $\nil_{A \fto P} = \fn{x} \nil_P$;
 the boring, default finite map is the one with empty support.
@@ -525,7 +528,16 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
 
 \todo{{\bf badly need motivation}. should we head straight to example programs using the types we've introduced? use examples from talk (costarred, filmography, path, ...)? maybe what we should ask is: (1) can we mechanize the reasoning that lets us conclude these are finitely supported in a type system? and (2) if so, what are the types of $\kword{and}/\kword{or}$? and explicitly flag that this will take us down a rabbithole.}
 
-\todo{{\bf TODO WRITE}. Want to cover:
+\todo{\strong{Plan for now:}
+  \begin{itemize}
+  \item explain $\with$ and $\otimes$ as two different products corresponding to ${\tor}$ and ${\tand}$ respectively.
+  \item then move immediately on to example programs, now that we have enough vocabulary to talk about their types.
+  \item then we move on to syntax of \fslang\ and typing rules? derive typing rules from how things must behave?
+  \end{itemize}
+}
+
+\noindent
+\todo{Want to cover:
   \begin{itemize}
   \item define/notate finitely supported maps (fs maps)
   \item fs maps are a pointed set
@@ -546,7 +558,17 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
   \end{itemize}
 }
 
-\subsection{EXAMPLE PROGRAMS}
+
+\subsection{Why not just...?}
+
+\todo{\emph{Somewhere} we should put \emph{something} about the hard bit being trying to do this while being higher-order. First-order pointed types are all just maybe-types. Point-preserving maps $\maybe A \lto \maybe B$ are just functions $A \to \maybe{B}$. Finitely supported maps $A \fto \maybe B$ are just dictionaries, $\name{Map} \<A \<B$, like you'd find in any programming language's standard library. The interesting bit is going higher-order in the output (currying), e.g.\ $A \fto B \fto P$ or $P \lto Q \lto R$. Also, having maps into types that are first-order/decidably pointed but you don't want to make the maybe explicit, like $A \fto \nat_0$. Also writing the functions as if they're functions, $\lambda x. t$ rather than having to explicitly tabulate support. $\gets$ BULLETED LIST OF ADVANTAGES. Maybe this gets its own section, titled ``Why not just...?''}
+
+\todo{I think this can only happen \emph{after} we explain our notation for fs maps and point-preserving maps. Otherwise nothing we're saying makes sense?}
+
+
+\section{A finitely supported map from examples to booleans}
+%\section{A finite set of finite functional programs}
+%\section{Some finite functional programs}
 
 %% \begin{code}
 %% %% \name{directedFilm} : \name{person} \to \name{film} \to \bool = \dots\\
@@ -579,16 +601,15 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
 \end{code}
 
 \begin{code}
-  \tcomment{N.B.\ We leave semantics for recursion to future work.}
-  \\
+  \tcomment{N.B.\ We leave semantics for recursion to future work. \todo{Maybe cite Rioux's $\lambda_\vee$ paper?}}\\
   \name{connected} : \name{person} \fto \name{person} \fto \bool\\
   \name{connected} \<x \<y = \name{costars} \<x \<y
   \tor \name{exists}\< (\fn{z} \name{connected} \<x \<z \tand \name{connected} \<z \<y)
 \end{code}
 
 \begin{code}
-  \tcomment{We can map over the keys of a f.s. map if we can sum over its value type.}
-  \\
+  \tcomment{We can map over the keys of a f.s. map if we can sum over its value type.}\\
+  \tcomment{Hold this example back until we know the typing rules \& can explain why it's so awkward.}\\
   \name{map} : (A \to B) \to (A \fto \nat_0) \lto (B \fto \nat_0)\\
   \name{map} \<f \<\name{count} \<b =
     %\name{sum} \<(\fn{a} \twhen{\teq{f\<a}{b}}{\name{count} \<a} )
@@ -600,27 +621,35 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
 
 \begin{code}
   \tcomment{examples of inner joins}\\
-  \name{intersect} : (A \fto \bool) \otimes (A \fto bool) \lto (A \fto \bool)\\
+  \name{intersect} : (A \fto \bool) \lto (A \fto bool) \lto (A \fto \bool)\\
   \name{intersect} \<f \<g \<x = f\<x \tand g\<x\\
-  \\
-  \name{cross} : (A \fto \bool) \otimes (B \fto bool) \lto (A \times B \fto \bool)\\
-  \name{cross} \<f \<g \<(x,y) = f\<x \tand g\<y\\
-  \\
-  \name{join} : (A \fto B \fto \bool) \otimes (B \fto C \fto bool) \lto (A \fto B \fto C \fto \bool)\\
-  \name{join} \<f \<g \<(a,b,c) = f\<a\<b \tand g\<b\<c\\
-  \\
-  \name{compose} : (A \fto B \fto \bool) \otimes (B \fto C \fto \bool)
+\end{code}
+
+\begin{code}
+  \name{cross} : (A \fto \bool) \lto (B \fto bool) \lto (A \fto B \fto \bool)\\
+  \name{cross} \<f \<g \<x \<y = f\<x \tand g\<y\\
+\end{code}
+
+\begin{code}
+  \name{join} : (A \fto B \fto \bool) \lto (B \fto C \fto bool) \lto (A \fto B \fto C \fto \bool)\\
+  \name{join} \<f \<g \<a \<b \<c = f\<a\<b \tand g\<b\<c\\
+\end{code}
+
+\begin{code}
+  \name{compose} : (A \fto B \fto \bool) \lto (B \fto C \fto \bool)
   \lto (A \fto C \fto \bool)\\
   \name{compose} \<f \<g \<a \<c =
     \name{exists}\<(\fn{b} \name{join} \<f \<g \<a \<b \<c)\\
-  \\
-  \name{joinWith} : (A \times B \to \bool) \to (A \fto \bool) \lto (B \fto \bool) \lto (A \fto B \fto \bool)\\
+\end{code}
+
+\begin{code}
+  \name{joinWith} : (A \to B \to \bool) \to (A \fto \bool) \lto (B \fto \bool) \lto (A \fto B \fto \bool)\\
   \name{joinWith} \<\name{test} \<f \<g \<a \<b =
-    f\<a \tand g\<b \tand \name{test}\<(a,b)
+    f\<a \tand g\<b \tand \name{test}\<a \<b
 \end{code}
 
 \noindent
-\todo{explain that these can all be curried.}
+\todo{explain that these can all be either curried $P \lto Q \lto R$ or uncurried $ P \otimes Q \lto R$.}
 
 \begin{code}
   \tcomment{examples of outer joins}\\
@@ -630,21 +659,26 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
 \end{code}
 
 \noindent
-\todo{explain why this CANNOT be curried: $(A \fto \bool) \lto (A \fto \bool) \lto (A \fto \bool)$ promises that if its first argument is \nil, i.e.\ the empty set, then its result is, too. union doesn't have this property.}
+\todo{explain why this CANNOT be curried: $(A \fto \bool) \lto (A \fto \bool) \lto (A \fto \bool)$ promises that if its first argument is \nil, i.e.\ the empty set, then its result is, too. union doesn't have this property. but why can't we destructure the pair? well, that we will have to wait to the typing rules to discover; it is not obvious and perhaps could be fixed. But it should at least be clear that our typing rules would have to treat variables created by destructuring an $\with$-pair differently from those created by destructuring an $\otimes$-pair.}
 
 
-\section{Pointed sets and relevance}
+%\section{Pointed sets and relevance}
+%\section{Points, relevantly}
+\section{The relevance of being relevant}
+\section{Context hopping}
 
 
 %% \section{Programming with pointed sets}
-\section{\fslang}
+\section{\fslang\ as she is typed}
 
 \todo{I want examples of what we can do in \fslang\ before we give its syntax/typing rules precisely. How do I approach this? Maybe I give examples and motivate typing rules (esp. for $\otimes$ intro) by them?}
 
-\subsection{Decidably pointed sets}
+%\subsection{Decidably pointed sets}
+\subsection{Curing maybe-addiction with class}
 
 
-\section{Semantics of \fslang}
+%\section{Semantics of \fslang}
+\section{What does it all mean?}
 
 
 %% END MATTER
