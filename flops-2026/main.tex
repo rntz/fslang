@@ -774,8 +774,8 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
     \bnfor \maybe A
     \\
     \text{expressions} & e &\bnfeq&
-    \termforget t \bnfor
-    x \bnfor \fn x e \bnfor e_1 \<e_2
+    \termforget t
+    \bnfor x \bnfor \fn x e \bnfor e_1 \<e_2
     \bnfor \tif{e_1}{e_2}{e_3}
     \bnfor ...
     \\
@@ -831,6 +831,10 @@ First, let's consider some basic uses of conjunction (inner joins, in database p
 \noindent
 By abstracting over predicates $f,g : A \fto \bool$, we are already working at a higher level of abstraction than possible in a bottom-up logic programming language like Datalog.
 But without motivation this generality serves only to obscure, so we will avoid unnecessary abstraction in our remaining examples.
+
+Note also that the types of these functions capturing something important about them.
+Curried functions preserve \nil\ in all arguments separately, and since $\nil_{A \fto \bool} = \fn{\pwild} \false$ is the everywhere-false predicate or empty relation, we know from their types alone that the intersection or cross product of an empty set with any other relation is empty.
+
 \TODO{something about adding \name{exists} into this mix, as foreshadowed...}
 
 %% \begin{code}
