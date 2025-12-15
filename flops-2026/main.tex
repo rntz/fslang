@@ -427,6 +427,8 @@ Let's get started!
 
 \subsection{Why not just...?}
 
+\TODO{rewrite this. ditch the "why do we do things pointwise" section. instead focus on why we have our type system machinery: because we're going higher-order. at first-order types, we don't need any of this. but as soon as (eg) currying gets involved, we do.}
+
 \subsubsection{SHORT/OLD VERSION}
 \todo{\emph{Somewhere} we should put \emph{something} about the hard bit being trying to do this while being higher-order. First-order pointed types are all just maybe-types. Point-preserving maps $\maybe A \lto \maybe B$ are just functions $A \to \maybe{B}$. Finitely supported maps $A \fto \maybe B$ are just dictionaries, $\name{Map} \<A \<B$, like you'd find in any programming language's standard library. The interesting bit is going higher-order in the output (currying), e.g.\ $A \fto B \fto P$ or $P \lto Q \lto R$. Also, having maps into types that are first-order/decidably pointed but you don't want to make the maybe explicit, like $A \fto \nat_0$. Also writing the functions as if they're functions, $\lambda x. t$ rather than having to explicitly tabulate support. $\gets$ BULLETED LIST OF ADVANTAGES. Maybe this gets its own section, titled ``Why not just...?''}
 
@@ -840,6 +842,8 @@ But without motivation this generality serves only to obscure, so we will avoid 
 Note also that the types of these functions capturing something important about them.
 Curried functions preserve \nil\ in all arguments separately, and since $\nil_{A \fto \bool} = \fn{\pwild} \false$ is the everywhere-false predicate or empty relation, we know from their types alone that the intersection or cross product of an empty set with any other relation is empty.
 Inner joins in general have this property because they use conjunction.
+
+\todo{show that we can filter tables by functions and get a table; and of course we can conjunct functions, but we don't get a table. so, three choices (table-table => table, table-function => table, function-function => function). hey this looks like moding.}
 
 \TODO{something about adding \name{exists} into this mix, as foreshadowed...}
 
