@@ -60,14 +60,14 @@
 \newcommand\crefrangeconjunction{--} % use en-dashes for ranges.
 
 
-%% %% TEMPORARY: different fonts because I hate reading computer modern
-%% \usepackage[scaled=0.97]{XCharter}\linespread{1.0333}
-%% %\usepackage[scaled=0.965,proportional,semibold]{sourcesanspro}
-%% \usepackage[osf,scaled=1.0333]{AlegreyaSans}
-%% %\usepackage[scaled=1.08]{biolinum}
-%% \usepackage[scaled=1.021]{inconsolata}
-%% \usepackage[xcharter,scaled=1.0556,]{newtxmath}
-%% %\usepackage{mathastext}
+%% TEMPORARY: different fonts because I hate reading computer modern
+\usepackage[scaled=0.97]{XCharter}\linespread{1.0333}
+%\usepackage[scaled=0.965,proportional,semibold]{sourcesanspro}
+\usepackage[osf,scaled=1.0333]{AlegreyaSans}
+%\usepackage[scaled=1.08]{biolinum}
+\usepackage[scaled=1.021]{inconsolata}
+\usepackage[xcharter,scaled=1.0556,]{newtxmath}
+%\usepackage{mathastext}
 
 
 %% ---------- Code environment ----------
@@ -180,7 +180,7 @@
 \newcommand\tabsurd{\kword{absurd}\<}
 \newcommand\tand{\mathrel{\kword{and}}}
 \newcommand\tor{\mathrel{\kword{or}}}
-\newcommand\ifthenelse[3]{\kword{if}~{#1}~\kword{then}~{#2}~\kword{else}~{#3}}
+\newcommand\tif[3]{\kword{if}~{#1}~\kword{then}~{#2}~\kword{else}~{#3}}
 %% \renewcommand\tand{~\kword{and}~}
 %% \renewcommand\tor{~\kword{or}~}
 %\newcommand\twhen[2]{\kword{when} \<({#1}) \<{#2}}
@@ -775,7 +775,7 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
     \text{expressions} & e &\bnfeq&
     \termforget t \bnfor
     x \bnfor \fn x e \bnfor e_1 \<e_2
-    \bnfor \ifthenelse{e_1}{e_2}{e_3}
+    \bnfor \tif{e_1}{e_2}{e_3}
     \bnfor ...
     \\
     \text{pointed terms} & t,u &\bnfeq&
