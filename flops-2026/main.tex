@@ -183,11 +183,11 @@
 %% \renewcommand\tand{~\kword{and}~}
 %% \renewcommand\tor{~\kword{or}~}
 %\newcommand\twhen[2]{\kword{when} \<({#1}) \<{#2}}
-\newcommand\twhen[2]{\kword{if}~ {#1} ~\kword{then}~ {#2}}
+%\newcommand\twhen[2]{\kword{if}~ {#1} ~\kword{then}~ {#2}}
 %\newcommand\twhen[2]{{#1} \Rightarrow {#2}}
 %\newcommand\twhen[2]{{#2} \mathrel{\kword{when}} {#1}}
-\newcommand\tfilterkword{\kword{when}}
-\newcommand\tfilter{~\tfilterkword~}
+\newcommand\whenkword{\kword{when}}
+\newcommand\when{~\whenkword~}
 %\newcommand\teq[2]{\name{eq} \<{#1} \<{#2}}
 \newcommand\teq[2]{{#1} = {#2}}
 %\newcommand\teq[2]{{#1} \mathrel{\kword{is}} {#2}}
@@ -634,18 +634,21 @@ Thus:
 \end{align*}
 
 \noindent
-In fact, in our examples it will be useful to generalize `and' to type $\bool \otimes P \lto P$, as well as its mirror image $\tfilterkword : P \otimes \bool \lto P$, defined by:
+In fact, in our examples it will be useful to generalize `and' to type $\bool \otimes P \lto P$, as well as its mirror image `\whenkword' of type $P \otimes \bool \lto P$, defined:\footnotemark{}
 \nopagebreak[2]
 
 \begin{align*}
   \false \tand x &= \nil_P
   &
-  x \tfilter \false &= \nil_P
+  x \when \false &= \nil_P
   \\
   \true \tand x &= x
   &
-  x \tfilter \true &= x
+  x \when \true &= x
 \end{align*}
+
+\footnotetext{A useful exercise for the reader is to verify that the generalized `and' is one leg of an isomorphism $\bool \otimes P \cong P$.
+  In \fslang\ the reverse leg, perhaps counterintuitively, is simply $\fn{x} (x, \true) : P \lto \bool \otimes P$.}
 
 \noindent
 %The reasons for the symbols $\with/\ox$ will become clear in \cref{sec:relevance}.
@@ -745,7 +748,7 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
 \end{figure}
 
 Now that we've developed enough notation (summarized in \cref{fig:pointed-sets}), we can consider some example programs and their types.
-For now we will rely on intuition to see that they are semantically well-typed; future sections will develop typing rules (\todo{fwd ref!}).
+For now we rely on intuition to see that they are semantically well-typed; future sections will develop typing rules (\todo{fwd ref!}).
 
 \xxx
 
@@ -763,7 +766,7 @@ For now we will rely on intuition to see that they are semantically well-typed; 
 \begin{code}
   \name{filmCount} : \name{person} \fto \nat_0\\
   \name{filmCount} \<\name{actor} = \name{sum} \<(\fn{\name{film}}
-    1 \tfilter {\name{stars} \<\name{film} \<\name{actor}}
+    1 \when {\name{stars} \<\name{film} \<\name{actor}}
   )
 \end{code}
 
@@ -784,7 +787,7 @@ For now we will rely on intuition to see that they are semantically well-typed; 
     \name{sum} \<(\fn{a}
       %% \leteq{n}{\name{count}\<a}
       %% \twhen{\teq{f\<a}{b}}{n}
-      \name{count}\<a \tfilter \teq{f\<a}{b}
+      \name{count}\<a \when \teq{f\<a}{b}
     )
 \end{code}
 
@@ -820,11 +823,8 @@ For now we will rely on intuition to see that they are semantically well-typed; 
   %%   f\<a \tand g\<b \tand \name{test}\<a \<b
   \name{joinWith} : (A \to B \to \bool) \to (A \fto P) \lto (B \fto Q) \lto (A \fto B \fto P \otimes Q)\\
   \name{joinWith} \<\name{test} \<f \<g \<a \<b =
-    (f\<a, g\<b) \tfilter \name{test}\<a \<b
+    (f\<a, g\<b) \when \name{test}\<a \<b
 \end{code}
-
-\noindent
-\todo{explain that these can all be either curried $P \lto Q \lto R$ or uncurried $ P \otimes Q \lto R$.}
 
 \begin{code}
   \tcomment{examples of outer joins}\\
@@ -840,12 +840,15 @@ This will not become clear until we discuss typing rules in section \todo{FWD RE
 Perhaps this limitation can be ducked with cleverer rules;
 but such rules would need to treat variables created by destructuring an $\with$-pair differently than those created by destructuring an $\otimes$-pair, otherwise we could give \name{union} the following incorrect type:
 
+\colorlet{invalid}{BrickRed}
 \begin{code}
-  \color{OrangeRed}
-  \name{falseUnion} : (A \fto \bool) \ox (A \fto \bool) \lto (A \fto \bool)\\
-  \color{OrangeRed}
+  \color{invalid}
+  \name{falseUnion} : (A \fto \bool) \ox (A \fto \bool) \lto (A \fto \bool)
+  \qquad\qquad\textsf{\strong{INVALID!}}
+  \\
+  \color{invalid}
   \name{falseUnion} \<(f,g) \<x = f\<x \tor g\<x
-  \hspace{13em} \textsf{INVALID CODE}
+  %% \hspace{13em} \textsf{INVALID CODE}
 \end{code}
 
 
