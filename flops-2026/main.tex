@@ -42,6 +42,7 @@
 %\usepackage{mathtools}          % \dblcolon
 \usepackage{mathpartir}         % mathpar
 \usepackage{nccmath}            % fleqn (for code environment)
+\usepackage{booktabs}           %\midrule
 
 %\usepackage{minted}
 \usepackage{listings}           % lstlisting
@@ -197,7 +198,7 @@
 %% \newcommand\tand{\mathrel{\mathbf{and}}}
 %% \newcommand\tor{\mathrel{\mathbf{or}}}
 
-\newcommand\pwild\textunderscore
+\newcommand\pwild{\text{\textunderscore}}
 \newcommand\nat{\mathbb{N}}
 
 
@@ -429,7 +430,7 @@ Why are we doing this when plenty of languages have built-in data structures for
 \end{code}
 
 \noindent
-You can of course implement this using your favorite language's finite maps, dictionary, or set types.
+You can of course implement this using your favorite language's finite map, dictionary, or set types.
 In Python, for instance, we can use set comprehensions:
 
 \begin{verbatim}
@@ -638,15 +639,15 @@ curried maps $f : P \lto Q \lto R$ must preserve \nil\ in each argument separate
 \nopagebreak[3]
 
 \begin{align*}
-  f \<\nil_P \<q &= \nil_{Q \lto R} \<q = \nil_R
-  && \text{since $f : P \lto Q \lto R$ preserves \nil}\\
-  f \<p \<\nil_Q &= \nil_R
+  (f \<\nil_P) \<q &= \nil_{Q \lto R} \<q = \nil_R
+  && \text{since $f : P \lto (Q \lto R)$ preserves \nil}\\
+  (f \<p) \<\nil_Q &= \nil_R
   && \text{since $f\<p : Q \lto R$ preserves \nil}
 \end{align*}
 
 \noindent
 In fact, currying and uncurrying of point-preserving maps forms an isomorphism $P \ox Q \lto R \cong P \lto Q \lto R$.
-But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') that preserve \nil\ in both of their arguments (phrased categorically, \Point\ lacks exponential objects).
+But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') that yield \nil\ only when both arguments are \nil\ (phrased categorically, \Point\ lacks exponential objects).
 
 %This is precisely what `and' does that `or' does not.
 
@@ -689,8 +690,44 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
 
 \section{A finitely supported map from examples to booleans}
 
-Now that we've developed enough notation, we can consider some example programs and their types.
-For now we will rely on our intuition to check they are semantically well-typed; future sections (\todo{fwd ref!}) will develop the typing rules necessary to check this syntactically.
+\begin{figure}[t]
+  \begin{center}
+    \setlength\tabcolsep{2pt}
+    \begin{tabular}{clll}
+      \emph{Notation}
+      & \emph{Name} & \emph{Elements} & \nil\\\midrule
+      $P \with Q$
+      & direct product
+      & $\withpair{p,q}$ for $p\in P, q \in Q$
+      & $\withpair{\nil_P, \nil_Q}$
+      \\
+      $P \ox Q$
+      & smash product
+      & \((p,q)\) for \(p \in P, q \in Q\) modulo:
+      & \((\nil_P, q) = (p, \nil_Q)\)
+      \\
+      $P \lto Q$
+      & point-preserving maps
+      & $f : P \to Q$ with $f(\nil_P) = \nil_Q$
+      & $\fn{\pwild} \nil_Q$
+      \\
+      $A \fto P$
+      & finite maps
+      & $f : A \to P$ with $\support f$ finite
+      & $\fn{\pwild} \nil_P$
+      \\
+      $\bool$
+      & booleans
+      & \true\ and \false
+      & \false
+    \end{tabular}
+  \end{center}
+  \caption{Summary of pointed sets}
+  \label{fig:pointed-sets}
+\end{figure}
+
+Now that we've developed enough notation (summarized in \cref{fig:pointed-sets}), we can consider some example programs and their types.
+For now we will rely on intuition to see that they are semantically well-typed; future sections will develop typing rules (\todo{fwd ref!}).
 
 %\section{A finite set of finite functional programs}
 %\section{Some finite functional programs}
