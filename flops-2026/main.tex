@@ -180,6 +180,7 @@
 \newcommand\tabsurd{\kword{absurd}\<}
 \newcommand\tand{\mathrel{\kword{and}}}
 \newcommand\tor{\mathrel{\kword{or}}}
+\newcommand\ifthenelse[3]{\kword{if}~{#1}~\kword{then}~{#2}~\kword{else}~{#3}}
 %% \renewcommand\tand{~\kword{and}~}
 %% \renewcommand\tor{~\kword{or}~}
 %\newcommand\twhen[2]{\kword{when} \<({#1}) \<{#2}}
@@ -201,7 +202,12 @@
 %% \newcommand\tor{\mathrel{\mathbf{or}}}
 
 \newcommand\pwild{\text{\textunderscore}}
+
+\newcommand\typeforget{}
+\newcommand\termforget[1]{#1}
+
 \newcommand\nat{\mathbb{N}}
+\newcommand\natz{\ensuremath{\nat_0}}
 
 \hyphenation{equip-ped}
 
@@ -592,7 +598,7 @@ If finitely supported maps are this work's \emph{raison d'\^etre,} point-preserv
 \subsection{Direct or/and smash}
 %\subsection{Smash and/or direct product}
 
-To replicate logic programming, we take particular interest in two point-pre\-serv\-ing maps: boolean disjunction and conjunction.
+Following logic programming, we take particular interest in two point-pre\-serv\-ing maps: boolean disjunction and conjunction.
 Let's start with their types.
 Recall that $\nil_\bool = \false$.
 Observe that `or' yields \nil\ when \emph{both} its arguments are \nil, while `and' yields \nil\ when \emph{either} argument is \nil:
@@ -650,8 +656,8 @@ In fact, in our examples it will be useful to generalize `and' to type $\bool \o
   x \when \true &= x
 \end{align*}
 
-\footnotetext{A useful exercise for the reader is to verify that the generalized `and' is one leg of an isomorphism $\bool \otimes P \cong P$.
-  In \fslang\ the reverse leg, perhaps counterintuitively, is simply $\fn{x} (x, \true) : P \lto \bool \otimes P$.}
+\footnotetext{An edifying exercise for the reader is to verify that the generalized `and' is one leg of an isomorphism $\bool \otimes P \cong P$.
+  In \fslang\ the reverse leg, perhaps counterintuitively, is simply $\fn{x} (\true, x) : P \lto \bool \otimes P$.}
 
 \noindent
 %The reasons for the symbols $\with/\ox$ will become clear in \cref{sec:relevance}.
@@ -744,16 +750,17 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
       & booleans
       & \true\ and \false
       & \false
+      \\
+      $\natz$
+      & natural numbers
+      & 0, 1, 2, 3, 4...
+      & 0
     \end{tabular}
   \end{center}
-  \caption{Pointed set cheat sheet}
+  \caption{Pointed sets I have known and loved}
+  %\caption{Pointed sets cheat sheet}
   \label{fig:pointed-sets}
 \end{figure}
-
-\newcommand\typeforget{}
-\newcommand\termforget[1]{#1}
-\newcommand\ifthenelse[3]{\kword{if}~{#1}~\kword{then}~{#2}~\kword{else}~{#3}}
-\newcommand\natz{\ensuremath{\nat_0}}
 
 \begin{figure}[t]
   \[
@@ -782,41 +789,29 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
   \end{array}
   \]
   \caption{Syntax of \fslang}
+  %\caption{\fslang\ as she is wrote}
   \label{fig:syntax}
 \end{figure}
 
 \begin{figure}[t]
   \begin{align*}
-    \true, \false &: \bool
-    &
-    \kword{or} &: \bool \with \bool \lto \bool
-    &
-    \name{exists} &: (A \fto \bool) \lto \bool
-    \\
     \kword{and} &: \bool \with P \lto P
     &
     \kword{when} &: P \with \bool \lto P
     &
     ({=}) &: A \to A \fto \bool
     \\
+    \true, \false &: \bool
+    &
+    \kword{or} &: \bool \with \bool \lto \bool
+    &
+    \name{exists} &: (A \fto \bool) \lto \bool
+    \\
     &&
     (+) &: \natz \with \natz \lto \natz
     &
     \name{sum} &: (A \fto \natz) \lto \natz
   \end{align*}
-  %% \begin{mathpar}
-  %%   \true, \false : \bool
-    
-  %%   \kword{or} : \bool \with \bool \lto \bool
-    
-  %%   \kword{and} : \bool \with P \lto P
-
-  %%   \kword{when} : P \with \bool \lto P
-    
-  %%   ({=}) : A \to A \fto \bool
-
-  %%   \name{exists} : (A \fto \bool) \lto \bool
-  %% \end{mathpar}
   \caption{Primitive values and operators of \fslang}
   \label{fig:primitives}
 \end{figure}
