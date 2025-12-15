@@ -164,7 +164,7 @@
 %\newcommand\cname\text          %constructor name
 %\newcommand\cname\name
 \newcommand\cname\textrm
-%\newcommand\cnil{\cname{nil}}
+\newcommand\cnil{\cname{nil}}
 \newcommand\cjust{\cname{just}}
 %\newcommand\ctrue{\cname{true}}
 %\newcommand\cfalse{\cname{false}}
@@ -749,13 +749,18 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
       \\
       $\bool$
       & booleans
-      & \true\ and \false
+      & \true, \false
       & \false
       \\
       $\natz$
       & natural numbers
       & 0, 1, 2, 3, 4...
       & 0
+      \\
+      $\maybe A$
+      & maybe type
+      & $\tjust a$ for $a \in A$, \cnil
+      & \cnil
     \end{tabular}
   \end{center}
   \caption{Pointed sets I have known and loved}
