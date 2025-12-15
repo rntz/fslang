@@ -834,6 +834,7 @@ But without motivation this generality serves only to obscure, so we will avoid 
 
 Note also that the types of these functions capturing something important about them.
 Curried functions preserve \nil\ in all arguments separately, and since $\nil_{A \fto \bool} = \fn{\pwild} \false$ is the everywhere-false predicate or empty relation, we know from their types alone that the intersection or cross product of an empty set with any other relation is empty.
+Inner joins in general have this property because they use conjunction.
 
 \TODO{something about adding \name{exists} into this mix, as foreshadowed...}
 
@@ -873,9 +874,10 @@ Curried functions preserve \nil\ in all arguments separately, and since $\nil_{A
   )
 \end{code}
 
+\noindent
+\xxx
+
 \begin{code}
-  \tcomment{N.B.\ We leave semantics for recursion to future work.}\\
-  \tcomment{\todo{Maybe cite Rioux's $\lambda_\vee$ paper?}}\\
   \name{connected} : \name{person} \fto \name{person} \fto \bool\\
   \name{connected} \<x \<y = \name{costars} \<x \<y
   \tor \name{exists}\< (\fn{z} \name{connected} \<x \<z \tand \name{connected} \<z \<y)
@@ -888,7 +890,6 @@ Ensuring the existence of a fixed point would seem to require some sort of monot
 \todo{We have observed the functoriality of $A \fto P$ over pointed sets $P$; how about over $A$? As it turns out, this is a functor if $P$ is a commutative monoid, and we can define the corresponding \name{map} operation in \fslang\ if we have a summation operator for $P$:}
 
 \begin{code}
-  \tcomment{\todo{HANG ON! this needs a type of the form $A \to P$!}}\\
   \name{map} : (A \to B) \to (A \fto \nat_0) \lto (B \fto \nat_0)\\
   \name{map} \<f \<\name{count} \<b =
     %\name{sum} \<(\fn{a} \twhen{\teq{f\<a}{b}}{\name{count} \<a} )
@@ -899,6 +900,8 @@ Ensuring the existence of a fixed point would seem to require some sort of monot
     )
 \end{code}
 
+\noindent\TODO{maybe don't bother with joinWith? unless it's a particularly compelling example of higher-order generality.}
+
 \begin{code}
   %% \name{joinWith} : (A \to B \to \bool) \to (A \fto \bool) \lto (B \fto \bool) \lto (A \fto B \fto \bool)\\
   %% \name{joinWith} \<\name{test} \<f \<g \<a \<b =
@@ -907,6 +910,8 @@ Ensuring the existence of a fixed point would seem to require some sort of monot
   \name{joinWith} \<\name{test} \<f \<g \<a \<b =
     (f\<a, g\<b) \when \name{test}\<a \<b
 \end{code}
+
+\noindent\xxx
 
 \begin{code}
   \tcomment{examples of outer joins}\\
