@@ -829,7 +829,8 @@ First, let's consider some basic uses of conjunction (inner joins, in database p
 
 \noindent
 By abstracting over predicates $f,g : A \fto \bool$, we are already working at a higher level of abstraction than possible in a bottom-up logic programming language like Datalog.
-\xxx
+But without motivation this generality serves only to obscure, so we will avoid unnecessary abstraction in our remaining examples.
+\TODO{something about adding \name{exists} into this mix, as foreshadowed...}
 
 %% \begin{code}
 %%   \name{join} : (A \fto B \fto \bool) \lto (B \fto C \fto bool) \lto (A \fto B \fto C \fto \bool)\\
@@ -857,6 +858,9 @@ By abstracting over predicates $f,g : A \fto \bool$, we are already working at a
   %% \tand \name{stars} \<\name{film} \<y)
 \end{code}
 
+\noindent
+\TODO{mention the $\name{sum}$ function, also probably a good place to bring in `\whenkword'.}
+
 \begin{code}
   \name{filmCount} : \name{person} \fto \nat_0\\
   \name{filmCount} \<\name{actor} = \name{sum} \<(\fn{\name{film}}
@@ -872,10 +876,14 @@ By abstracting over predicates $f,g : A \fto \bool$, we are already working at a
   \tor \name{exists}\< (\fn{z} \name{connected} \<x \<z \tand \name{connected} \<z \<y)
 \end{code}
 
+\noindent
+Unfortunately we will not be able to give typing rules or semantics for this kind of recursion here.
+Ensuring the existence of a fixed point would seem to require some sort of monotonicity \`a la Datafun~\cite{datafun} or $\lambda_\vee$~\cite{DBLP:journals/pacmpl/RiouxZ25}; we leave this to future work.
+
+\todo{We have observed the functoriality of $A \fto P$ over pointed sets $P$; how about over $A$? As it turns out, this is a functor if $P$ is a commutative monoid, and we can define the corresponding \name{map} operation in \fslang\ if we have a summation operator for $P$:}
+
 \begin{code}
-  \tcomment{We can map over the keys of a f.s. map if we can sum over its value type.}\\
-  \tcomment{Hold this example back until we know the typing rules \& can explain why it's so awkward.}\\
-  \tcomment{ALSO, how would my theoretical WCOI implementation strategy handle this?}\\
+  \tcomment{\todo{HANG ON! this needs a type of the form $A \to P$!}}\\
   \name{map} : (A \to B) \to (A \fto \nat_0) \lto (B \fto \nat_0)\\
   \name{map} \<f \<\name{count} \<b =
     %\name{sum} \<(\fn{a} \twhen{\teq{f\<a}{b}}{\name{count} \<a} )
