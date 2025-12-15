@@ -37,7 +37,7 @@
 
 %\usepackage{anyfontsize} % silence font size not available warnings by autoscaling fonts
 \usepackage{amssymb}            % \multimap, \mathbb
-%\usepackage{amsmath}
+\usepackage{amsmath}
 %\usepackage{latexsym,stmaryrd}
 %\usepackage{mathtools}          % \dblcolon
 \usepackage{mathpartir}         % mathpar
@@ -190,6 +190,7 @@
 %\newcommand\teq[2]{{#1} \mathrel{\kword{is}} {#2}}
 %\newcommand\teq[2]{{#2} \gets {#1}}
 \newcommand\tcomment[1]{\color{black!60}\textsf{\#\ #1}}
+\newcommand\withpair[1]{\ensuremath{\langle{#1}\rangle}}
 
 %% \renewcommand\tand{\mathrel{\mathrm{\&\&}}}
 %% \renewcommand\tor{\mathrel{\mathrm{||}}}
@@ -363,7 +364,7 @@ Along the way we will observe other curious connections:
 %
 \begin{enumerate}
 \item Database inner joins are point-preserving maps out of the smash product $A \otimes B$ of pointed sets, while outer joins map out of the direct product $A \with B$.
-\item Input/output modes in logic programming correspond to procedural functions and finite maps respectively.
+\item Input/output modes in bottom-up logic programming correspond to procedural functions and finite maps respectively.
   %% Mistral Contrastin's paper on moding has some relevant citations
   %% "Automatic Reordering for Dataflow Safety of Datalog"
   %% https://www.cs.kent.ac.uk/people/staff/dao7/publ/ppdp18-dataflow-reordering.pdf
@@ -412,10 +413,60 @@ Let's get started!
 %% \end{lstlisting}
 
 
+\subsection{Why not just...?}
+
+\subsubsection{SHORT/OLD VERSION}
+\todo{\emph{Somewhere} we should put \emph{something} about the hard bit being trying to do this while being higher-order. First-order pointed types are all just maybe-types. Point-preserving maps $\maybe A \lto \maybe B$ are just functions $A \to \maybe{B}$. Finitely supported maps $A \fto \maybe B$ are just dictionaries, $\name{Map} \<A \<B$, like you'd find in any programming language's standard library. The interesting bit is going higher-order in the output (currying), e.g.\ $A \fto B \fto P$ or $P \lto Q \lto R$. Also, having maps into types that are first-order/decidably pointed but you don't want to make the maybe explicit, like $A \fto \nat_0$. Also writing the functions as if they're functions, $\lambda x. t$ rather than having to explicitly tabulate support. $\gets$ BULLETED LIST OF ADVANTAGES. Maybe this gets its own section, titled ``Why not just...?''}
+
+\vspace{1\baselineskip}
+
+\todo{This section needs work, very rough draft. also, where does it belong? \strong{\sffamily HEY MAX, YOU ASKED FOR THIS SECTION: WHERE DOES IT BELONG?} I think it has to go \emph{after} \cref{sec:support}, because otherwise we haven't introduced them to our notation yet.}
+
+Why are we doing this when plenty of languages have built-in data structures for finite maps? What is the advantage? Well: they don't let you write our example programs in the natural way. For instance,
+  
+\begin{code}
+  \name{costars} \<x \<y = \name{exists} \;(\fn{\name{film}} \name{stars}\<\name{film}\<x \tand \name{stars}\<\name{film}\<y)
+\end{code}
+
+\noindent
+You can of course implement this using your favorite language's finite maps, dictionary, or set types.
+In Python, for instance, we can use set comprehensions:
+
+\begin{verbatim}
+costars = {(x,y) for (film1, x) in stars
+                 for (film2, y) in stars
+                 if film1 == film2}
+\end{verbatim}
+
+\noindent
+Now, this isn't a particularly good implementation strategy for this query---%
+but that \emph{is} what we have expressed here: an implementation strategy.
+Set comprehensions are nicely concise, but nonetheless require us to give an explicit strategy for enumerating the support of a query.
+%
+We aim to move up a level of abstraction, so that
+(1) a query's support is inferred from its logical structure, rather than needing to structure queries around enumeration strategies, and
+(2) we defer the question of \emph{how} to execute a query to the compiler, as logic and database query languages do.\footnotemark{}
+
+\footnotetext{This avoidance of comprehensions also distinguishes us from Datafun~\cite{datafun}---at least syntactically: since Datafun's semantics are declarative, an optimizing compiler could in principle rewrite its set comprehensions into efficient query plans.}
+
+This explains the need for a type system for checking finite support.
+But why pointed sets and not just booleans?
+\todo{for the reasons I already gave: generalizing to tensor algebra, handling aggregations, and compositional expressiveness like currying.}
+
+Still, why do we need a complicated type system for point-preserving maps \todo{with all these funny types and rules?}
+\todo{
+Any pointed set is isomorphic to an option type, right? And a point-preserving map $\maybe A \lto \maybe B$ is just a map $A \to \maybe B$!
+well, (a) yes but sometimes you don't want to think of it that way, eg the naturals $\nat$ are isomorphic to a maybe type but that means you need a different addition function.
+and (b), no! most higher-order types are \emph{not} isomorphic to option types because it's not decidable whether something is \nil.
+}
+
+
 %\section{Support and pointed sets}
 %\section{What is the point of support?}
 %\section{What is support? What is the point?}
 \section{Support, pointedly}
+
+\label{sec:support}
 
 The support of a boolean function $f$ is the set $\{ x \in A : f(x) \ne \false \}$.
 %
@@ -424,7 +475,8 @@ It will be useful to generalize beyond booleans,
 firstly to expose compositional structure, for instance, to define the support of a curried function $f : A \to B \to \bool$;
 and secondly to generalize from boolean logic and existential quantification (or relational algebra and projection, respectively) to weighted logic programming and aggregation (or tensor algebra and contraction).
 
-To this end we write $P,Q$ for sets with a designated element (``pointed sets'') and $\nil_P \in P$ for the designated element (the ``point'').
+To this end we write $P,Q,R$ for sets with a designated element (``pointed sets'') and $\nil_P \in P$ for the designated element (the ``point'').
+(We use $A,B,C$ for ordinary sets.)
 For instance, we regard $\bool$ as pointed with $\nil_\bool = \false$.
 We define the support of a function $f : A \to P$ into a pointed set to be $\support f = \{ x \in A : f(x) \ne \nil_P \}$.
 %
@@ -503,7 +555,6 @@ If one regards $\nil_P$ as an uninteresting, default value, a function's support
 %% The support of a function $f : A \to P$ is the set $\support f = \{ x \in A : f(x) \ne \nil_P \}$.
 
 %% \footnotetext{\todo{explain why we pick \false\ not \true: because the support is the range of ``interesting'' outputs.}}
-
 
 We write $A \fto P = \{ f \in A \to P : \support f ~\text{is finite} \}$ for the finitely supported functions from $A$ to $P$.
 Naturally this is a pointed set with $\nil_{A \fto P} = \fn{x} \nil_P$;
@@ -511,105 +562,136 @@ the boring, default finite map is the one with empty support.
 What can we do with finite maps?
 We can of course apply them---this is look-up in a key-value table.
 We can also curry and uncurry them: $A \times B \fto P \cong A \fto (B \fto P)$.
-\todo{this corresponds to moving between a flat representation and a nested trie-like one; should I mention this?}
+This converts between a single flat table $A \times B \fto P$ and a trie-like nesting of tables $A \fto B \fto P$.
+%\todo{this corresponds to moving between a flat representation and a nested trie-like one; should I mention this?}
 
-Can we compose them?
+But how can we manipulate the output $P$ of a finite map $A \fto P$?
+Can we, for instance, compose finite maps?
 %
 Unfortunately, the composition of two finite maps may not have finite support:
 e.g.\ take $\fn{x} x < 3 : \nat \fto \bool$ followed by $\name{not} : \bool \fto \bool$.
 The set of naturals less than three is finite; its complement is not.
 %
 For the same reason, we cannot compose a finite map $g : A \fto P$ with an arbitrary function $f : P \to Q$ and expect the result to be finitely supported.
-%
-However, we \emph{can} compose a finite map with a function $f$ if $f(\nil_P) = \nil_Q$.
-\todo{because it can only contract the support.}
+
+However, we \emph{can} compose a finite map with a function $f$ if $f(\nil_P) = \nil_Q$; this preserves finiteness because it can only contract our support.
+%\todo{because it can only contract the support.}
 %
 These are the \emph{point-preserving maps}, which we notate $P \lto Q = \{ f \in P \to Q : f(\nil_P) = \nil_Q \}$.
+These are again naturally pointed with $\nil_{P \lto Q} = \fn{x} \nil_Q$.
 The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps as morphisms; what we have just observed is that, for any set $A$, there is a functor $F_A : \Point \to \Point$ given by $F_A(P) = A \fto P$.
-\todo{EXPLAIN: if finitely supported maps are our \emph{raison d'\^etre,} point-preserving maps are how we're going to manipulate and combine them. (THIS LEADS DIRECTLY INTO DISCUSSING and/or AND THUS $\otimes$/$\with$!}
-
-\todo{{\bf badly need motivation}. should we head straight to example programs using the types we've introduced? use examples from talk (costarred, filmography, path, ...)? maybe what we should ask is: (1) can we mechanize the reasoning that lets us conclude these are finitely supported in a type system? and (2) if so, what are the types of $\kword{and}/\kword{or}$? and explicitly flag that this will take us down a rabbithole.}
-
-\todo{\strong{Plan for now:}
-  \begin{itemize}
-  \item explain $\with$ and $\otimes$ as two different products corresponding to ${\tor}$ and ${\tand}$ respectively.
-  \item then move immediately on to example programs, now that we have enough vocabulary to talk about their types.
-  \item then we move on to syntax of \fslang\ and typing rules? derive typing rules from how things must behave?
-  \end{itemize}
-}
-
-\noindent
-\todo{Want to cover:
-  \begin{itemize}
-  \item define/notate finitely supported maps (fs maps)
-  \item fs maps are a pointed set
-  \item fs maps seem to form a graded (co)monad? tantalizing but...
-  \item but to map over fs maps we need \nil-preserving maps.
-  \end{itemize}
-  alternative story:
-  \begin{itemize}
-  \item define/notate finitely supported maps (fs maps)
-  \item fs maps are a pointed set
-  \item what can I do with a fs map? look up in it, clearly.
-  \item I can curry/uncurry: $A \fto B \fto P \cong A \times B \fto P$.
-  \item can I tell whether a $\lambda$-expression is finitely supported?
-    intuitively, yes, but it's not obvious how to mechanize this
-  \item can we compose fs maps? not really
-  \item can I map over a fs map? yes, but only if I preserve the point!
-  \item category \Point\ of point-preserving maps
-  \end{itemize}
-}
+If finitely supported maps are this work's \emph{raison d'\^etre,} point-preserving maps are how we will manipulate and combine them.
 
 
-\subsection{Why not just...?}
+%\subsection{Or/and, both/either, direct/smash}
+\subsection{Direct or/and smash}
+%\subsection{Smash and/or direct product}
 
-\subsubsection{SHORT/OLD VERSION}
-\todo{\emph{Somewhere} we should put \emph{something} about the hard bit being trying to do this while being higher-order. First-order pointed types are all just maybe-types. Point-preserving maps $\maybe A \lto \maybe B$ are just functions $A \to \maybe{B}$. Finitely supported maps $A \fto \maybe B$ are just dictionaries, $\name{Map} \<A \<B$, like you'd find in any programming language's standard library. The interesting bit is going higher-order in the output (currying), e.g.\ $A \fto B \fto P$ or $P \lto Q \lto R$. Also, having maps into types that are first-order/decidably pointed but you don't want to make the maybe explicit, like $A \fto \nat_0$. Also writing the functions as if they're functions, $\lambda x. t$ rather than having to explicitly tabulate support. $\gets$ BULLETED LIST OF ADVANTAGES. Maybe this gets its own section, titled ``Why not just...?''}
+To replicate logic programming, we take particular interest in two point-preserving maps: boolean disjunction and conjunction.
+Let's start with their types.
+Recall that $\nil_\bool = \false$.
+Observe that `or' yields \nil\ when \emph{both} its arguments are \nil, while `and' yields \nil\ when \emph{either} argument is \nil:
+% while `and' preserves $\nil$ in each argument separately:
 
-\vspace{1\baselineskip}
+\begin{align*}
+  \false \tor \false &= \false
+  &
+  \false \tand y &= \false
+  &
+  x \tand \false &= \false
+\end{align*}
 
-\todo{This section needs work, very rough draft. also, where does it belong? \strong{\sffamily HEY MAX, YOU ASKED FOR THIS SECTION: WHERE DOES IT BELONG?}}
-
-Why are we doing this when plenty of languages have built-in data structures for finite maps? What is the advantage? Well: they don't let you write our example programs in the natural way. For instance,
-  
-\begin{code}
-  \name{costars} \<x \<y = \name{exists} \;(\fn{\name{film}} \name{stars}\<\name{film}\<x \tand \name{stars}\<\name{film}\<y)
-\end{code}
+%% \begin{align*}
+%%   \false \tor \false &= \false
+%%   &
+%%   \false \tor \true &= \true
+%%   &
+%%   \true \tor \false &= \true
+%%   \\
+%%   \false \tand y &= \false
+%%   &
+%%   x \tand \false &= \false
+%% \end{align*}
 
 \noindent
-You can of course implement this using your favorite language's finite maps, dictionary, or set types.
-In Python, for instance, we can use set comprehensions:
-
-\begin{verbatim}
-costars = {(x,y) for (film1, x) in stars
-                 for (film2, y) in stars
-                 if film1 == film2}
-\end{verbatim}
-
-\noindent
-Now, this isn't a particularly good implementation strategy for this query---%
-but that \emph{is} what we have expressed here: an implementation strategy.
-Set comprehensions are nicely concise, but nonetheless require us to give an explicit strategy for enumerating the support of a query.
+We reflect this both/either distinction by giving distinct types to their arguments.
 %
-We aim to move up a level of abstraction, so that
-(1) a query's support is inferred from its logical structure, rather than needing to structure queries around enumeration strategies, and
-(2) we defer the question of \emph{how} to execute a query to the compiler, as logic and database query languages do.\footnotemark{}
+\noindent
+The argument to `or' is a pair which is \nil\ when both components are.
+This is the \emph{direct product} of pointed sets, $P \with Q = \{\withpair{p,q} : p \in P, q \in Q\}$ where $\nil_{P \with Q} = \withpair{\nil_P, \nil_Q}$.
+%
+Conversely, the argument to `and' is a pair which is \nil\ if either component is.
+This is the \emph{smash product} of pointed sets, $P \otimes Q = \{(p,q) : p \in P, q \in Q\}$ quotiented by \(\nil_{P \otimes Q} = (\nil_P, y) = (x, \nil_Q)\).
+Thus:
 
-\footnotetext{This avoidance of comprehensions also distinguishes us from Datafun~\cite{datafun}---at least syntactically: since Datafun's semantics are declarative, an optimizing compiler could in principle rewrite its set comprehensions into efficient query plans.}
+\begin{align*}
+  \kword{or} &: \bool \with \bool \lto \bool
+  &
+  \kword{and} &: \bool \ox \bool \lto \bool
+\end{align*}
 
-This explains the need for a type system for checking finite support.
-But why pointed sets and not just booleans?
-\todo{for the reasons I already gave: generalizing to tensor algebra, handling aggregations, and compositional expressiveness like currying.}
+\noindent
+%The reasons for the symbols $\with/\ox$ will become clear in \cref{sec:relevance}.
+Finally, we must note an important asymmetry:
+%only `and' can be curried and remain point-preserving, $\fn{x} \fn{y} x \tand y : \bool \lto \bool \lto \bool$, since
+curried maps $f : P \lto Q \lto R$ must preserve \nil\ in each argument separately, like `and' and unlike `or':
+\nopagebreak[3]
 
-Still, why do we need a complicated type system for point-preserving maps \todo{with all these funny types and rules?}
-\todo{
-Any pointed set is isomorphic to an option type, right? And a point-preserving map $\maybe A \lto \maybe B$ is just a map $A \to \maybe B$!
-well, (a) yes but sometimes you don't want to think of it that way, eg the naturals $\nat$ are isomorphic to a maybe type but that means you need a different addition function.
-and (b), no! most higher-order types are \emph{not} isomorphic to option types because it's not decidable whether something is \nil.
-}
+\begin{align*}
+  f \<\nil_P \<q &= \nil_{Q \lto R} \<q = \nil_R
+  && \text{since $f : P \lto Q \lto R$ preserves \nil}\\
+  f \<p \<\nil_Q &= \nil_R
+  && \text{since $f\<p : Q \lto R$ preserves \nil}
+\end{align*}
+
+\noindent
+In fact, currying and uncurrying of point-preserving maps forms an isomorphism $P \ox Q \lto R \cong P \lto Q \lto R$.
+But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') that preserve \nil\ in both of their arguments (phrased categorically, \Point\ lacks exponential objects).
+
+%This is precisely what `and' does that `or' does not.
+
+%% We can do this with the curried type $\bool \lto \bool \lto \bool$.
+%% Since $\nil_{\bool \lto \bool} = \fn{x} \false$, this says that $(\false \tand y) = (\fn{x} \false) \<y = \false$; likewise it tells us that the partial application $\fn{y} x \tand y$ is \nil-preserving and so $x \tand \false = \false$.
+
+%% However, this produces an awkward asymmetry: `or' is uncurried while `and' is curried.
+%% Is there a type that captures the input to `and' the way the direct product captured the input to `or'? And is there a way to curry `or'?
+%% The answers are yes and no respectively.
+%% Yes: it is called the \emph{tensor product.}
+
+%% As it turns out, we can only half fix this: `or' cannot be curried within the language of pointed sets and point-preserving maps
+
+
+%% %% ---------- OLD TODOS ---------- %%
+%% \todo{{\bf badly need motivation}. should we head straight to example programs using the types we've introduced? use examples from talk (costarred, filmography, path, ...)? maybe what we should ask is: (1) can we mechanize the reasoning that lets us conclude these are finitely supported in a type system? and (2) if so, what are the types of $\kword{and}/\kword{or}$? and explicitly flag that this will take us down a rabbithole.}
+
+%% \noindent
+%% \todo{Want to cover:
+%%   \begin{itemize}
+%%   \item define/notate finitely supported maps (fs maps)
+%%   \item fs maps are a pointed set
+%%   \item fs maps seem to form a graded (co)monad? tantalizing but...
+%%   \item but to map over fs maps we need \nil-preserving maps.
+%%   \end{itemize}
+%%   alternative story:
+%%   \begin{itemize}
+%%   \item define/notate finitely supported maps (fs maps)
+%%   \item fs maps are a pointed set
+%%   \item what can I do with a fs map? look up in it, clearly.
+%%   \item I can curry/uncurry: $A \fto B \fto P \cong A \times B \fto P$.
+%%   \item can I tell whether a $\lambda$-expression is finitely supported?
+%%     intuitively, yes, but it's not obvious how to mechanize this
+%%   \item can we compose fs maps? not really
+%%   \item can I map over a fs map? yes, but only if I preserve the point!
+%%   \item category \Point\ of point-preserving maps
+%%   \end{itemize}
+%% }
 
 
 \section{A finitely supported map from examples to booleans}
+
+Now that we've developed enough notation, we can consider some example programs and their types.
+For now we will rely on our intuition to check they are semantically well-typed; future sections (\todo{fwd ref!}) will develop the typing rules necessary to check this syntactically.
+
 %\section{A finite set of finite functional programs}
 %\section{Some finite functional programs}
 
@@ -717,6 +799,7 @@ and (b), no! most higher-order types are \emph{not} isomorphic to option types b
 %\section{Pointed sets and relevance}
 %\section{Points, relevantly}
 \section{The relevance of being relevant} % explains how relevance typing works
+\label{sec:relevance}
 
 \TODO{explain how relevance typing works for point-preserving maps}
 
