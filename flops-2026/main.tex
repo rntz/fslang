@@ -40,7 +40,7 @@
 \usepackage{amssymb}            % \multimap, \mathbb
 \usepackage{amsmath}
 %\usepackage{latexsym,stmaryrd}
-%\usepackage{mathtools}          % \dblcolon
+\usepackage{mathtools}          % \dblcolon, \Coloneqq
 \usepackage{mathpartir}         % mathpar
 \usepackage{nccmath}            % fleqn (for code environment)
 \usepackage{booktabs}           %\midrule
@@ -60,14 +60,14 @@
 \newcommand\crefrangeconjunction{--} % use en-dashes for ranges.
 
 
-%% TEMPORARY: different fonts because I hate reading computer modern
-\usepackage[scaled=0.97]{XCharter}\linespread{1.0333}
-%\usepackage[scaled=0.965,proportional,semibold]{sourcesanspro}
-\usepackage[osf,scaled=1.0333]{AlegreyaSans}
-%\usepackage[scaled=1.08]{biolinum}
-\usepackage[scaled=1.021]{inconsolata}
-\usepackage[xcharter,scaled=1.0556,]{newtxmath}
-%\usepackage{mathastext}
+%% %% TEMPORARY: different fonts because I hate reading computer modern
+%% \usepackage[scaled=0.97]{XCharter}\linespread{1.0333}
+%% %\usepackage[scaled=0.965,proportional,semibold]{sourcesanspro}
+%% \usepackage[osf,scaled=1.0333]{AlegreyaSans}
+%% %\usepackage[scaled=1.08]{biolinum}
+%% \usepackage[scaled=1.021]{inconsolata}
+%% \usepackage[xcharter,scaled=1.0556,]{newtxmath}
+%% %\usepackage{mathastext}
 
 
 %% ---------- Code environment ----------
@@ -135,8 +135,8 @@
 \newcommand\x\times
 \newcommand\with{\mathbin{\&}}
 \newcommand\ox\otimes
-\newcommand\typename\text
-\newcommand\bool{\name{bool}}
+\newcommand\typename\mathit
+\newcommand\bool{\typename{bool}}
 \newcommand\maybe[1]{\ensuremath{\typename{maybe}~{#1}}}
 
 %% need \usepackage{accent} for these
@@ -162,7 +162,7 @@
 \newcommand\const\name
 %\newcommand\cname\text          %constructor name
 %\newcommand\cname\name
-\newcommand\cname\textsf
+\newcommand\cname\textrm
 %\newcommand\cnil{\cname{nil}}
 \newcommand\cjust{\cname{just}}
 %\newcommand\ctrue{\cname{true}}
@@ -634,6 +634,7 @@ Thus:
 \end{align*}
 
 \noindent
+\TODO{move this down into example section, to the first place we need it.}
 In fact, in our examples it will be useful to generalize `and' to type $\bool \otimes P \lto P$, as well as its mirror image `\whenkword' of type $P \otimes \bool \lto P$, defined:\footnotemark{}
 \nopagebreak[2]
 
@@ -743,14 +744,98 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
       & \false
     \end{tabular}
   \end{center}
-  \caption{Summary of pointed sets}
+  \caption{Pointed set cheat sheet}
   \label{fig:pointed-sets}
+\end{figure}
+
+\newcommand\typeforget{}
+\newcommand\termforget[1]{#1}
+\newcommand\ifthenelse[3]{\kword{if}~{#1}~\kword{then}~{#2}~\kword{else}~{#3}}
+
+\begin{figure}[t]
+  \[
+  \begin{array}{rrcll}
+    \text{types} & A,B &\bnfeq&
+    \typeforget P \bnfor A \to B \bnfor A \times B \bnfor ...\\
+    \text{pointed types} & P,Q &\bnfeq&
+    P \with Q \bnfor P \ox Q \bnfor P \lto Q \bnfor A \fto Q \bnfor \bool
+    \bnfor \maybe A
+    \\
+    \text{expressions} & e &\bnfeq&
+    \termforget t \bnfor
+    x \bnfor \fn x e \bnfor e_1 \<e_2
+    \bnfor \ifthenelse{e_1}{e_2}{e_3}
+    \bnfor ...
+    \\
+    \text{pointed terms} & t,u &\bnfeq&
+    \nil
+    \bnfor x \bnfor \fn{x} t \bnfor t\<u
+    \bnfor t\<x
+    \bnfor \withpair{t, u} \bnfor \pi_i \<t
+    \\
+    &&& (t,u) \bnfor \letpair x y t u
+    \bnfor \tjust e \bnfor \letjust x t u
+  \end{array}
+  \]
+  \caption{Syntax of \fslang}
+  \label{fig:syntax}
+\end{figure}
+
+\begin{figure}[t]
+  %% \begin{align*}
+  %%   \true, \false &: \bool
+  %%   &
+  %%   \kword{or} &: \bool \with \bool \lto \bool
+  %%   &
+  %%   \kword{and} &: \bool \with P \lto P
+  %%   \\
+  %%   \kword{when} &: P \with \bool \lto P
+  %%   &
+  %%   ({=}) &: A \to A \fto \bool
+  %% \end{align*}
+  \begin{mathpar}
+    \true, \false : \bool
+    
+    \kword{or} : \bool \with \bool \lto \bool
+    
+    \kword{and} : \bool \with P \lto P
+
+    \kword{when} : P \with \bool \lto P
+    
+    ({=}) : A \to A \fto \bool
+  \end{mathpar}
+  \caption{Primitive values and operators of \fslang}
+  \label{fig:primitives}
 \end{figure}
 
 Now that we've developed enough notation (summarized in \cref{fig:pointed-sets}), we can consider some example programs and their types.
 For now we rely on intuition to see that they are semantically well-typed; future sections will develop typing rules (\todo{fwd ref!}).
+First, let's consider some basic uses of conjunction (inner joins, in database parlance), for instance, intersection and cross product:
 
-\xxx
+\begin{code}
+  \name{intersect} : (A \fto \bool) \lto (A \fto bool) \lto (A \fto \bool)\\
+  \name{intersect} \<f \<g \<x = f\<x \tand g\<x\\[1ex]
+  \name{cross} : (A \fto \bool) \lto (B \fto bool) \lto (A \fto B \fto \bool)\\
+  \name{cross} \<f \<g \<x \<y = f\<x \tand g\<y
+\end{code}
+
+\noindent
+By abstracting over predicates $f,g : A \fto \bool$, we are already working at a higher level of abstraction than possible in a bottom-up logic programming language like Datalog.
+
+%% \begin{code}
+%%   \name{join} : (A \fto B \fto \bool) \lto (B \fto C \fto bool) \lto (A \fto B \fto C \fto \bool)\\
+%%   \name{join} \<f \<g \<a \<b \<c = f\<a\<b \tand g\<b\<c\\
+%% \end{code}
+
+\begin{code}
+  \name{compose} : (A \fto B \fto \bool) \lto (B \fto C \fto \bool)
+  \lto (A \fto C \fto \bool)\\
+  \name{compose} \<f \<g \<a \<c =
+    \name{exists}\<(\fn{b}
+      %\name{join} \<f \<g \<a \<b \<c
+      f\<a\<b \tand g\<b\<c
+    )
+\end{code}
 
 \begin{code}
   \name{costars} : \name{person} \fto \name{person} \fto \bool\\
@@ -788,32 +873,6 @@ For now we rely on intuition to see that they are semantically well-typed; futur
       %% \leteq{n}{\name{count}\<a}
       %% \twhen{\teq{f\<a}{b}}{n}
       \name{count}\<a \when \teq{f\<a}{b}
-    )
-\end{code}
-
-\begin{code}
-  \tcomment{examples of inner joins}\\
-  \name{intersect} : (A \fto \bool) \lto (A \fto bool) \lto (A \fto \bool)\\
-  \name{intersect} \<f \<g \<x = f\<x \tand g\<x\\
-\end{code}
-
-\begin{code}
-  \name{cross} : (A \fto \bool) \lto (B \fto bool) \lto (A \fto B \fto \bool)\\
-  \name{cross} \<f \<g \<x \<y = f\<x \tand g\<y\\
-\end{code}
-
-%% \begin{code}
-%%   \name{join} : (A \fto B \fto \bool) \lto (B \fto C \fto bool) \lto (A \fto B \fto C \fto \bool)\\
-%%   \name{join} \<f \<g \<a \<b \<c = f\<a\<b \tand g\<b\<c\\
-%% \end{code}
-
-\begin{code}
-  \name{compose} : (A \fto B \fto \bool) \lto (B \fto C \fto \bool)
-  \lto (A \fto C \fto \bool)\\
-  \name{compose} \<f \<g \<a \<c =
-    \name{exists}\<(\fn{b}
-      %\name{join} \<f \<g \<a \<b \<c
-      f\<a\<b \tand g\<b\<c
     )
 \end{code}
 
