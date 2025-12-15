@@ -13,7 +13,7 @@
 
 
 \title{Finite Functional Programming}
-\subtitle{or, LAMBDA: The Ultimate Predicate}
+\subtitle{or, LAMBDA: The Ultimate Relation}
 %\title{Finite Functional Logic Programming \\via Pointed Types}
 % If the paper title is too long for the running head, you can set
 % an abbreviated paper title here
@@ -202,6 +202,8 @@
 
 \newcommand\pwild{\text{\textunderscore}}
 \newcommand\nat{\mathbb{N}}
+
+\hyphenation{equip-ped}
 
 
 \begin{document}
@@ -590,7 +592,7 @@ If finitely supported maps are this work's \emph{raison d'\^etre,} point-preserv
 \subsection{Direct or/and smash}
 %\subsection{Smash and/or direct product}
 
-To replicate logic programming, we take particular interest in two point-preserving maps: boolean disjunction and conjunction.
+To replicate logic programming, we take particular interest in two point-pre\-serv\-ing maps: boolean disjunction and conjunction.
 Let's start with their types.
 Recall that $\nil_\bool = \false$.
 Observe that `or' yields \nil\ when \emph{both} its arguments are \nil, while `and' yields \nil\ when \emph{either} argument is \nil:
@@ -751,6 +753,7 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
 \newcommand\typeforget{}
 \newcommand\termforget[1]{#1}
 \newcommand\ifthenelse[3]{\kword{if}~{#1}~\kword{then}~{#2}~\kword{else}~{#3}}
+\newcommand\natz{\ensuremath{\nat_0}}
 
 \begin{figure}[t]
   \[
@@ -758,7 +761,8 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
     \text{types} & A,B &\bnfeq&
     \typeforget P \bnfor A \to B \bnfor A \times B \bnfor ...\\
     \text{pointed types} & P,Q &\bnfeq&
-    P \with Q \bnfor P \ox Q \bnfor P \lto Q \bnfor A \fto Q \bnfor \bool
+    P \with Q \bnfor P \ox Q \bnfor P \lto Q \bnfor A \fto Q
+    \bnfor \bool \bnfor \natz
     \bnfor \maybe A
     \\
     \text{expressions} & e &\bnfeq&
@@ -782,28 +786,37 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
 \end{figure}
 
 \begin{figure}[t]
-  %% \begin{align*}
-  %%   \true, \false &: \bool
-  %%   &
-  %%   \kword{or} &: \bool \with \bool \lto \bool
-  %%   &
-  %%   \kword{and} &: \bool \with P \lto P
-  %%   \\
-  %%   \kword{when} &: P \with \bool \lto P
-  %%   &
-  %%   ({=}) &: A \to A \fto \bool
-  %% \end{align*}
-  \begin{mathpar}
-    \true, \false : \bool
+  \begin{align*}
+    \true, \false &: \bool
+    &
+    \kword{or} &: \bool \with \bool \lto \bool
+    &
+    \name{exists} &: (A \fto \bool) \lto \bool
+    \\
+    \kword{and} &: \bool \with P \lto P
+    &
+    \kword{when} &: P \with \bool \lto P
+    &
+    ({=}) &: A \to A \fto \bool
+    \\
+    &&
+    (+) &: \natz \with \natz \lto \natz
+    &
+    \name{sum} &: (A \fto \natz) \lto \natz
+  \end{align*}
+  %% \begin{mathpar}
+  %%   \true, \false : \bool
     
-    \kword{or} : \bool \with \bool \lto \bool
+  %%   \kword{or} : \bool \with \bool \lto \bool
     
-    \kword{and} : \bool \with P \lto P
+  %%   \kword{and} : \bool \with P \lto P
 
-    \kword{when} : P \with \bool \lto P
+  %%   \kword{when} : P \with \bool \lto P
     
-    ({=}) : A \to A \fto \bool
-  \end{mathpar}
+  %%   ({=}) : A \to A \fto \bool
+
+  %%   \name{exists} : (A \fto \bool) \lto \bool
+  %% \end{mathpar}
   \caption{Primitive values and operators of \fslang}
   \label{fig:primitives}
 \end{figure}
@@ -821,6 +834,7 @@ First, let's consider some basic uses of conjunction (inner joins, in database p
 
 \noindent
 By abstracting over predicates $f,g : A \fto \bool$, we are already working at a higher level of abstraction than possible in a bottom-up logic programming language like Datalog.
+\xxx
 
 %% \begin{code}
 %%   \name{join} : (A \fto B \fto \bool) \lto (B \fto C \fto bool) \lto (A \fto B \fto C \fto \bool)\\
@@ -856,7 +870,8 @@ By abstracting over predicates $f,g : A \fto \bool$, we are already working at a
 \end{code}
 
 \begin{code}
-  \tcomment{N.B.\ We leave semantics for recursion to future work. \todo{Maybe cite Rioux's $\lambda_\vee$ paper?}}\\
+  \tcomment{N.B.\ We leave semantics for recursion to future work.}\\
+  \tcomment{\todo{Maybe cite Rioux's $\lambda_\vee$ paper?}}\\
   \name{connected} : \name{person} \fto \name{person} \fto \bool\\
   \name{connected} \<x \<y = \name{costars} \<x \<y
   \tor \name{exists}\< (\fn{z} \name{connected} \<x \<z \tand \name{connected} \<z \<y)
