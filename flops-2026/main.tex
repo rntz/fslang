@@ -23,7 +23,8 @@
   \and Max Willsey\orcidID{0000-0001-8066-4218}
 }
 %
-\authorrunning{M. Arntzenius}
+%\authorrunning{M. Arntzenius}
+\authorrunning{Arntzenius and Willsey}
 % First names are abbreviated in the running head.
 % If there are more than two authors, 'et al.' is used.
 %
@@ -830,7 +831,19 @@ For now we will rely on intuition to see that they are semantically well-typed; 
 \end{code}
 
 \noindent
-\todo{explain why this CANNOT be curried: $(A \fto \bool) \lto (A \fto \bool) \lto (A \fto \bool)$ promises that if its first argument is \nil, i.e.\ the empty set, then its result is, too. union doesn't have this property. but why can't we destructure the pair? well, that we will have to wait to the typing rules to discover; it is not obvious and perhaps could be fixed. But it should at least be clear that our typing rules would have to treat variables created by destructuring an $\with$-pair differently from those created by destructuring an $\otimes$-pair.}
+We saw in \cref{sec:support} why \name{union}, being a function out of a $\with$-type, cannot be curried.
+But why can't we destructure the pair $\name{fg}$?
+This will not become clear until we discuss typing rules in section \todo{FWD REF}; the `obvious' rules only permit destructuring $\ox$-pairs and not $\with$-pairs.
+Perhaps this limitation can be ducked with cleverer rules;
+but such rules would need to treat variables created by destructuring an $\with$-pair differently than those created by destructuring an $\otimes$-pair, otherwise we could give \name{union} the following incorrect type:
+
+\begin{code}
+  \color{OrangeRed}
+  \name{falseUnion} : (A \fto \bool) \ox (A \fto \bool) \lto (A \fto \bool)\\
+  \color{OrangeRed}
+  \name{falseUnion} \<(f,g) \<x = f\<x \tor g\<x
+  \hspace{13em} \textsf{INVALID CODE}
+\end{code}
 
 
 %\section{Pointed sets and relevance}
