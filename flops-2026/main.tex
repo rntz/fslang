@@ -9,8 +9,6 @@
 \usepackage[utf8]{inputenc}
 \usepackage{CJKutf8}
 
-\hyphenation{co-domain}
-
 
 \title{Finite Functional Programming}
 \subtitle{or, LAMBDA: The Ultimate Relation}
@@ -40,7 +38,8 @@
 %\usepackage{anyfontsize} % silence font size not available warnings by autoscaling fonts
 \usepackage{amssymb}            % \multimap, \mathbb
 \usepackage{amsmath}
-%\usepackage{latexsym,stmaryrd}
+%\usepackage{latexsym}
+\usepackage{stmaryrd}           % \shortrightarrow
 \usepackage{mathtools}          % \dblcolon, \Coloneqq
 \usepackage{mathpartir}         % mathpar
 \usepackage{nccmath}            % fleqn (for code environment)
@@ -60,6 +59,13 @@
 \usepackage[nameinlink,noabbrev]{cleveref}
 \newcommand\crefrangeconjunction{--} % use en-dashes for ranges.
 
+%% ---- Styling ----
+\setlength\arraycolsep{2pt}
+\setlength\tabcolsep{2pt}
+
+\hyphenation{equip-ped}
+\hyphenation{co-domain}
+
 
 %% TEMPORARY: different fonts because I hate reading computer modern
 \usepackage[scaled=0.97]{XCharter}\linespread{1.0333}
@@ -69,6 +75,9 @@
 \usepackage[scaled=1.021]{inconsolata}
 \usepackage[xcharter,scaled=1.0556,]{newtxmath}
 %\usepackage{mathastext}
+
+\setlength\tabcolsep{3pt}
+\setlength\arraycolsep{3pt}
 
 
 %% ---------- Code environment ----------
@@ -136,7 +145,7 @@
 \newcommand\x\times
 \newcommand\with{\mathbin{\&}}
 \newcommand\ox\otimes
-\newcommand\typename\mathit
+\newcommand\typename\textit
 \newcommand\bool{\typename{bool}}
 \newcommand\maybe[1]{\ensuremath{\typename{maybe}~{#1}}}
 
@@ -164,7 +173,7 @@
 %\newcommand\cname\text          %constructor name
 %\newcommand\cname\name
 \newcommand\cname\textrm
-\newcommand\cnil{\cname{nil}}
+\newcommand\cnil{\cname{none}}
 \newcommand\cjust{\cname{just}}
 %\newcommand\ctrue{\cname{true}}
 %\newcommand\cfalse{\cname{false}}
@@ -181,7 +190,6 @@
 \newcommand\tabsurd{\kword{absurd}\<}
 \newcommand\tand{\mathrel{\kword{and}}}
 \newcommand\tor{\mathrel{\kword{or}}}
-\newcommand\tif[3]{\kword{if}~{#1}~\kword{then}~{#2}~\kword{else}~{#3}}
 %% \renewcommand\tand{~\kword{and}~}
 %% \renewcommand\tor{~\kword{or}~}
 %\newcommand\twhen[2]{\kword{when} \<({#1}) \<{#2}}
@@ -196,11 +204,19 @@
 %\newcommand\teq[2]{{#2} \gets {#1}}
 \newcommand\tcomment[1]{\color{black!60}\textsf{\#\ #1}}
 \newcommand\withpair[1]{\ensuremath{\langle{#1}\rangle}}
+%\newcommand\tif[3]{\kword{if}~{#1}~\kword{then}~{#2}~\kword{else}~{#3}}
+\newcommand\ifjust[4]{%
+  \kword{case}~{#1}\ \kword{of}\
+  \cjust~{#2} \shortrightarrow {#3};\, \cnil \shortrightarrow {#4}%
+}
 
 %% \renewcommand\tand{\mathrel{\mathrm{\&\&}}}
 %% \renewcommand\tor{\mathrel{\mathrm{||}}}
 %% \newcommand\tand{\mathrel{\mathbf{and}}}
 %% \newcommand\tor{\mathrel{\mathbf{or}}}
+%% \renewcommand\ifjust[3]{%
+%%   \kword{if}~\cjust~{#2} \gets {#1} ~\kword{then}~ {#3} ~\kword{else}~
+%% }
 
 \newcommand\pwild{\text{\textunderscore}}
 
@@ -209,8 +225,6 @@
 
 \newcommand\nat{\mathbb{N}}
 \newcommand\natz{\ensuremath{\nat_0}}
-
-\hyphenation{equip-ped}
 
 
 \begin{document}
@@ -725,7 +739,6 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
 
 \begin{figure}[t]
   \begin{center}
-    \setlength\tabcolsep{2pt}
     \begin{tabular}{clll}
       \emph{Notation}
       & \emph{Name} & \emph{Elements} & \nil\\\midrule
@@ -772,9 +785,9 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
 
 \begin{figure}[t]
   \[
-  \begin{array}{rrcll}
+  \begin{array}{rccll}
     \text{types} & A,B &\bnfeq&
-    \typeforget P \bnfor A \to B \bnfor A \times B \bnfor ...\\
+    \typeforget P \bnfor A \to B \bnfor A \times B \bnfor 1 \bnfor ...\\
     \text{pointed types} & P,Q &\bnfeq&
     P \with Q \bnfor P \ox Q \bnfor P \lto Q \bnfor A \fto Q
     \bnfor \bool \bnfor \natz
@@ -783,7 +796,10 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
     \text{expressions} & e &\bnfeq&
     \termforget t
     \bnfor x \bnfor \fn x e \bnfor e_1 \<e_2
-    \bnfor \tif{e_1}{e_2}{e_3}
+    \bnfor (e_1, e_2) \bnfor \pi_i \<e
+    \\&&&
+    %\bnfor
+    \ifjust{e_1}{x}{e_2}{e_3}
     \bnfor ...
     \\
     \text{pointed terms} & t,u &\bnfeq&
@@ -820,6 +836,7 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
     &
     \name{sum} &: (A \fto \natz) \lto \natz
   \end{align*}
+  \TODO{show how to desugar and into let-just, \bool\ into $\maybe 1$, etc}
   \caption{Primitive values and operators of \fslang}
   \label{fig:primitives}
 \end{figure}
@@ -839,11 +856,11 @@ First, let's consider some basic uses of conjunction (inner joins, in database p
 By abstracting over predicates $f,g : A \fto \bool$, we are already working at a higher level of abstraction than possible in a bottom-up logic programming language like Datalog.
 But without motivation this generality serves only to obscure, so we will avoid unnecessary abstraction in our remaining examples.
 
-Note also that the types of these functions capturing something important about them.
+Note also that the types of these functions capture something important about them.
 Curried functions preserve \nil\ in all arguments separately, and since $\nil_{A \fto \bool} = \fn{\pwild} \false$ is the everywhere-false predicate or empty relation, we know from their types alone that the intersection or cross product of an empty set with any other relation is empty.
 Inner joins in general have this property because they use conjunction.
 
-\todo{show that we can filter tables by functions and get a table; and of course we can conjunct functions, but we don't get a table. so, three choices (table-table => table, table-function => table, function-function => function). hey this looks like moding.}
+\todo{show that we can filter tables by functions and get a table; and of course we can conjunct functions, but we don't get a table. so, three choices (table-table => table, table-function => table, function-function => function). But also, we can't cross a table with a function. hey this looks like moding.}
 
 \TODO{something about adding \name{exists} into this mix, as foreshadowed...}
 
