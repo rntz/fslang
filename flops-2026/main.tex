@@ -186,7 +186,8 @@
 \newcommand\twhen[2]{\kword{if}~ {#1} ~\kword{then}~ {#2}}
 %\newcommand\twhen[2]{{#1} \Rightarrow {#2}}
 %\newcommand\twhen[2]{{#2} \mathrel{\kword{when}} {#1}}
-\newcommand\tfilter{~\kword{when}~}
+\newcommand\tfilterkword{\kword{when}}
+\newcommand\tfilter{~\tfilterkword~}
 %\newcommand\teq[2]{\name{eq} \<{#1} \<{#2}}
 \newcommand\teq[2]{{#1} = {#2}}
 %\newcommand\teq[2]{{#1} \mathrel{\kword{is}} {#2}}
@@ -633,6 +634,20 @@ Thus:
 \end{align*}
 
 \noindent
+In fact, in our examples it will be useful to generalize `and' to type $\bool \otimes P \lto P$, as well as its mirror image $\tfilterkword : P \otimes \bool \lto P$, defined by:
+\nopagebreak[2]
+
+\begin{align*}
+  \false \tand x &= \nil_P
+  &
+  x \tfilter \false &= \nil_P
+  \\
+  \true \tand x &= x
+  &
+  x \tfilter \true &= x
+\end{align*}
+
+\noindent
 %The reasons for the symbols $\with/\ox$ will become clear in \cref{sec:relevance}.
 Finally, we must note an important asymmetry:
 %only `and' can be curried and remain point-preserving, $\fn{x} \fn{y} x \tand y : \bool \lto \bool \lto \bool$, since
@@ -690,6 +705,8 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
 
 
 \section{A finitely supported map from examples to booleans}
+%\section{A finite set of finite functional programs}
+%\section{Some finite functional programs}
 
 \begin{figure}[t]
   \begin{center}
@@ -730,20 +747,7 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
 Now that we've developed enough notation (summarized in \cref{fig:pointed-sets}), we can consider some example programs and their types.
 For now we will rely on intuition to see that they are semantically well-typed; future sections will develop typing rules (\todo{fwd ref!}).
 
-%\section{A finite set of finite functional programs}
-%\section{Some finite functional programs}
-
-%% \begin{code}
-%% %% \name{directedFilm} : \name{person} \to \name{film} \to \bool = \dots\\
-%% %% \name{stars} : \name{film} \to \name{person} \to \bool = \dots\\
-%% \name{directedActor} : \name{person} \to \name{person} \to \bool\\
-%% \name{directedActor} \<\name{director} \<\name{actor} =\\
-%% \quad \name{exists}\<(\fn{\name{film}} \name{directedFilm} \<\name{director} \<\name{film}
-%% \\
-%% \quad \phantom{\name{exists}\<(\fn{\name{film}}}
-%% \negphantom{{}\tand{}}
-%% \tand \name{stars} \<\name{film} \<\name{actor})
-%% \end{code}
+\xxx
 
 \begin{code}
   \name{costars} : \name{person} \fto \name{person} \fto \bool\\
@@ -759,7 +763,6 @@ For now we will rely on intuition to see that they are semantically well-typed; 
 \begin{code}
   \name{filmCount} : \name{person} \fto \nat_0\\
   \name{filmCount} \<\name{actor} = \name{sum} \<(\fn{\name{film}}
-    %\twhen{\name{stars} \<\name{film} \<\name{actor}}{1}
     1 \tfilter {\name{stars} \<\name{film} \<\name{actor}}
   )
 \end{code}
