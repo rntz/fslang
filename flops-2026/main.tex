@@ -563,6 +563,7 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
 If finitely supported maps are this work's \emph{raison d'\^etre,} point-preserving maps are how we will manipulate and combine them.
 
 
+%% ---------- CUT FOR TIME ----------
 \subsection{Why not just...?}
 
 \newcommand\Maybe{\typename{Maybe}}
@@ -586,64 +587,69 @@ Then $\natz \lto \natz$ is a pointed set, with $\nil_{\natz \lto \natz} = \fn{\p
 But it is undecidable whether a function is equal to $\fn{\pwild} 0$; so $\natz \lto \natz$ is not computably isomorphic to any \typename{Maybe} type in a way that sends $\nil$ to \texttt{Nothing}.
 Indeed, being unable to decide equality with \nil\ is the common case: most higher order types are not \typename{Maybe} types.
 
-For instance, \emph{currying}
+%Nor as a practical matter, is it always convenient to represent point preserving maps using \Maybe{} types or finite maps using dictionaries, even when limited to first-order types as in (2--3).
+A similar mismatch happens, for instance, with curried finite maps $A \fto B \fto \Maybe~C$.
+This can be represented by a dictionary \texttt{Map (A,B) C}, but this misses the point---it's no longer curried.
+But the ``curried'' \texttt{Map A (Map B C)} also misses the mark, as it is isomorphic not to $A \fto B \fto \Maybe~C$ but to $A \fto \Maybe~(B \fto \Maybe~C)$.
+\todo{this isn't as motivating as I had hoped, frankly.}
 
-\TODO{need to bring up example of currying somehow! eg $A \fto B \fto C$ or $P \lto Q \lto R$}
+%\TODO{discuss currying of finite maps.}
 
 As questions (2--3) limit themselves to \Maybe-types, their answers are, technically, yes.
 However, even in this case, actually programming this way can be quite awkward.
-\todo{Example of addition over $\Maybe~ (\nat \setminus \{0\})$.}
-\xxx
+For instance, consider working with the type $\natz$ of naturals where $\nil_{\natz} = 0$. How do we represent $\natz$ as a \Maybe\ type?
+We need either a type containing only the nonzero naturals (not easy to do in most languages), or we need to constantly work across the isomorphism $\nat \setminus \{0\} \cong \nat$ which subtracts one from every natural number, meaning all our arithmetic operators are now off by one---supremely awkward.
 
 The motivation for the design of \fslang, then, is to handle the combination of higher order functions and finite support in a harmonious, uniform manner.
 %% Ultimately, the proof is in the pudding: does \fslang\ hang together and let us express programs we care about \todo{more nicely than existing systems}?
 %% Our goal is not merely to make programs expressible, but give them an expression that mirrors their logical structure---not merely to implement logic programs in a functional language, but to unify logic and functional programming.
 %% \todo{Only you can be the judge of that.}
 
-\TODO{rewrite this. ditch the "why do we do things pointwise" section. instead focus on why we have our type system machinery: because we're going higher-order. at first-order types, we don't need any of this. but as soon as (eg) currying gets involved, we do. I think this can go as a subsection of section 2, after we introduce pointed sets but before we introduce and/or and $\ox$/$\with$.}
+
+%% \TODO{rewrite this. ditch the "why do we do things pointwise" section. instead focus on why we have our type system machinery: because we're going higher-order. at first-order types, we don't need any of this. but as soon as (eg) currying gets involved, we do. I think this can go as a subsection of section 2, after we introduce pointed sets but before we introduce and/or and $\ox$/$\with$.}
 
-\paragraph{SHORT/OLD VERSION}
-\todo{\emph{Somewhere} we should put \emph{something} about the hard bit being trying to do this while being higher-order. First-order pointed types are all just maybe-types. Point-preserving maps $\maybe A \lto \maybe B$ are just functions $A \to \maybe{B}$. Finitely supported maps $A \fto \maybe B$ are just dictionaries, $\name{Map} \<A \<B$, like you'd find in any programming language's standard library. The interesting bit is going higher-order in the output (currying), e.g.\ $A \fto B \fto P$ or $P \lto Q \lto R$. Also, having maps into types that are first-order/decidably pointed but you don't want to make the maybe explicit, like $A \fto \nat_0$. Also writing the functions as if they're functions, $\lambda x. t$ rather than having to explicitly tabulate support. $\gets$ BULLETED LIST OF ADVANTAGES.}
+%% \paragraph{SHORT/OLD VERSION}
+%% \todo{\emph{Somewhere} we should put \emph{something} about the hard bit being trying to do this while being higher-order. First-order pointed types are all just maybe-types. Point-preserving maps $\maybe A \lto \maybe B$ are just functions $A \to \maybe{B}$. Finitely supported maps $A \fto \maybe B$ are just dictionaries, $\name{Map} \<A \<B$, like you'd find in any programming language's standard library. The interesting bit is going higher-order in the output (currying), e.g.\ $A \fto B \fto P$ or $P \lto Q \lto R$. Also, having maps into types that are first-order/decidably pointed but you don't want to make the maybe explicit, like $A \fto \nat_0$. Also writing the functions as if they're functions, $\lambda x. t$ rather than having to explicitly tabulate support. $\gets$ BULLETED LIST OF ADVANTAGES.}
 
-This explains the need for a type system for checking finite support.
-But why pointed sets and not just booleans?
-\todo{for the reasons I already gave: generalizing to tensor algebra, handling aggregations, and compositional expressiveness like currying.}
+%% This explains the need for a type system for checking finite support.
+%% But why pointed sets and not just booleans?
+%% \todo{for the reasons I already gave: generalizing to tensor algebra, handling aggregations, and compositional expressiveness like currying.}
 
-Still, why do we need a complicated type system for point-preserving maps \todo{with all these funny types and rules?}
-\todo{
-Any pointed set is isomorphic to an option type, right? And a point-preserving map $\maybe A \lto \maybe B$ is just a map $A \to \maybe B$!
-well, (a) yes but sometimes you don't want to think of it that way, eg the naturals $\nat$ are isomorphic to a maybe type but that means you need a different addition function.
-and (b), no! most higher-order types are \emph{not} isomorphic to option types because it's not decidable whether something is \nil.
-}
+%% Still, why do we need a complicated type system for point-preserving maps \todo{with all these funny types and rules?}
+%% \todo{
+%% Any pointed set is isomorphic to an option type, right? And a point-preserving map $\maybe A \lto \maybe B$ is just a map $A \to \maybe B$!
+%% well, (a) yes but sometimes you don't want to think of it that way, eg the naturals $\nat$ are isomorphic to a maybe type but that means you need a different addition function.
+%% and (b), no! most higher-order types are \emph{not} isomorphic to option types because it's not decidable whether something is \nil.
+%% }
 
-%% ---------- OLD DELETED STUFF ----------
-%% Why are we doing this when plenty of languages have built-in data structures for finite maps? What is the advantage? Well: they don't let you write our example programs in the natural way. For instance,
+%% %% ---------- OLD DELETED STUFF ----------
+%% %% Why are we doing this when plenty of languages have built-in data structures for finite maps? What is the advantage? Well: they don't let you write our example programs in the natural way. For instance,
   
-%% \begin{code}
-%%   \name{costars} \<x \<y = \name{exists} \;(\fn{\name{film}} \name{stars}\<\name{film}\<x \tand \name{stars}\<\name{film}\<y)
-%% \end{code}
+%% %% \begin{code}
+%% %%   \name{costars} \<x \<y = \name{exists} \;(\fn{\name{film}} \name{stars}\<\name{film}\<x \tand \name{stars}\<\name{film}\<y)
+%% %% \end{code}
 
-%% \noindent
-%% You can of course implement this using your favorite language's finite map, dictionary, or set types.
-%% In Python, for instance, we can use set comprehensions:
+%% %% \noindent
+%% %% You can of course implement this using your favorite language's finite map, dictionary, or set types.
+%% %% In Python, for instance, we can use set comprehensions:
 
-%% \begin{verbatim}
-%% costars = {(x,y) for (film1, x) in stars
-%%                  for (film2, y) in stars
-%%                  if film1 == film2}
-%% \end{verbatim}
+%% %% \begin{verbatim}
+%% %% costars = {(x,y) for (film1, x) in stars
+%% %%                  for (film2, y) in stars
+%% %%                  if film1 == film2}
+%% %% \end{verbatim}
 
-%% \noindent
-%% Now, this isn't a particularly good implementation strategy for this query---%
-%% but that \emph{is} what we have expressed here: an implementation strategy.
-%% Set comprehensions are nicely concise, but nonetheless require us to give an explicit strategy for enumerating the support of a query.
-%% %
-%% We aim to move up a level of abstraction, so that
-%% (1) a query's support is inferred from its logical structure, rather than needing to structure queries around enumeration strategies, and
-%% (2) we defer the question of \emph{how} to execute a query to the compiler, as logic and database query languages do.\footnotemark{}
+%% %% \noindent
+%% %% Now, this isn't a particularly good implementation strategy for this query---%
+%% %% but that \emph{is} what we have expressed here: an implementation strategy.
+%% %% Set comprehensions are nicely concise, but nonetheless require us to give an explicit strategy for enumerating the support of a query.
+%% %% %
+%% %% We aim to move up a level of abstraction, so that
+%% %% (1) a query's support is inferred from its logical structure, rather than needing to structure queries around enumeration strategies, and
+%% %% (2) we defer the question of \emph{how} to execute a query to the compiler, as logic and database query languages do.\footnotemark{}
 
-%% \footnotetext{This avoidance of comprehensions also distinguishes us from Datafun~\cite{datafun}---at least syntactically: since Datafun's semantics are declarative, an optimizing compiler could in principle rewrite its set comprehensions into efficient query plans.}
-%% ---------- END OLD STUFF ----------
+%% %% \footnotetext{This avoidance of comprehensions also distinguishes us from Datafun~\cite{datafun}---at least syntactically: since Datafun's semantics are declarative, an optimizing compiler could in principle rewrite its set comprehensions into efficient query plans.}
+%% %% ---------- END OLD STUFF ----------
 
 
 %\subsection{Or/and, both/either, direct/smash}
