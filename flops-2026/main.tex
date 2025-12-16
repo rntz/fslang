@@ -1224,16 +1224,15 @@ Let's consider a prototypical example of each kind:
 \noindent
 In each case, we use the finitely supported variable $x$ by applying a finite map to it.
 This, then, will serve both as our elimination rule for finite maps and our usage rule for finitely supported variables:
-\nopagebreak[2]
-
+%
 \begin{mathpar}
-  \infer[$\fto$\,I]{
+  \infer*[right=$\fto$\,I]{
     \J t P \G \D {\O, \hyp x A}
   }{
     \J {\fn x t} {A \fto P} \G \D \O
   }
   
-  \infer[$\fto$\,E]{
+  \infer*[right=$\fto$\,E]{
     \J t {A \fto P} \G \D \O
   }{
     \J {t\<x} P \G \D {\O, \hyp x A}
@@ -1249,7 +1248,103 @@ But what about $\with$ and $\otimes$?
 %% \section{Programming with pointed sets}
 \section{\fslang\ as she is typed}
 
-%% \todo{I want examples of what we can do in \fslang\ before we give its syntax/typing rules precisely. How do I approach this? Maybe I give examples and motivate typing rules (esp. for $\otimes$ intro) by them?}
+\begin{figure}[t]
+  \begin{mathpar}
+    %% THIS SHOULD GO IN SEPARATE AREA FOR RULES WITH CONCLUSION \cJ.
+    \infer*[right=include]{\J t P \G \emptycx \emptycx}{\cJ t P \G}
+
+    \infer*[right=var]{~}{\J x P \G {\hyp x P} {\emptycx}}
+
+    \infer*[right=nil]{~}{\J \nil P \G \D \O}
+
+    %% FINITE & LINEAR MAPS
+    \infer*[right=$\lto$\,i]{
+      \J t Q \G {\D, \hyp x P} {\emptycx}
+    }{
+      \J {\fn x t} {P \lto Q} \G \D {\emptycx}
+    }
+
+    \infer*[right=$\fto$\,i]{
+      \J t P \G \D {\O, \hyp x A}
+    }{
+      \J {\fn x t} {A \fto P} \G \D \O
+    }
+
+    \infer*[right=$\lto$\,e]{
+      \J t {P \lto Q} \G {\D_1} {\O_1}
+      \\\\
+      \J u {P} {\G,\O_1} {\D_2} {\O_2}
+    }{
+      \J{t\<u}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
+    }
+
+    \infer*[right=$\fto$\,e]{
+      \J t {A \fto P} \G {\D} {\O}
+    }{
+      \J {t\<x} P \G {\D} {\O, x : A}
+    }
+
+    \infer*[right=$\with$\,i]{
+      \J t P \G \D \O
+      \\\\
+      \J u Q \G \D \O
+    }{
+      \J {\withpair{t,u}} {P \with Q} \G \D \O
+    }
+
+    \infer*[right=$\ox$\,i]{
+      \J t P \G {\D_1} {\O_1}
+      \\\\
+      \J u Q {\G, \O_1} {\D_2} {\O_2}
+    }{
+      \J{(t, u)}{P \ox Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
+    }
+
+    \infer*[right=$\with$\,e]{
+      \J t {P_1 \with P_2} \G \D \O
+    }{
+      \J {\pi_i\<t} {P_i} \G \D \O
+    }
+
+    \infer*[right=$\ox$\,e]{
+      \J t {P \ox Q} \G {\D_1} {\O_1}
+      \\\\
+      \J s Q {\G, \O_1} {\D_2, \hyp{x}{P}, \hyp{y}{Q}} {\O_2}
+    }{
+      \J{\letpair{x}{y} t s}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
+    }
+
+    %% LET
+    \infer*[right=let]{
+      \J t P \G {\D_1} {\O_1}
+      \\\\
+      \J u Q {\G, \O_1} {\D_2, x : P} {\O_2}
+    }{
+      \J {\leteq x t u} Q \G {\D_1 \cup \D_2} {\O_1,\O_2}
+    }
+
+    %% MAYBE
+    \infer*[right=just]{
+      \cJ e A \G
+    }{
+      \J {\tjust e} {\maybe A} \G \emptycx \emptycx
+    }
+
+    \infer*[right=let just]{
+      \J t {\maybe A} \G {\D_1} {\O_1}
+      \\
+      \J u P {\G, \O_1, x : A} {\D_2} {\O_2}
+    }{
+      \J {\letjust x t u} P \G {\D_1 \cup \D_2} {\O_1, \O_2}
+    }
+
+    \text{\todo{\strong{MISSING:} \natz, \bool;  rules for $\cJ e A \G$. \strong{DO I NEED} $A \to P$ in pointed sets?}}
+  \end{mathpar}
+  \caption{Typing rules for \fslang}
+  \label{fig:typing-rules}
+\end{figure}
+
+We give the typing rules of \fslang\ in \cref{fig:typing-rules}. \xxx
 
 
 %% ---- REMOVED BECAUSE I DIDN'T HAVE TIME ---- %%
