@@ -567,39 +567,8 @@ If finitely supported maps are this work's \emph{raison d'\^etre,} point-preserv
 
 \TODO{rewrite this. ditch the "why do we do things pointwise" section. instead focus on why we have our type system machinery: because we're going higher-order. at first-order types, we don't need any of this. but as soon as (eg) currying gets involved, we do. I think this can go as a subsection of section 2, after we introduce pointed sets but before we introduce and/or and $\ox$/$\with$.}
 
-\subsubsection{SHORT/OLD VERSION}
-\todo{\emph{Somewhere} we should put \emph{something} about the hard bit being trying to do this while being higher-order. First-order pointed types are all just maybe-types. Point-preserving maps $\maybe A \lto \maybe B$ are just functions $A \to \maybe{B}$. Finitely supported maps $A \fto \maybe B$ are just dictionaries, $\name{Map} \<A \<B$, like you'd find in any programming language's standard library. The interesting bit is going higher-order in the output (currying), e.g.\ $A \fto B \fto P$ or $P \lto Q \lto R$. Also, having maps into types that are first-order/decidably pointed but you don't want to make the maybe explicit, like $A \fto \nat_0$. Also writing the functions as if they're functions, $\lambda x. t$ rather than having to explicitly tabulate support. $\gets$ BULLETED LIST OF ADVANTAGES. Maybe this gets its own section, titled ``Why not just...?''}
-
-\vspace{1\baselineskip}
-
-\todo{This section needs work, very rough draft. also, where does it belong? \strong{\sffamily HEY MAX, YOU ASKED FOR THIS SECTION: WHERE DOES IT BELONG?} I think it has to go \emph{after} \cref{sec:support}, because otherwise we haven't introduced them to our notation yet.}
-
-Why are we doing this when plenty of languages have built-in data structures for finite maps? What is the advantage? Well: they don't let you write our example programs in the natural way. For instance,
-  
-\begin{code}
-  \name{costars} \<x \<y = \name{exists} \;(\fn{\name{film}} \name{stars}\<\name{film}\<x \tand \name{stars}\<\name{film}\<y)
-\end{code}
-
-\noindent
-You can of course implement this using your favorite language's finite map, dictionary, or set types.
-In Python, for instance, we can use set comprehensions:
-
-\begin{verbatim}
-costars = {(x,y) for (film1, x) in stars
-                 for (film2, y) in stars
-                 if film1 == film2}
-\end{verbatim}
-
-\noindent
-Now, this isn't a particularly good implementation strategy for this query---%
-but that \emph{is} what we have expressed here: an implementation strategy.
-Set comprehensions are nicely concise, but nonetheless require us to give an explicit strategy for enumerating the support of a query.
-%
-We aim to move up a level of abstraction, so that
-(1) a query's support is inferred from its logical structure, rather than needing to structure queries around enumeration strategies, and
-(2) we defer the question of \emph{how} to execute a query to the compiler, as logic and database query languages do.\footnotemark{}
-
-\footnotetext{This avoidance of comprehensions also distinguishes us from Datafun~\cite{datafun}---at least syntactically: since Datafun's semantics are declarative, an optimizing compiler could in principle rewrite its set comprehensions into efficient query plans.}
+\paragraph{SHORT/OLD VERSION}
+\todo{\emph{Somewhere} we should put \emph{something} about the hard bit being trying to do this while being higher-order. First-order pointed types are all just maybe-types. Point-preserving maps $\maybe A \lto \maybe B$ are just functions $A \to \maybe{B}$. Finitely supported maps $A \fto \maybe B$ are just dictionaries, $\name{Map} \<A \<B$, like you'd find in any programming language's standard library. The interesting bit is going higher-order in the output (currying), e.g.\ $A \fto B \fto P$ or $P \lto Q \lto R$. Also, having maps into types that are first-order/decidably pointed but you don't want to make the maybe explicit, like $A \fto \nat_0$. Also writing the functions as if they're functions, $\lambda x. t$ rather than having to explicitly tabulate support. $\gets$ BULLETED LIST OF ADVANTAGES.}
 
 This explains the need for a type system for checking finite support.
 But why pointed sets and not just booleans?
@@ -611,6 +580,35 @@ Any pointed set is isomorphic to an option type, right? And a point-preserving m
 well, (a) yes but sometimes you don't want to think of it that way, eg the naturals $\nat$ are isomorphic to a maybe type but that means you need a different addition function.
 and (b), no! most higher-order types are \emph{not} isomorphic to option types because it's not decidable whether something is \nil.
 }
+
+%% ---------- OLD DELETED STUFF ----------
+%% Why are we doing this when plenty of languages have built-in data structures for finite maps? What is the advantage? Well: they don't let you write our example programs in the natural way. For instance,
+  
+%% \begin{code}
+%%   \name{costars} \<x \<y = \name{exists} \;(\fn{\name{film}} \name{stars}\<\name{film}\<x \tand \name{stars}\<\name{film}\<y)
+%% \end{code}
+
+%% \noindent
+%% You can of course implement this using your favorite language's finite map, dictionary, or set types.
+%% In Python, for instance, we can use set comprehensions:
+
+%% \begin{verbatim}
+%% costars = {(x,y) for (film1, x) in stars
+%%                  for (film2, y) in stars
+%%                  if film1 == film2}
+%% \end{verbatim}
+
+%% \noindent
+%% Now, this isn't a particularly good implementation strategy for this query---%
+%% but that \emph{is} what we have expressed here: an implementation strategy.
+%% Set comprehensions are nicely concise, but nonetheless require us to give an explicit strategy for enumerating the support of a query.
+%% %
+%% We aim to move up a level of abstraction, so that
+%% (1) a query's support is inferred from its logical structure, rather than needing to structure queries around enumeration strategies, and
+%% (2) we defer the question of \emph{how} to execute a query to the compiler, as logic and database query languages do.\footnotemark{}
+
+%% \footnotetext{This avoidance of comprehensions also distinguishes us from Datafun~\cite{datafun}---at least syntactically: since Datafun's semantics are declarative, an optimizing compiler could in principle rewrite its set comprehensions into efficient query plans.}
+%% ---------- END OLD STUFF ----------
 
 
 %\subsection{Or/and, both/either, direct/smash}
