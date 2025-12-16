@@ -41,9 +41,10 @@
 %\usepackage{latexsym}
 \usepackage{stmaryrd}           % \shortrightarrow
 \usepackage{mathtools}          % \dblcolon, \Coloneqq
-\usepackage{mathpartir}         % mathpar
+\usepackage{mathpartir}         % \begin{mathpar}, \infer
 \usepackage{nccmath}            % fleqn (for code environment)
-\usepackage{booktabs}           %\midrule
+\usepackage{booktabs}           % \midrule
+\usepackage{pifont}             % \ding{55}
 
 %\usepackage{minted}
 \usepackage{listings}           % lstlisting
@@ -167,6 +168,7 @@
 \newcommand\cJ[3]{{#3} \,\vdash\, {#1} : {#2}}
 \newcommand\J[5]{{#3} \cxsep {#4} \cxsep {#5} \,\vdash\, {#1} : {#2}}
 %\newcommand\pJ[5]{{#3} \cxsep {#4} \cxsep {#1} : {#2} \,\vdash\, {#5}}
+\newcommand\lJ[4]{{#3} \cxsep {#4} \,\vdash\, {#1} : {#2}}
 
 \newcommand\kword[1]{\ensuremath{\textrm{#1}}}
 \newcommand\const\name
@@ -439,56 +441,6 @@ Let's get started!
 %% \end{lstlisting}
 
 
-\subsection{Why not just...?}
-
-\TODO{rewrite this. ditch the "why do we do things pointwise" section. instead focus on why we have our type system machinery: because we're going higher-order. at first-order types, we don't need any of this. but as soon as (eg) currying gets involved, we do.}
-
-\subsubsection{SHORT/OLD VERSION}
-\todo{\emph{Somewhere} we should put \emph{something} about the hard bit being trying to do this while being higher-order. First-order pointed types are all just maybe-types. Point-preserving maps $\maybe A \lto \maybe B$ are just functions $A \to \maybe{B}$. Finitely supported maps $A \fto \maybe B$ are just dictionaries, $\name{Map} \<A \<B$, like you'd find in any programming language's standard library. The interesting bit is going higher-order in the output (currying), e.g.\ $A \fto B \fto P$ or $P \lto Q \lto R$. Also, having maps into types that are first-order/decidably pointed but you don't want to make the maybe explicit, like $A \fto \nat_0$. Also writing the functions as if they're functions, $\lambda x. t$ rather than having to explicitly tabulate support. $\gets$ BULLETED LIST OF ADVANTAGES. Maybe this gets its own section, titled ``Why not just...?''}
-
-\vspace{1\baselineskip}
-
-\todo{This section needs work, very rough draft. also, where does it belong? \strong{\sffamily HEY MAX, YOU ASKED FOR THIS SECTION: WHERE DOES IT BELONG?} I think it has to go \emph{after} \cref{sec:support}, because otherwise we haven't introduced them to our notation yet.}
-
-Why are we doing this when plenty of languages have built-in data structures for finite maps? What is the advantage? Well: they don't let you write our example programs in the natural way. For instance,
-  
-\begin{code}
-  \name{costars} \<x \<y = \name{exists} \;(\fn{\name{film}} \name{stars}\<\name{film}\<x \tand \name{stars}\<\name{film}\<y)
-\end{code}
-
-\noindent
-You can of course implement this using your favorite language's finite map, dictionary, or set types.
-In Python, for instance, we can use set comprehensions:
-
-\begin{verbatim}
-costars = {(x,y) for (film1, x) in stars
-                 for (film2, y) in stars
-                 if film1 == film2}
-\end{verbatim}
-
-\noindent
-Now, this isn't a particularly good implementation strategy for this query---%
-but that \emph{is} what we have expressed here: an implementation strategy.
-Set comprehensions are nicely concise, but nonetheless require us to give an explicit strategy for enumerating the support of a query.
-%
-We aim to move up a level of abstraction, so that
-(1) a query's support is inferred from its logical structure, rather than needing to structure queries around enumeration strategies, and
-(2) we defer the question of \emph{how} to execute a query to the compiler, as logic and database query languages do.\footnotemark{}
-
-\footnotetext{This avoidance of comprehensions also distinguishes us from Datafun~\cite{datafun}---at least syntactically: since Datafun's semantics are declarative, an optimizing compiler could in principle rewrite its set comprehensions into efficient query plans.}
-
-This explains the need for a type system for checking finite support.
-But why pointed sets and not just booleans?
-\todo{for the reasons I already gave: generalizing to tensor algebra, handling aggregations, and compositional expressiveness like currying.}
-
-Still, why do we need a complicated type system for point-preserving maps \todo{with all these funny types and rules?}
-\todo{
-Any pointed set is isomorphic to an option type, right? And a point-preserving map $\maybe A \lto \maybe B$ is just a map $A \to \maybe B$!
-well, (a) yes but sometimes you don't want to think of it that way, eg the naturals $\nat$ are isomorphic to a maybe type but that means you need a different addition function.
-and (b), no! most higher-order types are \emph{not} isomorphic to option types because it's not decidable whether something is \nil.
-}
-
-
 %\section{Support and pointed sets}
 %\section{What is the point of support?}
 %\section{What is support? What is the point?}
@@ -609,6 +561,56 @@ These are the \emph{point-preserving maps}, which we notate $P \lto Q = \{ f \in
 These are again naturally pointed with $\nil_{P \lto Q} = \fn{x} \nil_Q$.
 The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps as morphisms; what we have just observed is that, for any set $A$, there is a functor $F_A : \Point \to \Point$ given by $F_A(P) = A \fto P$.
 If finitely supported maps are this work's \emph{raison d'\^etre,} point-preserving maps are how we will manipulate and combine them.
+
+
+\subsection{Why not just...?}
+
+\TODO{rewrite this. ditch the "why do we do things pointwise" section. instead focus on why we have our type system machinery: because we're going higher-order. at first-order types, we don't need any of this. but as soon as (eg) currying gets involved, we do. I think this can go as a subsection of section 2, after we introduce pointed sets but before we introduce and/or and $\ox$/$\with$.}
+
+\subsubsection{SHORT/OLD VERSION}
+\todo{\emph{Somewhere} we should put \emph{something} about the hard bit being trying to do this while being higher-order. First-order pointed types are all just maybe-types. Point-preserving maps $\maybe A \lto \maybe B$ are just functions $A \to \maybe{B}$. Finitely supported maps $A \fto \maybe B$ are just dictionaries, $\name{Map} \<A \<B$, like you'd find in any programming language's standard library. The interesting bit is going higher-order in the output (currying), e.g.\ $A \fto B \fto P$ or $P \lto Q \lto R$. Also, having maps into types that are first-order/decidably pointed but you don't want to make the maybe explicit, like $A \fto \nat_0$. Also writing the functions as if they're functions, $\lambda x. t$ rather than having to explicitly tabulate support. $\gets$ BULLETED LIST OF ADVANTAGES. Maybe this gets its own section, titled ``Why not just...?''}
+
+\vspace{1\baselineskip}
+
+\todo{This section needs work, very rough draft. also, where does it belong? \strong{\sffamily HEY MAX, YOU ASKED FOR THIS SECTION: WHERE DOES IT BELONG?} I think it has to go \emph{after} \cref{sec:support}, because otherwise we haven't introduced them to our notation yet.}
+
+Why are we doing this when plenty of languages have built-in data structures for finite maps? What is the advantage? Well: they don't let you write our example programs in the natural way. For instance,
+  
+\begin{code}
+  \name{costars} \<x \<y = \name{exists} \;(\fn{\name{film}} \name{stars}\<\name{film}\<x \tand \name{stars}\<\name{film}\<y)
+\end{code}
+
+\noindent
+You can of course implement this using your favorite language's finite map, dictionary, or set types.
+In Python, for instance, we can use set comprehensions:
+
+\begin{verbatim}
+costars = {(x,y) for (film1, x) in stars
+                 for (film2, y) in stars
+                 if film1 == film2}
+\end{verbatim}
+
+\noindent
+Now, this isn't a particularly good implementation strategy for this query---%
+but that \emph{is} what we have expressed here: an implementation strategy.
+Set comprehensions are nicely concise, but nonetheless require us to give an explicit strategy for enumerating the support of a query.
+%
+We aim to move up a level of abstraction, so that
+(1) a query's support is inferred from its logical structure, rather than needing to structure queries around enumeration strategies, and
+(2) we defer the question of \emph{how} to execute a query to the compiler, as logic and database query languages do.\footnotemark{}
+
+\footnotetext{This avoidance of comprehensions also distinguishes us from Datafun~\cite{datafun}---at least syntactically: since Datafun's semantics are declarative, an optimizing compiler could in principle rewrite its set comprehensions into efficient query plans.}
+
+This explains the need for a type system for checking finite support.
+But why pointed sets and not just booleans?
+\todo{for the reasons I already gave: generalizing to tensor algebra, handling aggregations, and compositional expressiveness like currying.}
+
+Still, why do we need a complicated type system for point-preserving maps \todo{with all these funny types and rules?}
+\todo{
+Any pointed set is isomorphic to an option type, right? And a point-preserving map $\maybe A \lto \maybe B$ is just a map $A \to \maybe B$!
+well, (a) yes but sometimes you don't want to think of it that way, eg the naturals $\nat$ are isomorphic to a maybe type but that means you need a different addition function.
+and (b), no! most higher-order types are \emph{not} isomorphic to option types because it's not decidable whether something is \nil.
+}
 
 
 %\subsection{Or/and, both/either, direct/smash}
@@ -841,24 +843,34 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
   \label{fig:primitives}
 \end{figure}
 
-Now that we've developed enough notation (summarized in \cref{fig:pointed-sets}), we can consider some example programs and their types.
+Now that we've developed enough notation (summarized in \cref{fig:pointed-sets}, along with a few more pointed sets we will introduce later), we can consider some example programs and their types.
 For now we rely on intuition to see that they are semantically well-typed; future sections will develop typing rules (\todo{fwd ref!}).
-First, let's consider some basic uses of conjunction (inner joins, in database parlance), for instance, intersection and cross product:
+First, let's consider some basic uses of conjunction (inner joins, in database parlance), starting with the simplest, cross product:
 
 \begin{code}
-  \name{intersect} : (A \fto \bool) \lto (A \fto bool) \lto (A \fto \bool)\\
-  \name{intersect} \<f \<g \<x = f\<x \tand g\<x\\[1ex]
   \name{cross} : (A \fto \bool) \lto (B \fto bool) \lto (A \fto B \fto \bool)\\
   \name{cross} \<f \<g \<x \<y = f\<x \tand g\<y
 \end{code}
 
 \noindent
 By abstracting over predicates $f,g : A \fto \bool$, we are already working at a higher level of abstraction than possible in a bottom-up logic programming language like Datalog.
-But without motivation this generality serves only to obscure, so we will avoid unnecessary abstraction in our remaining examples.
+%But without motivation this generality serves only to obscure, so we will avoid unnecessary abstraction in our remaining examples.
 
-Note also that the types of these functions capture something important about them.
-Curried functions preserve \nil\ in all arguments separately, and since $\nil_{A \fto \bool} = \fn{\pwild} \false$ is the everywhere-false predicate or empty relation, we know from their types alone that the intersection or cross product of an empty set with any other relation is empty.
+Note also that the type of \name{cross} captures something important.
+Curried functions preserve \nil\ in all arguments separately, and since $\nil_{A \fto \bool} = \fn{\pwild} \false$ is the everywhere-false predicate or empty relation, we know from its type alone that the cross product of an empty set with any other relation is empty.
 Inner joins in general have this property because they use conjunction.
+For instance, intersection:
+
+\begin{code}
+  \name{intersect} : (A \fto \bool) \lto (A \fto bool) \lto (A \fto \bool)\\
+  \name{intersect} \<f \<g \<x = f\<x \tand g\<x
+\end{code}
+
+\begin{code}
+  \tcomment{\todo{PROBLEM: this requires $A \to \bool$ to be a pointed set}}\\
+  \name{filter} : (A \fto \bool) \lto (A \to \bool) \lto (A \fto \bool)\\
+  \name{filter} \<f \<g \<x = f\<x \tand g\<x
+\end{code}
 
 \todo{show that we can filter tables by functions and get a table; and of course we can conjunct functions, but we don't get a table. so, three choices (table-table => table, table-function => table, function-function => function). But also, we can't cross a table with a function. hey this looks like moding.}
 
@@ -869,15 +881,15 @@ Inner joins in general have this property because they use conjunction.
 %%   \name{join} \<f \<g \<a \<b \<c = f\<a\<b \tand g\<b\<c\\
 %% \end{code}
 
-\begin{code}
-  \name{compose} : (A \fto B \fto \bool) \lto (B \fto C \fto \bool)
-  \lto (A \fto C \fto \bool)\\
-  \name{compose} \<f \<g \<a \<c =
-    \name{exists}\<(\fn{b}
-      %\name{join} \<f \<g \<a \<b \<c
-      f\<a\<b \tand g\<b\<c
-    )
-\end{code}
+%% \begin{code}
+%%   \name{compose} : (A \fto B \fto \bool) \lto (B \fto C \fto \bool)
+%%   \lto (A \fto C \fto \bool)\\
+%%   \name{compose} \<f \<g \<a \<c =
+%%     \name{exists}\<(\fn{b}
+%%       %\name{join} \<f \<g \<a \<b \<c
+%%       f\<a\<b \tand g\<b\<c
+%%     )
+%% \end{code}
 
 \begin{code}
   \name{costars} : \name{person} \fto \name{person} \fto \bool\\
@@ -890,7 +902,7 @@ Inner joins in general have this property because they use conjunction.
   %% \tand \name{stars} \<\name{film} \<y)
 \end{code}
 
-\noindent
+\noindent \todo{What about aggregations?}
 \TODO{mention the $\name{sum}$ function, also probably a good place to bring in `\whenkword'.}
 
 \begin{code}
@@ -970,7 +982,116 @@ but such rules would need to treat variables created by destructuring an $\with$
 \section{The relevance of being relevant} % explains how relevance typing works
 \label{sec:relevance}
 
-\TODO{explain how relevance typing works for point-preserving maps}
+We've seen that point-preserving maps are important because they can be safely applied to the outputs of finitely supported maps while preserving finite support, and allow us to combine multiple maps either via inner joins (maps out of $\otimes$-pairs) or outer joins (maps out of $\with$-pairs).
+How can we statically check that maps preserve \nil?
+To gain some intuition, let's look at a few simple examples and whether they preserve \nil:
+
+\begin{align*}
+  \name{id} &= \fn{x} x
+  \phantom{\fn{x} (x,x)} \negphantom{\fn{x} x}
+  : P \lto P
+  && \text{\color{DarkGreen}\scshape\ding{51}}
+  \\
+  \name{three} &= \fn{x} 3
+  \phantom{\fn{x} (x,x)} \negphantom{\fn{x} 3}
+  \color{invalid}: P \lto \natz
+  && \text{\color{invalid}\scshape\ding{55}\: not point preserving}
+  \\
+  \name{dup}_{\ox} &= \fn{x} (x,x)
+  : P \lto P \ox P
+  && \text{\color{DarkGreen}\scshape\ding{51}}
+  \\
+  \name{dup}_{\with} &= \fn{x} \withpair{x,x}
+  : P \lto P \with P
+  && \text{\color{DarkGreen}\scshape\ding{51}}
+\end{align*}
+
+\noindent
+Plainly the identity function preserves \nil.
+Just as plainly, constant functions do not (save for the constantly-\nil\ function).
+This suggests a linear type system, which ensures each variable is used exactly once; constant functions, which ignore their argument, are thus prohibited.
+However, duplication does preserve \nil, whether into $\ox$ or $\with$-pairs: $(\nil, \nil) = \nil$ and $\withpair{nil,nil} = \nil$.
+For a more practical example, the conjunction $(\fn{x} f\<x \tand g\<x)$ of two maps $f,g : P \lto \bool$ uses $x$ twice but nonetheless preserves \nil.
+
+Thus the appropriate approach is a \emph{relevant} type system, summarized as ``at least once'' usage, or simply that each variable \emph{is used}---although as we'll see presently, what counts as ``used'' can be a bit subtle.
+So far our examples fail to distinguish the behavior of $\ox$ from $\with$; let's fix that:
+
+\begin{align*}
+  \name{pair}_{\ox} &= \fn{x} \fn{y} (x,y)
+  \phantom{\fn{p} \letpair x y p x}
+  \negphantom{\fn x \fn y (x,y)}
+  : P \lto Q \lto P \ox Q
+  && \text{\color{DarkGreen}\scshape\ding{51}}
+  \\
+  \name{pair}_{\with} &= \fn{x} \fn{y} \withpair{x,y}
+  \phantom{\fn{p} \letpair x y p x}
+  \negphantom{\fn x \fn y \withpair{x,y}}
+  \color{invalid}
+  : P \lto Q \lto P \with Q
+  && \text{\color{invalid}\scshape\ding{55}\: not point preserving}
+  \\
+  \name{fst}_{\ox} &= \fn{p} \letpair x y p x
+  \color{invalid}
+  : P \ox Q \lto P
+  && \text{\color{invalid}\scshape\ding{55}\: not point preserving}
+  \\
+  \name{fst}_{\with} &= \fn{p} \pi_1 \<p
+  \phantom{\fn{p} \letpair x y p x}
+  \negphantom{\fn p \pi_1 \<p}
+  : P \with Q \lto P
+  && \text{\color{DarkGreen}\scshape\ding{51}}
+\end{align*}
+
+\noindent
+\xxx
+
+Precisely because consuming an $\ox$-pair requires ``using'' both of its components, constructing an $\ox$-pair uses all variables used in either of its component.
+Conversely, constructing a $\with$-pair uses only variables used by both components:
+
+\begin{align*}
+  \name{and3}_{\ox} &= \fn{x} (x, 3)
+  %% \phantom{\fn{x} \fn{y} \withpair{x,y}}
+  %% \negphantom{\fn{x} (x,3)}
+  : P \lto P \ox \natz
+  && \text{\color{DarkGreen}\scshape\ding{51}}
+  \\
+  \name{and3}_{\with} &= \fn{x} \withpair{x,3}
+  %% \phantom{\fn{x} \fn{y} \withpair{x,y}}
+  %% \negphantom{\fn{x} \withpair{x,3}}
+  \color{invalid}
+  : P \lto P \with \natz
+  && \text{\color{invalid}\scshape\ding{55}\: not point preserving}
+\end{align*}
+
+\noindent
+\xxx \todo{describe our ``fake'' typing judgment, its interpretation, lead in to rules:}
+
+\begin{mathpar}
+  \infer{
+    \lJ t P \G \D\\
+    \lJ t Q \G \D
+  }{
+    \lJ {\withpair{t,u}} {P \ox Q} \G \D
+  }
+
+  \infer{
+    \lJ t P \G {\D_1}\\
+    \lJ t Q \G {\D_2}
+  }{
+    \lJ {(t,u)} {P \ox Q} \G {\D_1 \cup \D_2}
+  }
+
+  \infer{~}{\lJ x P \G {\hyp x P}}
+
+  \infer{\lJ t Q {\G} {\D, \hyp x P}}{
+    \lJ {\fn x t} {P \lto Q} \G \D
+  }
+\end{mathpar}
+
+\noindent
+Unfortunately, however, two contexts are not enough.
+After all, we have \emph{three} kinds of function we'd like to introduce---ordinary $A \to B$, point preserving $P \lto Q$, and finitely supported $A \fto P$---and therefore three kinds of variable, needing three separate contexts.
+In the next section, we'll discuss the context of finitely supported variables.
 
 
 \section{Context hopping}
@@ -984,8 +1105,9 @@ but such rules would need to treat variables created by destructuring an $\with$
 %% \todo{I want examples of what we can do in \fslang\ before we give its syntax/typing rules precisely. How do I approach this? Maybe I give examples and motivate typing rules (esp. for $\otimes$ intro) by them?}
 
 
+%% ---- REMOVED BECAUSE I DIDN'T HAVE TIME ---- %%
 %\section{Decidably pointed sets}
-\section{Curing maybe-addiction with class}
+%\section{Curing maybe-addiction with class}
 
 
 %\section{Semantics of \fslang}
