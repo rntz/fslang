@@ -565,6 +565,41 @@ If finitely supported maps are this work's \emph{raison d'\^etre,} point-preserv
 
 \subsection{Why not just...?}
 
+\newcommand\Maybe{\typename{Maybe}}
+
+The rest of this paper describes a type system for $\lambda$-terms dealing with the interaction of ordinary functions, point preserving functions, and finite maps.
+This may seem unnecessary.
+After all:
+\begin{enumerate}
+\item Isn't any pointed set $P$ equivalent to an ``option'' or ``maybe'' type, $\Maybe~ A$?
+
+\item Isn't any point-preserving map $\Maybe~ A \lto \Maybe~ B$ equivalent to an ordinary map $A \to \Maybe~ B$?
+
+\item Aren't finitely supported maps $A \fto \Maybe~ B$ equivalent to the run-of-the-mill ``finite map'' or ``dictionary'' type present in most programming languages' standard libraries, e.g.\ Haskell's \texttt{Map A B}?
+\end{enumerate}
+
+\noindent
+However, if we care about higher order programming, the answer to (1) is \emph{no!}
+% not every pointed set is computably isomorphic to a \typename{Maybe}.
+Take any infinite pointed set: say, the naturals $\natz$ where $\nil_{\natz} = 0$.
+Then $\natz \lto \natz$ is a pointed set, with $\nil_{\natz \lto \natz} = \fn{\pwild} 0$.
+But it is undecidable whether a function is equal to $\fn{\pwild} 0$; so $\natz \lto \natz$ is not computably isomorphic to any \typename{Maybe} type in a way that sends $\nil$ to \texttt{Nothing}.
+Indeed, being unable to decide equality with \nil\ is the common case: most higher order types are not \typename{Maybe} types.
+
+For instance, \emph{currying}
+
+\TODO{need to bring up example of currying somehow! eg $A \fto B \fto C$ or $P \lto Q \lto R$}
+
+As questions (2--3) limit themselves to \Maybe-types, their answers are, technically, yes.
+However, even in this case, actually programming this way can be quite awkward.
+\todo{Example of addition over $\Maybe~ (\nat \setminus \{0\})$.}
+\xxx
+
+The motivation for the design of \fslang, then, is to handle the combination of higher order functions and finite support in a harmonious, uniform manner.
+%% Ultimately, the proof is in the pudding: does \fslang\ hang together and let us express programs we care about \todo{more nicely than existing systems}?
+%% Our goal is not merely to make programs expressible, but give them an expression that mirrors their logical structure---not merely to implement logic programs in a functional language, but to unify logic and functional programming.
+%% \todo{Only you can be the judge of that.}
+
 \TODO{rewrite this. ditch the "why do we do things pointwise" section. instead focus on why we have our type system machinery: because we're going higher-order. at first-order types, we don't need any of this. but as soon as (eg) currying gets involved, we do. I think this can go as a subsection of section 2, after we introduce pointed sets but before we introduce and/or and $\ox$/$\with$.}
 
 \paragraph{SHORT/OLD VERSION}
@@ -736,6 +771,8 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
 \section{A finitely supported map from examples to booleans}
 %\section{A finite set of finite functional programs}
 %\section{Some finite functional programs}
+
+\label{sec:examples}
 
 \begin{figure}[t]
   \begin{center}
@@ -997,9 +1034,12 @@ To gain some intuition, let's look at a few simple examples and whether they pre
   : P \lto P
   && \text{\color{DarkGreen}\scshape\ding{51}}
   \\
-  \name{three} &= \fn{x} 3
+  \color{invalid}
+  \name{three} &
+  \color{invalid}
+  = \fn{x} 3
   \phantom{\fn{x} (x,x)} \negphantom{\fn{x} 3}
-  \color{invalid}: P \lto \natz
+  : P \lto \natz
   && \text{\color{invalid}\scshape\ding{55}\: not point preserving}
   \\
   \name{dup}_{\ox} &= \fn{x} (x,x)
@@ -1018,7 +1058,7 @@ This suggests a linear type system, which ensures each variable is used exactly 
 However, duplication does preserve \nil, whether into $\ox$ or $\with$-pairs: $(\nil, \nil) = \nil$ and $\withpair{nil,nil} = \nil$.
 For a more practical example, the conjunction $(\fn{x} f\<x \tand g\<x)$ of two maps $f,g : P \lto \bool$ uses $x$ twice but nonetheless preserves \nil.
 
-Thus the appropriate approach is a \emph{relevant} type system, summarized as ``at least once'' usage, or simply that each variable \emph{is used}---although as we'll see presently, what counts as ``used'' can be a bit subtle.
+Thus the appropriate approach is a \emph{relevant} type system, where variables must be used \emph{at least once,} or more simply, that each variable is used---although as we'll see presently, what counts as ``used'' can be a bit subtle.
 So far our examples fail to distinguish the behavior of $\ox$ from $\with$; let's fix that:
 
 \begin{align*}
@@ -1028,14 +1068,20 @@ So far our examples fail to distinguish the behavior of $\ox$ from $\with$; let'
   : P \lto Q \lto P \ox Q
   && \text{\color{DarkGreen}\scshape\ding{51}}
   \\
-  \name{pair}_{\with} &= \fn{x} \fn{y} \withpair{x,y}
+  \color{invalid}
+  \name{pair}_{\with} &
+  \color{invalid}
+  = \fn{x} \fn{y} \withpair{x,y}
   \phantom{\fn{p} \letpair x y p x}
   \negphantom{\fn x \fn y \withpair{x,y}}
   \color{invalid}
   : P \lto Q \lto P \with Q
   && \text{\color{invalid}\scshape\ding{55}\: not point preserving}
   \\
-  \name{fst}_{\ox} &= \fn{p} \letpair x y p x
+  \color{invalid}
+  \name{fst}_{\ox} &
+  \color{invalid}
+  = \fn{p} \letpair x y p x
   \color{invalid}
   : P \ox Q \lto P
   && \text{\color{invalid}\scshape\ding{55}\: not point preserving}
@@ -1048,7 +1094,7 @@ So far our examples fail to distinguish the behavior of $\ox$ from $\with$; let'
 \end{align*}
 
 \noindent
-\xxx
+\TODO{words about what the difference here is: \xxx}
 
 Precisely because consuming an $\ox$-pair requires ``using'' both of its components, constructing an $\ox$-pair uses all variables used in either of its component.
 Conversely, constructing a $\with$-pair uses only variables used by both components:
@@ -1060,16 +1106,18 @@ Conversely, constructing a $\with$-pair uses only variables used by both compone
   : P \lto P \ox \natz
   && \text{\color{DarkGreen}\scshape\ding{51}}
   \\
-  \name{and3}_{\with} &= \fn{x} \withpair{x,3}
+  \color{invalid}
+  \name{and3}_{\with} &
+  \color{invalid}
+  = \fn{x} \withpair{x,3}
   %% \phantom{\fn{x} \fn{y} \withpair{x,y}}
   %% \negphantom{\fn{x} \withpair{x,3}}
-  \color{invalid}
   : P \lto P \with \natz
   && \text{\color{invalid}\scshape\ding{55}\: not point preserving}
 \end{align*}
 
 \noindent
-\xxx \todo{describe our ``fake'' typing judgment, its interpretation, lead in to rules:}
+\TODO{describe our ``fake'' typing judgment, its interpretation, lead in to rules:}
 
 \begin{mathpar}
   \infer{
@@ -1093,15 +1141,103 @@ Conversely, constructing a $\with$-pair uses only variables used by both compone
   }
 \end{mathpar}
 
-\noindent
-Unfortunately, however, two contexts are not enough.
-After all, we have \emph{three} kinds of function we'd like to introduce---ordinary $A \to B$, point preserving $P \lto Q$, and finitely supported $A \fto P$---and therefore three kinds of variable, needing three separate contexts.
-In the next section, we'll discuss the context of finitely supported variables.
-
 
 \section{Context hopping}
 
-\TODO{explain how we add another context for finitely supported variables and how that works, especially the funky $\otimes$ rule with context hopping.}
+Alas, these are not yet the typing rules we are looking for.
+A mere two contexts will not suffice; we have \emph{three} kinds of function we'd like to introduce---ordinary $A \to B$, point preserving $P \lto Q$, and finitely supported $A \fto P$---and therefore three kinds of variable, needing three separate contexts.
+In addition to $\G$ and $\D$ we need a context $\O$ of finitely supported variables $\hyp x A, \hyp y B, ...$, and our typing judgement takes the form $\J t P \G \D \O$.
+
+To understand how this context $\O$ should be treated type-theoretically, it will help to consider some examples.
+Let's try the same examples we opened the previous section with:
+
+\begin{align*}
+  \color{invalid}
+  \name{id} &
+  \color{invalid}
+  = \fn{x} x
+  \phantom{\fn{x} (x,x)} \negphantom{\fn{x} x}
+  : P \fto P
+  && \text{\color{invalid}\scshape\ding{55}\: not finitely supported}
+  \\
+  \color{invalid}
+  \name{three} &
+  \color{invalid}
+  = \fn{x} 3
+  \phantom{\fn{x} (x,x)} \negphantom{\fn{x} 3}
+  \color{invalid}: A \fto \natz
+  && \text{\color{invalid}\scshape\ding{55}\: not finitely supported}
+  \\
+  \color{invalid}
+  \name{dup}_{\ox} &
+  \color{invalid}
+  = \fn{x} (x,x)
+  \color{invalid}
+  : P \fto P \ox P
+  && \text{\color{invalid}\scshape\ding{55}\: not finitely supported}
+  \\
+  \color{invalid}
+  \name{dup}_{\with} &
+  \color{invalid}
+  = \fn{x} \withpair{x,x}
+  : P \fto P \with P
+  && \text{\color{invalid}\scshape\ding{55}\: not finitely supported}
+\end{align*}
+
+\noindent
+Uh-oh.
+What went wrong?
+Well, constant functions like \name{three} are not finite because their support is their entire possibly-infinite domain (again, $\fn{x} \nil$ is the only exception).
+Similarly, the support of \name{id}, $\name{dup}_{\ox}$, and $\name{dup}_{\with}$ is their entire domain except for \nil; we cannot generally use the argument to a finitely supported map directly in its output.\footnotemark{}
+
+\footnotetext{We could in principle make a carve-out in our type system for maps with finite domains.
+  However, since we intend to represent finite maps by tables, we probably do not want to allow these examples if the type is finite but large:
+  enumerating all 64-bit integers just because the programmer wrote $\fn{x} 3$ would be a usability hazard!
+  We could restrict our carve-out to \emph{small} finite types, for some value of ``small'', but this seems rather niche.}
+
+If $\fn{x} x$ is not well typed, what does our variable rule look like?
+How do we use variables in our finitely supported context $\O$?
+%
+Let's return to our source of inspiration.
+In bottom-up logic programming, we generate non-empty, finite relations by either (1) combining other non-empty relations or (2) using rules that refer to constants.
+We saw in \cref{sec:examples} that in \fslang, (1) means using point preserving maps to transform finite maps, and (2) means using equality $(=) : A \to A \fto \bool$ to generate singleton finite maps.
+Let's consider a prototypical example of each kind:
+
+\begin{align*}
+  \name{actorOrDirector} &= \fn{x} \name{actor} \<x \tor \name{director} \<x
+  : \name{person} \fto \bool
+  && \text{\color{DarkGreen}\scshape\ding{51}}
+  \\
+  \name{hitchcockAlone} &= \fn{x} \name{hitchcock} = x
+  \phantom{\fn{x} \name{actor} \<x \tor \name{director} \<x}
+  \negphantom{\fn{x} \name{hitchcock} = x}
+  : \name{person} \fto \bool
+  && \text{\color{DarkGreen}\scshape\ding{51}}
+\end{align*}
+
+\noindent
+In each case, we use the finitely supported variable $x$ by applying a finite map to it.
+This, then, will serve both as our elimination rule for finite maps and our usage rule for finitely supported variables:
+\nopagebreak[2]
+
+\begin{mathpar}
+  \infer[$\fto$\,I]{
+    \J t P \G \D {\O, \hyp x A}
+  }{
+    \J {\fn x t} {A \fto P} \G \D \O
+  }
+  
+  \infer[$\fto$\,E]{
+    \J t {A \fto P} \G \D \O
+  }{
+    \J {t\<x} P \G \D {\O, \hyp x A}
+  }
+\end{mathpar}
+
+\noindent
+But what about $\with$ and $\otimes$?
+
+\TODO{explain how we add another context for finitely supported variables and how that works, especially the funky $\otimes$ rule with context hopping. explain connection with the graded co/monad structure of $A \fto P$ on pointed sets.}
 
 
 %% \section{Programming with pointed sets}
@@ -1117,6 +1253,19 @@ In the next section, we'll discuss the context of finitely supported variables.
 
 %\section{Semantics of \fslang}
 \section{What does it all mean?}
+
+
+\section{Onward}
+
+\todo{related work:} Inspired by RelationalAI's internal language (do they have any papers on its design). all the various attempts to combine Datalog and functional programming: Datafun, Flix, $\lambda_\vee$. Functional logic programming: Curry, Verse---but these are top-down and use unification and existential variables. \fslang's approach of treating relations as maps with an explicit output type seems to distinguish us from other functional logic programming languages, which ``hide'' the boolean-ness.
+Our explicit modedness via separating functions from finite maps is similar to Mercury.
+
+Semiring languages! In particular that system with compact maps from Henglein et al. but no language there. But also Amir Shaikhha's work.
+
+\todo{future directions: implementation, fixed points, commutative monoids, incrementality}
+
+\todo{IMPLEMENTATION ideas}.
+Strong connection to tensor algebra; in particular we think indexed streams might be a good impl strategy.
 
 
 %% END MATTER
