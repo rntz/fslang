@@ -852,8 +852,9 @@ First, let's consider some basic uses of conjunction (inner joins, in database p
 
 \noindent
 By abstracting over predicates $f,g : A \fto \bool$, we are already working at a higher level of abstraction than possible in a bottom-up logic programming language like Datalog.
+%
 %But without motivation this generality serves only to obscure, so we will avoid unnecessary abstraction in our remaining examples.
-
+%
 Note also that the type of \name{cross} captures something important.
 Curried functions preserve \nil\ in all arguments separately, and since $\nil_{A \fto \bool} = \fn{\pwild} \false$ is the everywhere-false predicate or empty relation, we know from its type alone that the cross product of an empty set with any other relation is empty.
 Inner joins in general have this property because they use conjunction.
@@ -864,11 +865,17 @@ For instance, intersection:
   \name{intersect} \<f \<g \<x = f\<x \tand g\<x
 \end{code}
 
+\noindent
+\todo{words about how \name{intersect} intersects two tables, but we can also intersect a table with an arbitrary function, which is \name{filter}:}
+
 \begin{code}
   \tcomment{\todo{PROBLEM: this requires $A \to \bool$ to be a pointed set}}\\
   \name{filter} : (A \fto \bool) \lto (A \to \bool) \lto (A \fto \bool)\\
   \name{filter} \<f \<g \<x = f\<x \tand g\<x
 \end{code}
+
+\noindent
+\todo{maybe say that filter is more general because we can turn a table into a function (need to show an example!)}.
 
 \todo{show that we can filter tables by functions and get a table; and of course we can conjunct functions, but we don't get a table. so, three choices (table-table => table, table-function => table, function-function => function). But also, we can't cross a table with a function. hey this looks like moding.}
 
