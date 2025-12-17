@@ -69,17 +69,17 @@
 \hyphenation{co-domain}
 
 
-%% TEMPORARY: different fonts because I hate reading computer modern
-\usepackage[scaled=0.97]{XCharter}\linespread{1.0333}
-%\usepackage[scaled=0.965,proportional,semibold]{sourcesanspro}
-\usepackage[osf,scaled=1.0333]{AlegreyaSans}
-%\usepackage[scaled=1.08]{biolinum}
-\usepackage[scaled=1.021]{inconsolata}
-\usepackage[xcharter,scaled=1.0556,]{newtxmath}
-%\usepackage{mathastext}
+%% %% TEMPORARY: different fonts because I hate reading computer modern
+%% \usepackage[scaled=0.97]{XCharter}\linespread{1.0333}
+%% %\usepackage[scaled=0.965,proportional,semibold]{sourcesanspro}
+%% \usepackage[osf,scaled=1.0333]{AlegreyaSans}
+%% %\usepackage[scaled=1.08]{biolinum}
+%% \usepackage[scaled=1.021]{inconsolata}
+%% \usepackage[xcharter,scaled=1.0556,]{newtxmath}
+%% %\usepackage{mathastext}
 
-\setlength\tabcolsep{3pt}
-\setlength\arraycolsep{3pt}
+%% \setlength\tabcolsep{3pt}
+%% \setlength\arraycolsep{3pt}
 
 
 %% ---------- Code environment ----------
@@ -156,10 +156,10 @@
 %\newcommand\undertype[2]{\underaccent{\textsf{\upshape\scshape#1}}{#2}}
 %\newcommand\eqt[1]{\undertype{eq}{#1}}
 
-\newcommand\G\Gamma
-\newcommand\D\Delta
-\renewcommand\O\Omega
-\renewcommand\L\Lambda
+\newcommand\G{\mathrm{\Gamma}}
+\newcommand\D{\mathrm{\Delta}}
+\renewcommand\O{\mathrm{\Omega}}
+%\renewcommand\L{\mathrm{\Lambda}}
 
 %\newcommand\emptycx\varepsilon
 \newcommand\emptycx{{\cdot}}
@@ -167,10 +167,11 @@
 \newcommand\cxsep{\mathbin{/}}
 \newcommand\hyp[2]{{#1} \of {#2}}
 
-\newcommand\cJ[3]{{#3} \,\vdash\, {#1} : {#2}}
-\newcommand\J[5]{{#3} \cxsep {#4} \cxsep {#5} \,\vdash\, {#1} : {#2}}
-%\newcommand\pJ[5]{{#3} \cxsep {#4} \cxsep {#1} : {#2} \,\vdash\, {#5}}
-\newcommand\lJ[4]{{#3} \cxsep {#4} \,\vdash\, {#1} : {#2}}
+\newcommand\entails{\,\vdash\,}
+\newcommand\cJ[3]{{#3} \entails {#1} : {#2}}
+\newcommand\J[5]{{#3} \cxsep {#4} \cxsep {#5} \entails {#1} : {#2}}
+%\newcommand\pJ[5]{{#3} \cxsep {#4} \cxsep {#1} : {#2} \entails {#5}}
+\newcommand\lJ[4]{{#3} \cxsep {#4} \entails {#1} : {#2}}
 
 \newcommand\kword[1]{\ensuremath{\textrm{#1}}}
 \newcommand\const\name
@@ -1168,6 +1169,7 @@ Besides $\G$ and $\D$ we need a context $\O$ of finitely supported variables $\h
 
 To understand how this context $\O$ should be treated type-theoretically, it will help to consider some examples.
 Let's try the same examples we opened the previous section with:
+\nopagebreak[2]
 
 \begin{align*}
   \color{invalid}
@@ -1205,8 +1207,8 @@ Let's try the same examples we opened the previous section with:
 \noindent
 Uh-oh.
 What went wrong?
-Well, constant functions like \name{three} are not finite because their support is their entire possibly-infinite domain (again, $\fn{x} \nil$ is the only exception).
-Similarly, the support of \name{id}, $\name{dup}_{\ox}$, and $\name{dup}_{\with}$ is their entire domain except for \nil; we cannot generally use the argument to a finitely supported map directly in its output.\footnotemark{}
+Well, constant functions like \name{three} are not finite because their support is their entire possibly-infinite domain ($\fn{x} \nil$ is the only exception).
+Similarly, the support of \name{id}, $\name{dup}_{\ox}$, and $\name{dup}_{\with}$ is their entire domain, minus \nil; we cannot generally use a finite map's argument directly in its output.\footnotemark{}
 
 \footnotetext{We could in principle make a carve-out in our type system for maps with finite domains.
   However, since we intend to represent finite maps by tables, we probably do not want to allow these examples if the type is finite but large:
@@ -1252,28 +1254,104 @@ This, then, will serve both as our elimination rule for finite maps and our usag
 \end{mathpar}
 
 \noindent
-\TODO{connection to the graded co/monad on pointed sets here!}
+\TODO{connection to the graded co/monad on pointed sets here! also should we give the semantics, or at least the argument for finite support?}
 
-\todo{but unfortunately, not all of our desired typing rules fall out of this connection. In particular, let's take a look at the rules for $\with$ and $\otimes$.}
+Unfortunately, our typing rules do not all follow neatly from this connection to grading.
+Let's examine the rules for $\with$ and $\otimes$.
+Both are informative: the former because it is straightforward, the latter because it is not. The rules for $\with$ are:
+%
+\begin{mathpar}
+  \infer*[right=$\with$\,i]{
+    \J t P \G \D \O
+    \\\\
+    \J u Q \G \D \O
+  }{
+    \J {\withpair{t,u}} {P \with Q} \G \D \O
+  }
+
+  \infer*[right=$\with$\,e]{
+    \J t {P_1 \with P_2} \G \D \O
+  }{
+    \J {\pi_i\<t} {P_i} \G \D \O
+  }
+\end{mathpar}
+
+\noindent
+The support of $\withpair{t,u}$ is the union of \xxx
 
 % But what about $\with$ and $\otimes$?
 
 \TODO{explain how we add another context for finitely supported variables and how that works, especially the funky $\otimes$ rule with context hopping. explain connection with the graded co/monad structure of $A \fto P$ on pointed sets.}
 
-\begin{mathpar}
-  \infer*[right=$\ox$\,i]{
+Let's
+%assume $f,g : \natz \fto \bool$ are finite sets of naturals and
+consider what rules we would need to type the following examples:
+%
+\begin{align*}
+  {\hyp f {A \fto \bool}, \hyp g {A \fto \bool}} \cxsep
+  \emptycx \cxsep
+  {\hyp x A, \hyp y A}
+  &\mathbin{\,\vdash} {f\<x \tand g\<y} : {\bool}\\
+  {\hyp f {A \fto \bool}, \hyp g {A \fto \bool}} \cxsep
+  \emptycx \cxsep
+  {\hyp x A \phantom{, \hyp y A}}
+  &\mathbin{\,\vdash} {f\<x \tand g\<x} : \bool\\
+  {\hyp f {A \fto \bool}, \hyp g {A \to \bool}} \cxsep
+  \emptycx \cxsep
+  {\hyp x A \phantom{, \hyp y A}}
+  &\mathbin{\,\vdash} {f\<x \tand g\<x} : \bool
+\end{align*}
+
+%% \begin{align*}
+%%   {f\<x \tand g\<y}\\
+%%   f\<x \tand g\<x\\
+%%   f\<x \tand x > 17
+%% \end{align*}
+
+\noindent
+First, of course, we must ask: do these each have finite support?
+Let's be even more precise: what is the support of each example, as a function of the supports of $f, g$?
+
+Firstly, the support of the $f\<x \tand g\<y$ is the cross product of the support of $f : A \fto \bool$ and $g : A \fto \bool$.
+Fortunately, the cross product of finite sets is finite.
+So what typing rule does this example need?
+We have used each variable $x,y$ in our finite support context $\O$ exactly once, so it suffices to be able to split this context between the (implicit) $\ox$-pair of arguments to `and':
+\nopagebreak[2]
+
+\[
+  \infer*{
+    \J t P \G {\D_1} {\O_1}
+    \\\\
+    \J u Q {\G} {\D_2} {\O_2}
+  }{
+    \J{(t, u)}{P \ox Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
+  }
+\]
+
+\noindent
+This rule does not suffice for our second example $f\<x \tand g\<x$, which uses the same finitely supported variable $x$ twice.
+Nonetheless this has finite supported: namely, the intersection of $f$'s and $g$'s supports.
+So we can relax our rules to union contexts, much like the rules for the relevant context $\D$:
+\nopagebreak[2]
+
+\[
+  \infer*{
     \J t P \G {\D_1} {\O_1}
     \\\\
     \J u Q {\G} {\D_2} {\O_2}
   }{
     \J{(t, u)}{P \ox Q}{\G}{\D_1 \cup \D_2}{\O_1 \cup \O_2}
   }
-\end{mathpar}
+\]
 
 \noindent
+Yet this still fails to check our final example, which filters the finite set $f: A \fto \bool$ by an arbitrary boolean function $g: A \to \bool$.
+This is unproblematic semantically: we can filter a finite set by any predicate we like and the result remains finite!
+The solution is a rule that breaks the rules: the 
 \xxx
+\nopagebreak[2]
 
-\begin{mathpar}
+\[
   \infer*[right=$\ox$\,i]{
     \J t P \G {\D_1} {\O_1}
     \\\\
@@ -1281,7 +1359,7 @@ This, then, will serve both as our elimination rule for finite maps and our usag
   }{
     \J{(t, u)}{P \ox Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
   }
-\end{mathpar}
+\]
 
 
 %% ---- TYPING RULES FIGURE ----
@@ -1410,11 +1488,104 @@ This, then, will serve both as our elimination rule for finite maps and our usag
     }{
       \J {\letjust x t u} P \G {\D_1 \cup \D_2} {\O_1, \O_2}
     }
-
-    \text{\todo{\strong{DO I NEED} $A \to P$ in pointed sets?}}
   \end{mathpar}
   \caption{Typing rules for \fslang}
   \label{fig:typing-rules}
+\end{figure}
+
+\newcommand\g\gamma
+\renewcommand\d\delta
+\renewcommand\o\omega
+\newcommand\Den[1]{\left\llbracket{#1}\right\rrbracket}
+
+\begin{figure}
+  \begin{align*}
+    &&&\textsc{support (given $\g,\d$)}\\
+    \den{\J \nil P \G \D \O} \<\g \<\d \<\o &= \nil && \emptyset
+    \\
+    \den{\J x P \G {\hyp x P} \emptycx} \<\g \<x \<\o &= x && \{()\}
+    \\
+    \Den{\infer{
+      \J t Q \G {\D, \hyp x P} {\emptycx}
+    }{
+      \J {\fn x t} {P \lto Q} \G \D {\emptycx}
+    }} \<\g \<\d \<\o &=
+    \fn{x} \den{t} \<\g \<(\d,x) \<\o
+    %&& \{() : \ex{x} \den{t} \<\g \<(\d,x) \ne \nil \}
+    && \{() : \den{t} \<\g \<\d \ne \nil_{1 \fto \den{P} \lto \den{Q}} \}
+    \\
+    \Den{\infer{
+      \J t P \G \D {\O, \hyp x A}
+    }{
+      \J {\fn x t} {A \fto P} \G \D \O
+    }} \<\g \<\d \<\o &=
+    \fn{x} \den{t} \<\g \<\d \<(\o, x)
+    && \{ \o : (\o,x) \in \support (\den{t} \<\g \<\d) \}
+    \\
+    \Den{\infer{
+      \J t {P \lto Q} \G {\D_1} {\O_1}
+      \\\\
+      \J u {P} {\G,\O_1} {\D_2} {\O_2}
+    }{
+      \J{t\<u}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
+    }} \<\g \<\d \<\o &=
+    \den{t} \<\g \<(\pi_{\D_1} \d) \<(\pi_{\O_1} \o) \<\left(
+    \den{u} \<(\g,\o_1) \<(\pi_{\D_2} \d) \<(\pi_{\O_2} \o)
+    \right)
+    %% \\
+    %% \infer{
+    %%   \J t {A \fto P} \G {\D} {\O}
+    %% }{
+    %%   \J {t\<x} P \G {\D} {\O, x : A}
+    %% }
+    %% \\
+    %% \infer{
+    %%   \J t P \G \D \O
+    %%   \\\\
+    %%   \J u Q \G \D \O
+    %% }{
+    %%   \J {\withpair{t,u}} {P \with Q} \G \D \O
+    %% }
+    %% \\
+    %% \infer{
+    %%   \J t P \G {\D_1} {\O_1}
+    %%   \\\\
+    %%   \J u Q {\G, \O_1} {\D_2} {\O_2}
+    %% }{
+    %%   \J{(t, u)}{P \ox Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
+    %% }
+    %% \\
+    %% \infer{
+    %%   \J t {P_1 \with P_2} \G \D \O
+    %% }{
+    %%   \J {\pi_i\<t} {P_i} \G \D \O
+    %% }
+    %% \\
+    %% \infer{
+    %%   \J t {P \ox Q} \G {\D_1} {\O_1}
+    %%   \\\\
+    %%   \J u Q {\G, \O_1} {\D_2, \hyp{x}{P}, \hyp{y}{Q}} {\O_2}
+    %% }{
+    %%   \J{\letpair{x}{y} t u}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
+    %% }
+    %% \\
+    %% %% MAYBE
+    %% \infer{     %right=just or right=maybe i
+    %%   \cJ e A \G
+    %% }{
+    %%   \J {\tjust e} {\maybe A} \G \emptycx \emptycx
+    %% }
+    %% \\
+    %% \infer{     %right=let just or right=maybe e
+    %%   \J t {\maybe A} \G {\D_1} {\O_1}
+    %%   \\
+    %%   \J u P {\G, \O_1, x : A} {\D_2} {\O_2}
+    %% }{
+    %%   \J {\letjust x t u} P \G {\D_1 \cup \D_2} {\O_1, \O_2}
+    %% }
+  \end{align*}
+  \caption{Semantics of \fslang}
+  \label{fig:semantics}
 \end{figure}
 
 
@@ -1427,10 +1598,10 @@ This, then, will serve both as our elimination rule for finite maps and our usag
 We give the typing rules of \fslang\ in \cref{fig:typing-rules}.
 The attentive reader will find few surprises.
 As mentioned in \cref{sec:relevance}, our rules borrow from adjoint calculi such as Benton-Wadler's LNL~\cite{DBLP:conf/lics/BentonW96,DBLP:conf/csl/Benton94} to handle the interaction between ordinary functions (\Set-morphisms) and point-preserving functions (\Point-morphisms).
-This is produced by an adjunction, 
+This is produced by an adjunction between \Set\ and \Point, \todo{describe maybe/forgetful adjunction here}
 
-Our main difference from a standard adjoint calculus is our additional context $\O$ of finitely supported variables, which in most typing rules follows the pattern set by $\ox$-introduction explained in \cref{sec:finite-support-context}.
-A notable exception is the rule \rulename{$\lto$\,i}, \xxx
+Our main difference from a standard adjoint calculus is our additional context $\O$ of finitely supported variables, which in most typing rules follows the context-hopping pattern of $\ox$ introduction that we explored in \cref{sec:finite-support-context}.
+%A notable exception is the rule \rulename{$\lto$\,i}, \xxx
 
 The intended interpretation 
 
