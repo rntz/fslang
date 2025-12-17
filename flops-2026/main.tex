@@ -839,7 +839,7 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
     \text{expressions} & e &\bnfeq&
     \termforget t
     \bnfor x \bnfor \fn x e \bnfor e_1 \<e_2
-    \bnfor (e_1, e_2) \bnfor \pi_i \<e
+    \bnfor (e_1, e_2) \bnfor \pi_i \<e \bnfor ()
     \\&&&
     %\bnfor
     \ifjust{e_1}{x}{e_2}{e_3}
@@ -879,7 +879,8 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
     &
     \name{sum} &: (A \fto \natz) \lto \natz
   \end{align*}
-  \TODO{show how to desugar and into let-just, \bool\ into $\maybe 1$, etc}
+  \TODO{show how to desugar and into let-just, \bool\ into $\maybe 1$, etc.
+  also $(\leteq x t u)$ desugars (very awkwardly!) to $\letin{(x, y) = (t, \true)} y \tand u$}
   \caption{Primitive values and operators of \fslang}
   \label{fig:primitives}
 \end{figure}
@@ -1251,12 +1252,50 @@ But what about $\with$ and $\otimes$?
 \begin{figure}[t]
   \begin{mathpar}
     %% THIS SHOULD GO IN SEPARATE AREA FOR RULES WITH CONCLUSION \cJ.
+    %\genfrac{}{}{0pt}{}{\boxed{\cJ e A \G}}{~}
+    \boxed{\cJ e A \G}\hfill\\
+
     \infer*[right=include]{\J t P \G \emptycx \emptycx}{\cJ t P \G}
+
+    \infer*[right=evar]{\hyp x A \in \G}{\cJ x A \G}
+
+    \infer*[right=$1$\,i]{~}{\cJ {()} {1} \G}
+
+    \infer*[right=$\to$\,i]{\cJ e B {\G,\hyp x A}}{\cJ {\fn x e} {A \to B} \G}
+
+    \infer*[right=$\to$\,e]{
+      \cJ {e_1} {A \to B} \G\\
+      \cJ {e_2} {A} \G
+    }{\cJ {e_1 \<e_2} B \G}
+
+    \infer*[right=$\times$\,i]{
+      \cJ {e_1} A \G\\
+      \cJ {e_2} B \G
+    }{
+      \cJ {(e_1, e_2)} {A \times B} \G
+    }
+
+    \infer*[right=$\times$\,e$_i$]{
+      \cJ {e} {A_1 \times A_2} \G
+    }{
+      \cJ {\pi_i \<e} {A_i} \G
+    }
+
+    \infer*[right=case]{
+      \cJ {e_1} {\maybe A} \G\\
+      \cJ {e_2} B {\G, \hyp x A}\\
+      \cJ {e_3} B \G
+    }{
+      \cJ {\ifjust {e_1} x {e_2} {e_3}} B \G
+    }
+    \\
+    %\genfrac{}{}{0pt}{}{\boxed{\J t P \G \D \O}}{~}
+    \boxed{\J t P \G \D \O}\hfill\\
 
     \infer*[right=var]{~}{\J x P \G {\hyp x P} {\emptycx}}
 
     \infer*[right=nil]{~}{\J \nil P \G \D \O}
-
+    \\
     %% FINITE & LINEAR MAPS
     \infer*[right=$\lto$\,i]{
       \J t Q \G {\D, \hyp x P} {\emptycx}
@@ -1309,28 +1348,28 @@ But what about $\with$ and $\otimes$?
     \infer*[right=$\ox$\,e]{
       \J t {P \ox Q} \G {\D_1} {\O_1}
       \\\\
-      \J s Q {\G, \O_1} {\D_2, \hyp{x}{P}, \hyp{y}{Q}} {\O_2}
+      \J u Q {\G, \O_1} {\D_2, \hyp{x}{P}, \hyp{y}{Q}} {\O_2}
     }{
-      \J{\letpair{x}{y} t s}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
+      \J{\letpair{x}{y} t u}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
     }
 
-    %% LET
-    \infer*[right=let]{
-      \J t P \G {\D_1} {\O_1}
-      \\\\
-      \J u Q {\G, \O_1} {\D_2, x : P} {\O_2}
-    }{
-      \J {\leteq x t u} Q \G {\D_1 \cup \D_2} {\O_1,\O_2}
-    }
+    %% %% LET -- NOT NECESSARY, I have a (very awkward) desugaring
+    %% \infer*[right=let]{
+    %%   \J t P \G {\D_1} {\O_1}
+    %%   \\\\
+    %%   \J u Q {\G, \O_1} {\D_2, x : P} {\O_2}
+    %% }{
+    %%   \J {\leteq x t u} Q \G {\D_1 \cup \D_2} {\O_1,\O_2}
+    %% }
 
     %% MAYBE
-    \infer*[right=just]{
+    \infer*[right=maybe i]{     %right=just or right=maybe i
       \cJ e A \G
     }{
       \J {\tjust e} {\maybe A} \G \emptycx \emptycx
     }
 
-    \infer*[right=let just]{
+    \infer*[right=maybe e]{     %right=let just or right=maybe e
       \J t {\maybe A} \G {\D_1} {\O_1}
       \\
       \J u P {\G, \O_1, x : A} {\D_2} {\O_2}
@@ -1338,7 +1377,7 @@ But what about $\with$ and $\otimes$?
       \J {\letjust x t u} P \G {\D_1 \cup \D_2} {\O_1, \O_2}
     }
 
-    \text{\todo{\strong{MISSING:} \natz, \bool;  rules for $\cJ e A \G$. \strong{DO I NEED} $A \to P$ in pointed sets?}}
+    \text{\todo{\strong{DO I NEED} $A \to P$ in pointed sets?}}
   \end{mathpar}
   \caption{Typing rules for \fslang}
   \label{fig:typing-rules}
