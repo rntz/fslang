@@ -153,7 +153,7 @@
 \newcommand\xxx{\text{\todo{\strong{XXX}}}}
 
 \newcommand\todolater[1]{{\color{RoyalBlue}#1}}
-\renewcommand\todolater[1]{}
+\renewcommand\todolater[1]{\ignorespaces}
 
 \newcommand\fslang{\ensuremath{\lambda_{\mathrm{FS}}}}
 \newcommand\catname[1]{\ensuremath{\mathrm{#1}}}
@@ -1106,6 +1106,20 @@ Thus the appropriate approach is a \emph{relevant} type system, where variables 
 So far our examples fail to distinguish the behavior of $\ox$ from $\with$; let's fix that:
 
 \begin{align*}
+  \color{invalid}
+  \name{fst}_{\ox} &
+  \color{invalid}
+  = \fn{p} \letpair x y p x
+  \color{invalid}
+  : P \ox Q \lto P
+  && \text{\color{invalid}\scshape\ding{55}\: not point preserving}
+  \\
+  \name{fst}_{\with} &= \fn{p} \pi_1 \<p
+  \phantom{\fn{p} \letpair x y p x}
+  \negphantom{\fn p \pi_1 \<p}
+  : P \with Q \lto P
+  && \text{\color{DarkGreen}\scshape\ding{51}}
+  \\
   \name{pair}_{\ox} &= \fn{x} \fn{y} (x,y)
   \phantom{\fn{p} \letpair x y p x}
   \negphantom{\fn x \fn y (x,y)}
@@ -1122,31 +1136,9 @@ So far our examples fail to distinguish the behavior of $\ox$ from $\with$; let'
   : P \lto Q \lto P \with Q
   && \text{\color{invalid}\scshape\ding{55}\: not point preserving}
   \\
-  \color{invalid}
-  \name{fst}_{\ox} &
-  \color{invalid}
-  = \fn{p} \letpair x y p x
-  \color{invalid}
-  : P \ox Q \lto P
-  && \text{\color{invalid}\scshape\ding{55}\: not point preserving}
-  \\
-  \name{fst}_{\with} &= \fn{p} \pi_1 \<p
-  \phantom{\fn{p} \letpair x y p x}
-  \negphantom{\fn p \pi_1 \<p}
-  : P \with Q \lto P
-  && \text{\color{DarkGreen}\scshape\ding{51}}
-\end{align*}
-
-\noindent
-\TODO{words about what the difference here is: \xxx}
-
-Precisely because consuming an $\ox$-pair requires ``using'' both of its components, constructing an $\ox$-pair uses all variables used in either of its component.
-Conversely, constructing a $\with$-pair uses only variables used by both components:
-
-\begin{align*}
   \name{and3}_{\ox} &= \fn{x} (x, 3)
-  %% \phantom{\fn{x} \fn{y} \withpair{x,y}}
-  %% \negphantom{\fn{x} (x,3)}
+  \phantom{\fn{p} \letpair x y p x}
+  \negphantom{\fn{x} (x,3)}
   : P \lto P \ox \natz
   && \text{\color{DarkGreen}\scshape\ding{51}}
   \\
@@ -1154,21 +1146,36 @@ Conversely, constructing a $\with$-pair uses only variables used by both compone
   \name{and3}_{\with} &
   \color{invalid}
   = \fn{x} \withpair{x,3}
-  %% \phantom{\fn{x} \fn{y} \withpair{x,y}}
-  %% \negphantom{\fn{x} \withpair{x,3}}
+  \phantom{\fn{p} \letpair x y p x}
+  \negphantom{\fn{x} \withpair{x,3}}
   : P \lto P \with \natz
   && \text{\color{invalid}\scshape\ding{55}\: not point preserving}
 \end{align*}
 
 \noindent
-\TODO{describe our ``fake'' typing judgment, its interpretation, lead in to rules:}
+\todolater{I don't think this paragraph is very explanatory.}
+One can verify these examples mechanically using the definitions of $\ox$ and $\with$, but some intuition may be helpful.
+From a ``usage'' standpoint, to consume an $\ox$-pair $(x,y)$, we must consume \emph{both} of its arguments, to guarantee that if either one is $\nil$ we will propagate it.
+By contrast, if a $\with$-pair is $\nil$ then both of its components are, so we are free to use only one.
+This is why $\name{fst}_{\ox}$ is invalid but $\name{fst}_{\with}$ is acceptable---and also why we use destructuring notation for $\ox$, but projection notation for $\with$.
 
+Conversely, constructing an $\ox$ pair $(t,u)$ ``uses'' all variables used by either $t$ or $u$, since if either $t$ or $u$ is $\nil$ the whole pair is.
+When constructing a $\with$ pair ``uses'' only variables used by both $t$ and $u$, since only these variables will force both components of $\withpair{t,u}$ to be $\nil$.
+This is why $\name{pair}_{\ox}$ and $\name{and3}_{\ox}$ are acceptable but $\name{pair}_{\with}$ and $\name{and3}_{\with}$ are invalid.
+
+%% \TODO{describe our ``fake'' typing judgment, its interpretation, lead in to rules:}
+
+Since we need to mix a cartesian, structural type system for sets $A,B$ and functions $A \to B$ with a substructural, relevant type system for pointed sets $P,Q$ and point preserving maps $P \lto Q$, we adapt the rules of Benton and Wadler's mixed linear/non-linear logic LNL~\cite{DBLP:conf/lics/BentonW96,DBLP:conf/csl/Benton94} to relevance rather than linearity.
+%
+We use two contexts, $\G$ containing ordinary variables $\hyp x A$ and $\D$ containing pointed set variables $\hyp x P$; two syntactic classes of terms, ordinary $e$ and point-preserving $t$; and two typing judgments, $\G \entails e : A$ for functions and $\G \cxsep \D \entails t : P$ for point preserving maps.
+A few example rules: \todolater{again, don't like this paragraph}
+%
 \begin{mathpar}
   \infer{
     \lJ t P \G \D\\
     \lJ t Q \G \D
   }{
-    \lJ {\withpair{t,u}} {P \ox Q} \G \D
+    \lJ {\withpair{t,u}} {P \with Q} \G \D
   }
 
   \infer{
@@ -1186,10 +1193,13 @@ Conversely, constructing a $\with$-pair uses only variables used by both compone
 \end{mathpar}
 
 \noindent
-These rules are essentially those of Benton and Wadler's mixed linear/non-linear logic LNL~\cite{DBLP:conf/lics/BentonW96,DBLP:conf/csl/Benton94}, adapted for relevance rather than linearity.
-The semantics of LNL are given by an adjunction between a cartesian closed category $\mathcal{C}$ and a symmetric monoidal closed category $\mathcal{L}$.
-For us $\mathcal{C} = \Set$ and $\mathcal{L} = \Point$.
-Additionally, \Point\ possesses a natural family of diagonal maps $\fn{x} (x,x) : P \lto P \ox P$, making it a relevant monoidal category~\cite{DBLP:journals/sLogica/Petric02,relevant-categories-and-partial-functions}.
+Observe that in the rule for $\with$-pairs $\withpair{t,u}$ each component is checked in the same relevant context $\D$, and therefore must use the same variables; but in $\ox$-pairs $(t,u)$, we give them different contexts $\D_1, \D_2$ which must \emph{union} to produce the context of the whole pair.
+This union is a key difference from standard linear logic, which would split the contexts disjointly; it allows a variable to be used in both branches---but, unlike the $\with$-rule, does not \emph{require} it. \todolater{again hate this para}
+
+%% These rules are essentially those of Benton and Wadler's mixed linear/non-linear logic LNL~\cite{DBLP:conf/lics/BentonW96,DBLP:conf/csl/Benton94}, adapted for relevance rather than linearity.
+%% The semantics of LNL are given by an adjunction between a cartesian closed category $\mathcal{C}$ and a symmetric monoidal closed category $\mathcal{L}$.
+%% For us $\mathcal{C} = \Set$ and $\mathcal{L} = \Point$.
+%% Additionally, \Point\ possesses a natural family of diagonal maps $\fn{x} (x,x) : P \lto P \ox P$, making it a relevant monoidal category~\cite{DBLP:journals/sLogica/Petric02,relevant-categories-and-partial-functions}.
 
 %% \TODO{EXPLAIN CONNECTION TO STRUCTURE OF CATEGORY OF POINTED SETS: SYMMETRIC MONOIDAL CLOSED, CARTESIAN, WITH A NATURAL DUPLICATION MAP: ``relevance monoidal categories'' (\url{https://ncatlab.org/nlab/show/relevance+monoidal+category})!}
 
@@ -1381,8 +1391,8 @@ So we can relax our rules to union contexts, much like the rules for the relevan
 \noindent
 Yet this still fails to check our final example, which filters the finite set $f: A \fto \bool$ by an arbitrary boolean function $g: A \to \bool$.
 This is unproblematic semantically: we can filter a finite set by any predicate we like and the result remains finite!
-The solution is a rule that breaks the rules: the 
-\xxx
+The solution is a rule that breaks the rules:
+any variable finitely supported by $t$ maybe used unrestricted in $u$, so the finite support context $\Omega_1$ for $t$ will \emph{jump} across two slanted lines into the unrestricted context for $u$:
 \nopagebreak[2]
 
 \[
@@ -1394,6 +1404,11 @@ The solution is a rule that breaks the rules: the
     \J{(t, u)}{P \ox Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
   }
 \]
+
+\noindent
+Although it is not obvious, and despite combining $\O_1,\O_2$ disjointly rather than by union, this rule is strictly more general then the previous two.
+This is because a variable finitely supported by both $t$ and $u$ can simply be placed into $\O_1$: having an unrestricted variable in $u$ is strictly more general than having a finitely supported variable. \todolater{really don't like this this needs better explanation}
+\todolater{connect this to input/output modes! discuss how it's not symmetric but this is an arbitrary choice! so much to discuss here!}
 
 
 %% ---- TYPING RULES FIGURE ----
@@ -1673,6 +1688,11 @@ This is produced by an adjunction between \Set\ and \Point, \todo{describe maybe
 
 Our main difference from a standard adjoint calculus is our additional context $\O$ of finitely supported variables, which in most typing rules follows the context-hopping pattern of $\ox$ introduction that we explored in \cref{sec:finite-support-context}.
 %A notable exception is the rule \rulename{$\lto$\,i}, \xxx
+
+\TODO{where do I put this?}
+The semantics of LNL are given by an adjunction between a cartesian closed category $\mathcal{C}$ and a symmetric monoidal closed category $\mathcal{L}$.
+For us $\mathcal{C} = \Set$ and $\mathcal{L} = \Point$.
+Additionally, \Point\ possesses a natural family of diagonal maps $\fn{x} (x,x) : P \lto P \ox P$, making it a relevant monoidal category~\cite{DBLP:journals/sLogica/Petric02,relevant-categories-and-partial-functions}.
 
 The intended interpretation 
 
