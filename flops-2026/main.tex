@@ -184,7 +184,8 @@
 \newcommand\ox\otimes
 \newcommand\typename\textit
 \newcommand\bool{\typename{bool}}
-\newcommand\maybe[1]{\ensuremath{\typename{maybe}~{#1}}}
+\newcommand\maybe{\typename{maybe}}
+\newcommand\maybeof[1]{\ensuremath{\maybe~{#1}}}
 
 %% need \usepackage{accent} for these
 %\newcommand\undertype[2]{\underaccent{\textsf{\upshape\scshape#1}}{#2}}
@@ -621,8 +622,8 @@ However, if we care about higher order programming, the answer to (1) is \emph{n
 % not every pointed set is computably isomorphic to a \typename{Maybe}.
 Take any infinite pointed set: say, the naturals $\natz$ where $\nil_{\natz} = 0$.
 Then $\natz \lto \natz$ is a pointed set, with $\nil_{\natz \lto \natz} = \fn{\pwild} 0$.
-But it is undecidable whether a function is equal to $\fn{\pwild} 0$; so $\natz \lto \natz$ is not computably isomorphic to any \typename{Maybe} type in a way that sends $\nil$ to \texttt{Nothing}.
-Indeed, being unable to decide equality with \nil\ is the common case: most higher order types are not \typename{Maybe} types.
+But it is undecidable whether a function is equal to $\fn{\pwild} 0$; so $\natz \lto \natz$ is not computably isomorphic to any \Maybe\ type in a way that sends $\nil$ to \texttt{Nothing}.
+Indeed, being unable to decide equality with \nil\ is the common case: most higher order types are not \Maybe\ types.
 
 %Nor as a practical matter, is it always convenient to represent point preserving maps using \Maybe{} types or finite maps using dictionaries, even when limited to first-order types as in (2--3).
 A similar mismatch happens, for instance, with curried finite maps $A \fto B \fto \Maybe~C$.
@@ -852,7 +853,7 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
       & 0, 1, 2, 3, 4...
       & 0
       \\
-      $\maybe A$
+      $\maybeof A$
       & maybe type
       & $\tjust a$ for $a \in A$, \cnil
       & \cnil
@@ -871,7 +872,7 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
     \text{pointed types} & P,Q &\bnfeq&
     P \with Q \bnfor P \ox Q \bnfor P \lto Q \bnfor A \fto Q
     \bnfor \bool \bnfor \natz
-    \bnfor \maybe A
+    \bnfor \maybeof A
     \\
     \text{expressions} & e &\bnfeq&
     \termforget t
@@ -916,7 +917,7 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
     &
     \name{sum} &: (A \fto \natz) \lto \natz
   \end{align*}
-  \TODO{show how to desugar and into let-just, \bool\ into $\maybe 1$, etc.
+  \TODO{show how to desugar and into let-just, \bool\ into $\maybeof 1$, etc.
   also $(\leteq x t u)$ desugars (very awkwardly!) to $\letin{(x, y) = (t, \true)} y \tand u$}
   \caption{Primitive values and operators of \fslang}
   \label{fig:primitives}
@@ -1426,7 +1427,35 @@ This is because a variable finitely supported by both $t$ and $u$ can simply be 
 \todolater{connect this to input/output modes! discuss how it's not symmetric but this is an arbitrary choice! so much to discuss here!}
 
 
-%% ---- TYPING RULES FIGURE ----
+%% ---- TYPES & SEMANTICS FIGURES ----
+\begin{figure}[t]
+  \begin{align*}
+    \den{1} &= 1 & \den{A \times B} &= \den{A} \times \den{B} & \den{A \to B} &= \den{A} \to \den{B}
+    &
+    \den{P} &= U \den{P}
+  \end{align*}
+
+  \begin{align*}
+    \den{P \with Q} &= \den{P} \with \den{Q} &
+    \den{P \ox Q} &= \den{P} \ox \den{Q} &
+    \den{P \lto Q} &= \den{P} \lto \den{Q}\\
+    \den{A \fto P} &= \den{A} \fto \den{P} &
+    \den{\maybeof A} &= \maybeof{\den{A}} &
+    \den{\natz} &= \natz
+  \end{align*}
+
+  \begin{align*}
+    \den{\G} &= \prod_{\hyp x A \in \G} \den{A}
+    &
+    \den{\D} &= \bigotimes_{\hyp x P \in \D} \den{P}
+    &
+    \den{\O} &= \prod_{\hyp x A \in \G} \den{A}
+  \end{align*}
+
+  \caption{Semantics of types and contexts in \fslang}
+  \label{fig:type-context-semantics}
+\end{figure}
+
 \begin{figure}
   \begin{mathpar}
     \boxed{\cJ e A \G}\hfill\\  % SET RULES
@@ -1458,7 +1487,7 @@ This is because a variable finitely supported by both $t$ and $u$ can simply be 
     }
 
     \infer*[right=case]{
-      \cJ {e_1} {\maybe A} \G\\
+      \cJ {e_1} {\maybeof A} \G\\
       \cJ {e_2} B {\G, \hyp x A}\\
       \cJ {e_3} B \G
     }{
@@ -1542,11 +1571,11 @@ This is because a variable finitely supported by both $t$ and $u$ can simply be 
     \infer*[right=maybe i]{     %right=just or right=maybe i
       \cJ e A \G
     }{
-      \J {\tjust e} {\maybe A} \G \emptycx \emptycx
+      \J {\tjust e} {\maybeof A} \G \emptycx \emptycx
     }
 
     \infer*[right=maybe e]{     %right=let just or right=maybe e
-      \J t {\maybe A} \G {\D_1} {\O_1}
+      \J t {\maybeof A} \G {\D_1} {\O_1}
       \\
       \J u P {\G, \O_1, x : A} {\D_2} {\O_2}
     }{
@@ -1669,12 +1698,12 @@ This is because a variable finitely supported by both $t$ and $u$ can simply be 
     \Den{\infer{     %right=just or right=maybe i
       \cJ e A \G
     }{
-      \J {\tjust e} {\maybe A} \G \emptycx \emptycx
+      \J {\tjust e} {\maybeof A} \G \emptycx \emptycx
     }} \<\g \<\d &=
     \{ () \mapsto \cjust \<(\den{e} \<\g) : \d \ne \nil \}
     \\
     \Den{\infer{     %right=let just or right=maybe e
-      \J t {\maybe A} \G {\D_1} {\O_1}
+      \J t {\maybeof A} \G {\D_1} {\O_1}
       \\\\
       \J u P {\G, \O_1, x : A} {\D_2} {\O_2}
     }{
@@ -1691,34 +1720,37 @@ This is because a variable finitely supported by both $t$ and $u$ can simply be 
 
 
 %% \section{Programming with pointed sets}
-\section{\fslang}
+\section{Types and semantics for \fslang}
 \label{sec:typing-rules}
 
 \newcommand\rulename\textsc
 
 We give the typing rules of \fslang\ in \cref{fig:typing-rules}.
-The attentive reader will find few surprises.
+\todolater{The attentive reader will find few surprises. INSERT THIS ONCE IT'S TRUE.}
 As mentioned in \cref{sec:relevance}, our rules borrow from adjoint calculi such as Benton-Wadler's LNL~\cite{DBLP:conf/lics/BentonW96,DBLP:conf/csl/Benton94} to handle the interaction between ordinary functions (\Set-morphisms) and point-preserving functions (\Point-morphisms).
-This is produced by an adjunction between \Set\ and \Point, \todo{describe maybe/forgetful adjunction here}
-
-Our main difference from a standard adjoint calculus is our additional context $\O$ of finitely supported variables, which in most typing rules follows the context-hopping pattern of $\ox$ introduction that we explored in \cref{sec:finite-support-context}.
-%A notable exception is the rule \rulename{$\lto$\,i}, \xxx
-
-\TODO{where do I put this?}
-The semantics of LNL are given by an adjunction between a cartesian closed category $\mathcal{C}$ and a symmetric monoidal closed category $\mathcal{L}$.
-For us $\mathcal{C} = \Set$ and $\mathcal{L} = \Point$.
+This corresponds semantically to an adjunction between the cartesian closed category $\Set$ (LNL's $\mathcal{C}$) and the symmetric monoidal closed category $\Point$ (LNL's $\mathcal{L}$).
 Additionally, \Point\ possesses a natural family of diagonal maps $\fn{x} (x,x) : P \lto P \ox P$, making it a relevant monoidal category~\cite{DBLP:journals/sLogica/Petric02,relevant-categories-and-partial-functions}.
+%
+The adjunction in question consists of the free functor $\maybe : \Set \to \Point$ and the forgetful functor $U : \Point \to \Set$.
+\todolater{more details/intuition?}
+%
+Our main difference from a standard adjoint calculus is our additional context $\O$ of finitely supported variables, which in most typing rules follows the context-hopping pattern of $\ox$ introduction that we explored in \cref{sec:finite-support-context}.
 
-The intended interpretation 
+Unsurprisingly, we interpret ``set'' types as sets $\den{A} \in \Set$, and ``pointed set'' types as pointed sets $\den{P} \in \Point$.
+We have deliberately used almost identical notation for the syntax of types and for the mathematical objects they denote.
+See \cref{fig:type-context-semantics} for the semantics of types and contexts.
+%
+The $n$-ary smash product in $\bigotimes_i P_i$ deserves some explanation: this denotes the pointed set $\{ (x_1, \dots, x_n) : x_1 \in P_1, \dots, x_n \in P_n \} \uplus \{\nil\}$ quotiented by $\fa{i} x_i = \nil \implies (x_1, ..., x_n) = \nil$.
+The explicit addition of $\nil$ means that the nullary smash product, $\bigotimes \{\}$, has two elements: $\nil$ and the empty tuple $()$, which is important for interpreting the case $\D = \emptycx$ of an empty pointed set context. \todolater{more intuition}
 
-\todo{
-  What \emph{are} the surprises?
-  Probably the adjoint calculus style needs explanation.
-  Cite Benton-Wadler LNL (is this what I refer to in Datafun paper?).
-  Probably the rules for $\typename{maybe}$ bear explanation.
-  in particular the need for \rulename{case} so that we can define e.g.\ boolean negation.
-}
-\xxx
+\begin{align*}
+  \den{\cJ e A \G} &\in \den{\G} \to \den{A}\\
+  \den{\J t P \G \D \O} &\in \den{\G} \to \den{\D} \lto \den{\O} \fto \den{P}
+\end{align*}
+
+\noindent
+We give semantics to terms in \cref{fig:semantics}.
+To make it clear that terms are finitely supported with respect to the context $\O$, we construct all finite maps explicitly using set comprehensions as sets of input-output pairs, $x \mapsto y$. \todolater{this section is underbaked}
 
 
 %% MERGED WITH PRIOR SECTION, PROBABLY
