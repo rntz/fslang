@@ -45,6 +45,7 @@
 \usepackage{nccmath}            % fleqn (for code environment)
 \usepackage{booktabs}           % \midrule
 \usepackage{pifont}             % \ding{55}
+\usepackage{placeins}           % \FloatBarrier
 
 %\usepackage{minted}
 \usepackage{listings}           % lstlisting
@@ -1246,14 +1247,10 @@ But what about $\with$ and $\otimes$?
 \TODO{explain how we add another context for finitely supported variables and how that works, especially the funky $\otimes$ rule with context hopping. explain connection with the graded co/monad structure of $A \fto P$ on pointed sets.}
 
 
-%% \section{Programming with pointed sets}
-\section{\fslang\ as she is typed}
-
-\begin{figure}[t]
+%% ---- TYPING RULES FIGURE ----
+\begin{figure}
   \begin{mathpar}
-    %% THIS SHOULD GO IN SEPARATE AREA FOR RULES WITH CONCLUSION \cJ.
-    %\genfrac{}{}{0pt}{}{\boxed{\cJ e A \G}}{~}
-    \boxed{\cJ e A \G}\hfill\\
+    \boxed{\cJ e A \G}\hfill\\  % SET RULES
 
     \infer*[right=include]{\J t P \G \emptycx \emptycx}{\cJ t P \G}
 
@@ -1289,8 +1286,7 @@ But what about $\with$ and $\otimes$?
       \cJ {\ifjust {e_1} x {e_2} {e_3}} B \G
     }
     \\
-    %\genfrac{}{}{0pt}{}{\boxed{\J t P \G \D \O}}{~}
-    \boxed{\J t P \G \D \O}\hfill\\
+    \boxed{\J t P \G \D \O}\hfill\\ % POINTED SET RULES
 
     \infer*[right=var]{~}{\J x P \G {\hyp x P} {\emptycx}}
 
@@ -1383,6 +1379,10 @@ But what about $\with$ and $\otimes$?
   \label{fig:typing-rules}
 \end{figure}
 
+
+%% \section{Programming with pointed sets}
+\section{\fslang\ as she is typed}
+
 We give the typing rules of \fslang\ in \cref{fig:typing-rules}. \xxx
 
 
@@ -1427,6 +1427,7 @@ The authors have no competing interests to declare that are relevant to the cont
 %% Company X and owns stock in Company Y. Author C is a member of committee Z.
 \end{credits}
 
+\FloatBarrier
 %% %
 %% % ---- Bibliography ----
 %% %
