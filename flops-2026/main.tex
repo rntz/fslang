@@ -1154,7 +1154,7 @@ Conversely, constructing a $\with$-pair uses only variables used by both compone
 These rules are essentially those of Benton and Wadler's mixed linear/non-linear logic LNL~\cite{DBLP:conf/lics/BentonW96,DBLP:conf/csl/Benton94}, adapted for relevance rather than linearity.
 The semantics of LNL are given by an adjunction between a cartesian closed category $\mathcal{C}$ and a symmetric monoidal closed category $\mathcal{L}$.
 For us $\mathcal{C} = \Set$ and $\mathcal{L} = \Point$.
-Additionally, \Point\ possesses a natural family of diagonal maps $P \lto P \ox P$, making it a relevant monoidal category~\cite{DBLP:journals/sLogica/Petric02,relevant-categories-and-partial-functions}.
+Additionally, \Point\ possesses a natural family of diagonal maps $\fn{x} (x,x) : P \lto P \ox P$, making it a relevant monoidal category~\cite{DBLP:journals/sLogica/Petric02,relevant-categories-and-partial-functions}.
 
 %% \TODO{EXPLAIN CONNECTION TO STRUCTURE OF CATEGORY OF POINTED SETS: SYMMETRIC MONOIDAL CLOSED, CARTESIAN, WITH A NATURAL DUPLICATION MAP: ``relevance monoidal categories'' (\url{https://ncatlab.org/nlab/show/relevance+monoidal+category})!}
 
@@ -1259,6 +1259,29 @@ This, then, will serve both as our elimination rule for finite maps and our usag
 % But what about $\with$ and $\otimes$?
 
 \TODO{explain how we add another context for finitely supported variables and how that works, especially the funky $\otimes$ rule with context hopping. explain connection with the graded co/monad structure of $A \fto P$ on pointed sets.}
+
+\begin{mathpar}
+  \infer*[right=$\ox$\,i]{
+    \J t P \G {\D_1} {\O_1}
+    \\\\
+    \J u Q {\G} {\D_2} {\O_2}
+  }{
+    \J{(t, u)}{P \ox Q}{\G}{\D_1 \cup \D_2}{\O_1 \cup \O_2}
+  }
+\end{mathpar}
+
+\noindent
+\xxx
+
+\begin{mathpar}
+  \infer*[right=$\ox$\,i]{
+    \J t P \G {\D_1} {\O_1}
+    \\\\
+    \J u Q {\G, \O_1} {\D_2} {\O_2}
+  }{
+    \J{(t, u)}{P \ox Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
+  }
+\end{mathpar}
 
 
 %% ---- TYPING RULES FIGURE ----
@@ -1403,6 +1426,14 @@ This, then, will serve both as our elimination rule for finite maps and our usag
 
 We give the typing rules of \fslang\ in \cref{fig:typing-rules}.
 The attentive reader will find few surprises.
+As mentioned in \cref{sec:relevance}, our rules borrow from adjoint calculi such as Benton-Wadler's LNL~\cite{DBLP:conf/lics/BentonW96,DBLP:conf/csl/Benton94} to handle the interaction between ordinary functions (\Set-morphisms) and point-preserving functions (\Point-morphisms).
+This is produced by an adjunction, 
+
+Our main difference from a standard adjoint calculus is our additional context $\O$ of finitely supported variables, which in most typing rules follows the pattern set by $\ox$-introduction explained in \cref{sec:finite-support-context}.
+A notable exception is the rule \rulename{$\lto$\,i}, \xxx
+
+The intended interpretation 
+
 \todo{
   What \emph{are} the surprises?
   Probably the adjoint calculus style needs explanation.
