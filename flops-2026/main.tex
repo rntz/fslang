@@ -887,7 +887,7 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
 \end{figure}
 
 Now that we've developed enough notation (summarized in \cref{fig:pointed-sets}, along with a few more pointed sets we will introduce later), we can consider some example programs and their types.
-For now we rely on intuition to see that they are semantically well-typed; future sections will develop typing rules (\todo{fwd ref!}).
+For now we rely on intuition to see that they are semantically well-typed; in \cref{sec:relevance,sec:finite-support-context,sec:typing-rules} we will develop typing rules.
 First, let's consider some basic uses of conjunction (inner joins, in database parlance), starting with the simplest, cross product:
 
 \begin{code}
@@ -1151,10 +1151,11 @@ Conversely, constructing a $\with$-pair uses only variables used by both compone
 
 
 \section{Context hopping}
+\label{sec:finite-support-context}
 
 Alas, these are not yet the typing rules we are looking for.
 A mere two contexts will not suffice; we have \emph{three} kinds of function we'd like to introduce---ordinary $A \to B$, point preserving $P \lto Q$, and finitely supported $A \fto P$---and therefore three kinds of variable, needing three separate contexts.
-In addition to $\G$ and $\D$ we need a context $\O$ of finitely supported variables $\hyp x A, \hyp y B, ...$, and our typing judgement takes the form $\J t P \G \D \O$.
+Besides $\G$ and $\D$ we need a context $\O$ of finitely supported variables $\hyp x A, \hyp y B, ...$, and our typing judgement takes the form $\J t P \G \D \O$.
 
 To understand how this context $\O$ should be treated type-theoretically, it will help to consider some examples.
 Let's try the same examples we opened the previous section with:
@@ -1285,6 +1286,7 @@ But what about $\with$ and $\otimes$?
     }{
       \cJ {\ifjust {e_1} x {e_2} {e_3}} B \G
     }
+    \vspace{1em}
     \\
     \boxed{\J t P \G \D \O}\hfill\\ % POINTED SET RULES
 
@@ -1381,18 +1383,30 @@ But what about $\with$ and $\otimes$?
 
 
 %% \section{Programming with pointed sets}
-\section{\fslang\ as she is typed}
+\section{\fslang}
+\label{sec:typing-rules}
 
-We give the typing rules of \fslang\ in \cref{fig:typing-rules}. \xxx
+\newcommand\rulename\textsc
+
+We give the typing rules of \fslang\ in \cref{fig:typing-rules}.
+The attentive reader will find few surprises.
+\todo{
+  What \emph{are} the surprises?
+  Probably the adjoint calculus style needs explanation.
+  Cite Benton-Wadler LNL (is this what I refer to in Datafun paper?).
+  Probably the rules for $\typename{maybe}$ bear explanation.
+  in particular the need for \rulename{case} so that we can define e.g.\ boolean negation.
+}
+\xxx
+
+
+%\section{Semantics of \fslang}
+\section{What does it all mean?}
 
 
 %% ---- REMOVED BECAUSE I DIDN'T HAVE TIME ---- %%
 %\section{Decidably pointed sets}
 %\section{Curing maybe-addiction with class}
-
-
-%\section{Semantics of \fslang}
-\section{What does it all mean?}
 
 
 \section{Onward}
