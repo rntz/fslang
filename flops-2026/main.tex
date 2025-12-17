@@ -152,6 +152,9 @@
 \newcommand\TODO[1]{\todo{\strong{TODO}: #1}}
 \newcommand\xxx{\text{\todo{\strong{XXX}}}}
 
+\newcommand\todolater[1]{{\color{RoyalBlue}#1}}
+\renewcommand\todolater[1]{}
+
 \newcommand\fslang{\ensuremath{\lambda_{\mathrm{FS}}}}
 \newcommand\catname[1]{\ensuremath{\mathrm{#1}}}
 \newcommand\Set{\ensuremath{\catname{Set}}}
@@ -397,7 +400,7 @@ their support.
 %% "To simplify the problem" isn't enough motivation for finiteness!
 Inspired by databases and bottom-up logic programming languages such as Datalog, we focus on {finite} support.
 Since functions with finite support can be represented as key-value tables, we will also call them \emph{finite maps.}
-\todo{maybe I should discuss the ``goal'' here: a language with procedural higher-order functions, but also finite maps which are guaranteed finitely supported, represented as tables, and computed like database queries. should this go after or before contribution list? I guess it's a nice pr\'ecis of \fslang.}
+\todolater{maybe I should discuss the ``goal'' here: a language with procedural higher-order functions, but also finite maps which are guaranteed finitely supported, represented as tables, and computed like database queries. should this go after or before contribution list? I guess it's a nice pr\'ecis of \fslang.}
 %We will suggestively call functions with finite support \emph{finite maps,} as they can be represented by a key-value table rather.
 %Observe that a function with finite support can be represented as a key-value table; we will suggestively refer to functions with finite support as \emph{finite maps.}
 %A function with finite support can be represented as a key-value table, and for brevity we will call functions with finite support simply \emph{finite maps.}
@@ -414,7 +417,7 @@ We make the following contributions:
 
 \item We %use these insights to
   construct a simply typed language \fslang\ that can express relational algebra and some forms of aggregation, whose type system guarantees finite support.
-  \TODO{but we still support non-finite possibly higher order functions! so we handle the \emph{interaction} between finite \& non-finite things.}
+  \todolater{but we still support non-finite possibly higher order functions! so we handle the \emph{interaction} between finite \& non-finite things.}
 
 %% \item We use these insights to construct a type system whose well typed terms have finite support, and which is expressive enough to capture relational algebra augmented with some forms of aggregation.
 
@@ -454,7 +457,7 @@ Let's get started!
 \end{center}
 
 \noindent
-\todo{TODO: connect contributions to paper structure (section references).\\
+\todolater{TODO: connect contributions to paper structure (section references).\\
   TODO: any other contributions? something about tensor algebra / weighted logic programming?}
 
 %% \footnotetext{
@@ -625,7 +628,7 @@ Indeed, being unable to decide equality with \nil\ is the common case: most high
 A similar mismatch happens, for instance, with curried finite maps $A \fto B \fto \Maybe~C$.
 This can be represented by a dictionary \texttt{Map (A,B) C}, but this misses the point---it's no longer curried.
 But the ``curried'' \texttt{Map A (Map B C)} also misses the mark, as it is isomorphic not to $A \fto B \fto \Maybe~C$ but to $A \fto \Maybe~(B \fto \Maybe~C)$.
-\todo{this isn't as motivating as I had hoped, frankly.}
+\todolater{this isn't as motivating as I had hoped, frankly. \strong{USE MAX'S COMMENTS TO REWRITE!}}
 
 %\TODO{discuss currying of finite maps.}
 
@@ -734,7 +737,7 @@ Thus:
 \end{align*}
 
 \noindent
-\TODO{move this down into example section, to the first place we need it.}
+\todolater{move this down into example section, to the first place we need it.}
 In fact, in our examples it will be useful to generalize `and' to type $\bool \otimes P \lto P$, as well as its mirror image `\whenkword' of type $P \otimes \bool \lto P$, defined:\footnotemark{}
 \nopagebreak[2]
 
@@ -1312,7 +1315,7 @@ The support of $\withpair{t,u}$ is the union of \xxx
 
 % But what about $\with$ and $\otimes$?
 
-\TODO{explain how we add another context for finitely supported variables and how that works, especially the funky $\otimes$ rule with context hopping. explain connection with the graded co/monad structure of $A \fto P$ on pointed sets.}
+\TODO{connecting words here}
 
 Let's
 %assume $f,g : \natz \fto \bool$ are finite sets of naturals and
