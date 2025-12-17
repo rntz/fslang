@@ -46,6 +46,7 @@
 \usepackage{booktabs}           % \midrule
 \usepackage{pifont}             % \ding{55}
 \usepackage{placeins}           % \FloatBarrier
+\usepackage{changepage}         % \begin{adjustwidth}
 
 %\usepackage{minted}
 \usepackage{listings}           % lstlisting
@@ -80,6 +81,36 @@
 
 %% \setlength\tabcolsep{3pt}
 %% \setlength\arraycolsep{3pt}
+
+
+%% ---------- fullwidth environment, making figure* use it ----------
+
+
+%% Define a fullwidth environment.
+%%
+%% I want to go from \textwidth to \narrow@full. adjustwidth adds to
+%% margins, subtracting from text width, so I should adjust by:
+%% (\textwidth-\narrow@full)/2.
+\newlength{\bigwidth}
+%\setlength{\bigwidth}{1.5\textwidth} %can go as high as 1.67, maybe higher
+\setlength{\bigwidth}{1.75\textwidth} %can go as high as 1.67, maybe higher
+
+\newlength{\bigwidthoffset}
+\setlength{\bigwidthoffset}
+          {\dimexpr(\textwidth-\bigwidth)/2\relax}
+\newenvironment{fullwidth}
+  {\begin{adjustwidth}{\the\bigwidthoffset}{\the\bigwidthoffset}}
+  {\end{adjustwidth}}
+
+\makeatletter
+%% Redefine figure* to use fullwidth.
+%%
+%% A hack, taken from https://stackoverflow.com/questions/1565988/making-a-small-modification-to-a-latex-environment
+\renewenvironment{figure*}[1][\fps@figure]
+  {\edef\@tempa{\noexpand\@float{figure}[#1]}%
+   \@tempa\begin{fullwidth}\centering}
+  {\end{fullwidth}\end@float}
+\makeatother
 
 
 %% ---------- Code environment ----------
@@ -1498,95 +1529,132 @@ The solution is a rule that breaks the rules: the
 \renewcommand\o\omega
 \newcommand\Den[1]{\left\llbracket{#1}\right\rrbracket}
 
-\begin{figure}
+\begin{figure*}
+  \textsc{semantics of $\cJ e A \G$:}
   \begin{align*}
-    &&&\textsc{support (given $\g,\d$)}\\
-    \den{\J \nil P \G \D \O} \<\g \<\d \<\o &= \nil && \emptyset
+    \den{t} \<\g &= \den{t} \<\g \<() \<()\\
+    \den{x} \<\g &= \pi_x \g\\
+    \den{()} \<\g &= ()\\
+    \den{\fn x e} \<\g &= \fn x \den{e} \<(\g,x)\\
+    \den{e_1 \<e_2} \<\g &= \den{e_1} \<\g \<(\den{e_2} \<\g)\\
+    \den{(e_1, e_2)} \<\g &= (\den{e_1} \<\g, \den{e_2} \<\g)\\
+    \den{\pi_i\<e} \<\g &= \pi_i (\den e \<\g)\\
+    \den{\ifjust{e_1} x {e_2} {e_3}} &= 
+    \begin{cases}
+      \den{e_2} \<(\g,x) & \text{if}~ \den{e_1} \<\g = \cjust~x\\
+      \den{e_3} \<\g & \text{otherwise}
+    \end{cases}
+  \end{align*}
+
+  \textsc{semantics of $\J t P \G \D \O$:}
+  \begin{align*}
+    \den{\J \nil P \G \D \O} \<\g \<\d &= \{\}
     \\
-    \den{\J x P \G {\hyp x P} \emptycx} \<\g \<x \<\o &= x && \{()\}
+    \den{\J x P \G {\hyp x P} \emptycx} \<\g \<x &= \{ () \mapsto x \}
     \\
     \Den{\infer{
-      \J t Q \G {\D, \hyp x P} {\emptycx}
+        \J t Q \G {\D, \hyp x P} {\emptycx}
+      }{
+        \J {\fn x t} {P \lto Q} \G \D {\emptycx}
+    }} \<\g \<\d &=
+    \{ () \mapsto \fn{x} \den{t} \<\g \<(\d,x) \}
+    \\
+    \Den{\infer{
+        \J t P \G \D {\O, \hyp x A}
+      }{
+        \J {\fn x t} {A \fto P} \G \D \O
+    }} \<\g \<\d &=
+    \{ \o \mapsto \{ x \mapsto y : (\o, x) \mapsto y \in \den{t} \<\g \<\d \}
+    : \ex{x,y} (\o,x) \mapsto y \in \den{t} \<\g \<\d \}
+    \\
+    \Den{\infer{
+        \J t {P \lto Q} \G {\D_1} {\O_1}
+        \\\\
+        \J u {P} {\G,\O_1} {\D_2} {\O_2}
+      }{
+        \J{t\<u}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
+    }} \<\g \<\d
+    &= \{ (\o_1, \o_2) \mapsto x\<y :
+    \o_1 \mapsto x \in \den t \<\g \<(\pi_{\D_1} \d),
+    \o_2 \mapsto y \in \den u \<(\g, \o_1) \<(\pi_{\D_2} \d)
+    \}
+    \\
+    \Den{\infer{
+      \J t {A \fto P} \G {\D} {\O}
     }{
-      \J {\fn x t} {P \lto Q} \G \D {\emptycx}
-    }} \<\g \<\d \<\o &=
-    \fn{x} \den{t} \<\g \<(\d,x) \<\o
-    %&& \{() : \ex{x} \den{t} \<\g \<(\d,x) \ne \nil \}
-    && \{() : \den{t} \<\g \<\d \ne \nil_{1 \fto \den{P} \lto \den{Q}} \}
+      \J {t\<x} P \G {\D} {\O, x : A}
+    }} \<\g \<\d &=
+    \{ (\o, x) \mapsto y :
+    \o \mapsto f \in \den{t} \<\g \<\d,
+    x \mapsto y \in f
+    \}
     \\
     \Den{\infer{
-      \J t P \G \D {\O, \hyp x A}
-    }{
-      \J {\fn x t} {A \fto P} \G \D \O
-    }} \<\g \<\d \<\o &=
-    \fn{x} \den{t} \<\g \<\d \<(\o, x)
-    && \{ \o : (\o,x) \in \support (\den{t} \<\g \<\d) \}
-    \\
-    \Den{\infer{
-      \J t {P \lto Q} \G {\D_1} {\O_1}
+      \J t P \G \D \O
       \\\\
-      \J u {P} {\G,\O_1} {\D_2} {\O_2}
+      \J u Q \G \D \O
     }{
-      \J{t\<u}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
-    }} \<\g \<\d \<\o &=
-    \den{t} \<\g \<(\pi_{\D_1} \d) \<(\pi_{\O_1} \o) \<\left(
-    \den{u} \<(\g,\o_1) \<(\pi_{\D_2} \d) \<(\pi_{\O_2} \o)
-    \right)
-    %% \\
-    %% \infer{
-    %%   \J t {A \fto P} \G {\D} {\O}
-    %% }{
-    %%   \J {t\<x} P \G {\D} {\O, x : A}
-    %% }
-    %% \\
-    %% \infer{
-    %%   \J t P \G \D \O
-    %%   \\\\
-    %%   \J u Q \G \D \O
-    %% }{
-    %%   \J {\withpair{t,u}} {P \with Q} \G \D \O
-    %% }
-    %% \\
-    %% \infer{
-    %%   \J t P \G {\D_1} {\O_1}
-    %%   \\\\
-    %%   \J u Q {\G, \O_1} {\D_2} {\O_2}
-    %% }{
-    %%   \J{(t, u)}{P \ox Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
-    %% }
-    %% \\
-    %% \infer{
-    %%   \J t {P_1 \with P_2} \G \D \O
-    %% }{
-    %%   \J {\pi_i\<t} {P_i} \G \D \O
-    %% }
-    %% \\
-    %% \infer{
-    %%   \J t {P \ox Q} \G {\D_1} {\O_1}
-    %%   \\\\
-    %%   \J u Q {\G, \O_1} {\D_2, \hyp{x}{P}, \hyp{y}{Q}} {\O_2}
-    %% }{
-    %%   \J{\letpair{x}{y} t u}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
-    %% }
-    %% \\
-    %% %% MAYBE
-    %% \infer{     %right=just or right=maybe i
-    %%   \cJ e A \G
-    %% }{
-    %%   \J {\tjust e} {\maybe A} \G \emptycx \emptycx
-    %% }
-    %% \\
-    %% \infer{     %right=let just or right=maybe e
-    %%   \J t {\maybe A} \G {\D_1} {\O_1}
-    %%   \\
-    %%   \J u P {\G, \O_1, x : A} {\D_2} {\O_2}
-    %% }{
-    %%   \J {\letjust x t u} P \G {\D_1 \cup \D_2} {\O_1, \O_2}
-    %% }
+      \J {\withpair{t,u}} {P \with Q} \G \D \O
+    }} \<\g \<\d &=
+    \{ \o \mapsto \withpair{x,y} :
+    \o \mapsto x \in \den{t} \<\g \<\d,
+    \o \mapsto y \in \den{u} \<\g \<\d
+    \}
+    \\
+    \Den{\infer{
+      \J t P \G {\D_1} {\O_1}
+      \\\\
+      \J u Q {\G, \O_1} {\D_2} {\O_2}
+    }{
+      \J{(t, u)}{P \ox Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
+    }} \<\g \<\d &=
+    \{ (\o_1, \o_2) \mapsto (x,y) :
+    \o_1 \mapsto x \in \den{t} \<\g \<(\pi_{\D_1} \d),
+    \o_2 \mapsto y \in \den{u} \<(\g,\o_1) \<(\pi_{\D_2} \d)
+    \}
+    \\
+    \Den{\infer{
+      \J t {P_1 \with P_2} \G \D \O
+    }{
+      \J {\pi_i\<t} {P_i} \G \D \O
+    }} \<\g \<\d &=
+    \{ \o \mapsto \pi_i\, x : \o \mapsto x \in \den{t} \<\g \<\d \}
+    \\
+    \Den{\infer{
+      \J t {P \ox Q} \G {\D_1} {\O_1}
+      \\\\
+      \J u Q {\G, \O_1} {\D_2, \hyp{x}{P}, \hyp{y}{Q}} {\O_2}
+    }{
+      \J{\letpair{x}{y} t u}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
+    }} \<\g \<\d &=
+    \{ (\o_1,\o_2) \mapsto z :
+    \o_1 \mapsto (x,y) \in \den{t} \<\g \<(\pi_{\D_1} \d),
+    \o_2 \mapsto z \in \den{u} \<(\g, \o_1) \<(\pi_{\D_2} \d, x, y)
+    \}
+    \\
+    %% MAYBE
+    \Den{\infer{     %right=just or right=maybe i
+      \cJ e A \G
+    }{
+      \J {\tjust e} {\maybe A} \G \emptycx \emptycx
+    }} \<\g \<\d &=
+    \{ () \mapsto \cjust \<(\den{e} \<\g) : \d \ne \nil \}
+    \\
+    \Den{\infer{     %right=let just or right=maybe e
+      \J t {\maybe A} \G {\D_1} {\O_1}
+      \\\\
+      \J u P {\G, \O_1, x : A} {\D_2} {\O_2}
+    }{
+      \J {\letjust x t u} P \G {\D_1 \cup \D_2} {\O_1, \O_2}
+    }} \<\g \<\d &=
+    \{ (\o_1, \o_2) \mapsto y :
+    \o_1 \mapsto \cjust~x \in \den{t} \<\g \<(\pi_{\D_1} \d),
+    \o_2 \mapsto y \in \den{u} \<(\g,\o_1,x) \<(\pi_{\D_2} \d)
+    \}
   \end{align*}
   \caption{Semantics of \fslang}
   \label{fig:semantics}
-\end{figure}
+\end{figure*}
 
 
 %% \section{Programming with pointed sets}
