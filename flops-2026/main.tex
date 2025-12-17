@@ -948,20 +948,18 @@ For instance, intersection:
 \end{code}
 
 \noindent
-\todo{words about how \name{intersect} intersects two tables, but we can also intersect a table with an arbitrary function, which is \name{filter}:}
+This intersects two finite sets, but we can also more generally ``intersect'' (i.e.\ filter) a finite set with an arbitrary function $A \to \bool$: \todolater{THIS TYPE NO MAKE SENSE, IT REQUIRES $(A \to \bool)$ to be a pointed type, which is semantically fine but we haven't done it yet}
 
 \begin{code}
-  \tcomment{\todo{PROBLEM: this requires $A \to \bool$ to be a pointed set}}\\
   \name{filter} : (A \fto \bool) \lto (A \to \bool) \lto (A \fto \bool)\\
   \name{filter} \<f \<g \<x = f\<x \tand g\<x
 \end{code}
 
 \noindent
-\todo{maybe say that filter is more general because we can turn a table into a function (need to show an example!)}.
+We can also define the intersection of two arbitrary functions $f,g : A \to \bool$, but this will only yield another function, not a finite map.
+\todolater{MENTION INPUT/OUTPUT MODING OR GROUNDING HERE.}
 
-\todo{show that we can filter tables by functions and get a table; and of course we can conjunct functions, but we don't get a table. so, three choices (table-table => table, table-function => table, function-function => function). But also, we can't cross a table with a function. hey this looks like moding.}
-
-\TODO{something about adding \name{exists} into this mix, as foreshadowed...}
+Let's move on to considering what we can express with the function $\name{exists} : (A \fto \bool) \lto \bool$, now justified by the finite support of its argument:
 
 %% \begin{code}
 %%   \name{join} : (A \fto B \fto \bool) \lto (B \fto C \fto bool) \lto (A \fto B \fto C \fto \bool)\\
@@ -989,8 +987,9 @@ For instance, intersection:
   %% \tand \name{stars} \<\name{film} \<y)
 \end{code}
 
-\noindent \todo{What about aggregations?}
-\TODO{mention the $\name{sum}$ function, also probably a good place to bring in `\whenkword'.}
+\noindent
+More generally, functions of the shape $(A \fto P) \lto P$ for some specific $P$ represent \emph{aggregations.}
+For instance, $\name{sum} : (A \fto \natz) \lto \natz$ lets us count the number of films someone has starred in:
 
 \begin{code}
   \name{filmCount} : \name{person} \fto \nat_0\\
@@ -1000,7 +999,7 @@ For instance, intersection:
 \end{code}
 
 \noindent
-\xxx
+We might even dare to consider defining finitely supported predicates recursively:
 
 \begin{code}
   \name{connected} : \name{person} \fto \name{person} \fto \bool\\
@@ -1010,9 +1009,10 @@ For instance, intersection:
 
 \noindent
 Unfortunately we will not be able to give typing rules or semantics for this kind of recursion here.
-Ensuring the existence of a fixed point would seem to require some sort of monotonicity \`a la Datafun~\cite{datafun} or $\lambda_\vee$~\cite{DBLP:journals/pacmpl/RiouxZ25}; we leave this to future work.
+Ensuring the existence of a fixed point would seem to require some sort of monotonicity \`a la Datafun~\cite{datafun} or $\lambda_\vee$~\cite{DBLP:journals/pacmpl/RiouxZ25}, and ensuring it remains finite will be even more difficult; we leave this to future work.
 
-\todo{We have observed the functoriality of $A \fto P$ over pointed sets $P$; how about over $A$? As it turns out, this is a functor if $P$ is a commutative monoid, and we can define the corresponding \name{map} operation in \fslang\ if we have a summation operator for $P$:}
+We have observed the functoriality of $A \fto P$ over pointed sets $P$; how about over $A$?
+As it turns out, this is a functor if $P$ is a commutative monoid, and we can define the corresponding \name{map} operation if we have an aggregation operator for $P$:
 
 \begin{code}
   \name{map} : (A \to B) \to (A \fto \nat_0) \lto (B \fto \nat_0)\\
@@ -1036,10 +1036,10 @@ Ensuring the existence of a fixed point would seem to require some sort of monot
 %%     (f\<a, g\<b) \when \name{test}\<a \<b
 %% \end{code}
 
-\noindent\xxx
+\noindent
+Finally, let's turn our attention to the prototypical outer join: union.
 
 \begin{code}
-  \tcomment{examples of outer joins}\\
   \name{union} : (A \fto \bool) \with (A \fto \bool) \lto (A \fto \bool)\\
   \name{union} \<\name{fg} \<x =
     {\pi_1 \<\name{fg} \<x} \tor {\pi_2 \<\name{fg} \<x}
