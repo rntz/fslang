@@ -123,6 +123,7 @@
 
 \newcommand\fslang{\ensuremath{\lambda_{\mathrm{FS}}}}
 \newcommand\catname[1]{\ensuremath{\mathrm{#1}}}
+\newcommand\Set{\ensuremath{\catname{Set}}}
 \newcommand\Point{\ensuremath{\catname{Set}_{*}}}
 \DeclareMathOperator{\support}{supp}
 
@@ -1148,6 +1149,14 @@ Conversely, constructing a $\with$-pair uses only variables used by both compone
     \lJ {\fn x t} {P \lto Q} \G \D
   }
 \end{mathpar}
+
+\noindent
+These rules are essentially those of Benton and Wadler's mixed linear/non-linear logic LNL~\cite{DBLP:conf/lics/BentonW96,DBLP:conf/csl/Benton94}, adapted for relevance rather than linearity.
+The semantics of LNL are given by an adjunction between a cartesian closed category $\mathcal{C}$ and a symmetric monoidal closed category $\mathcal{L}$.
+For us $\mathcal{C} = \Set$ and $\mathcal{L} = \Point$.
+Additionally, \Point\ possesses a natural family of diagonal maps $P \lto P \ox P$, making it a relevant monoidal category~\cite{DBLP:journals/sLogica/Petric02,relevant-categories-and-partial-functions}.
+
+%% \TODO{EXPLAIN CONNECTION TO STRUCTURE OF CATEGORY OF POINTED SETS: SYMMETRIC MONOIDAL CLOSED, CARTESIAN, WITH A NATURAL DUPLICATION MAP: ``relevance monoidal categories'' (\url{https://ncatlab.org/nlab/show/relevance+monoidal+category})!}
 
 
 \section{Context hopping}
