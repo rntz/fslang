@@ -900,26 +900,26 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
 
 \begin{figure}[t]
   \begin{align*}
-    \kword{and} &: \bool \with P \lto P
-    &
-    \kword{when} &: P \with \bool \lto P
-    &
-    ({=}) &: A \to A \fto \bool
+    \bool &= \maybeof 1 &
+    (t \tand u) &= (\letjust \pwild t u)
     \\
-    \true, \false &: \bool
-    &
+    \true &= \tjust () &
+    (\leteq x t u) &= (\letin{(x,y) = (t, \true)} y \tand u)
+    \\
+    \false &= \nil &
+    (t \when u) &= (\leteq x t {u \tand x})
+    \\
     \kword{or} &: \bool \with \bool \lto \bool
     &
     \name{exists} &: (A \fto \bool) \lto \bool
     \\
-    &&
     (+) &: \natz \with \natz \lto \natz
     &
     \name{sum} &: (A \fto \natz) \lto \natz
+    \\
+    ({=}) &: A \to A \fto \bool
   \end{align*}
-  \TODO{show how to desugar and into let-just, \bool\ into $\maybeof 1$, etc.
-  also $(\leteq x t u)$ desugars (very awkwardly!) to $\letin{(x, y) = (t, \true)} y \tand u$}
-  \caption{Primitive values and operators of \fslang}
+  \caption{Primitive functions and syntax sugar in \fslang}
   \label{fig:primitives}
 \end{figure}
 
