@@ -1025,16 +1025,16 @@ Ensuring the existence of a fixed point would seem to require some sort of monot
     )
 \end{code}
 
-\noindent\TODO{maybe don't bother with joinWith? unless it's a particularly compelling example of higher-order generality.}
+%% \noindent\TODO{maybe don't bother with joinWith? unless it's a particularly compelling example of higher-order generality.}
 
-\begin{code}
-  %% \name{joinWith} : (A \to B \to \bool) \to (A \fto \bool) \lto (B \fto \bool) \lto (A \fto B \fto \bool)\\
-  %% \name{joinWith} \<\name{test} \<f \<g \<a \<b =
-  %%   f\<a \tand g\<b \tand \name{test}\<a \<b
-  \name{joinWith} : (A \to B \to \bool) \to (A \fto P) \lto (B \fto Q) \lto (A \fto B \fto P \otimes Q)\\
-  \name{joinWith} \<\name{test} \<f \<g \<a \<b =
-    (f\<a, g\<b) \when \name{test}\<a \<b
-\end{code}
+%% \begin{code}
+%%   %% \name{joinWith} : (A \to B \to \bool) \to (A \fto \bool) \lto (B \fto \bool) \lto (A \fto B \fto \bool)\\
+%%   %% \name{joinWith} \<\name{test} \<f \<g \<a \<b =
+%%   %%   f\<a \tand g\<b \tand \name{test}\<a \<b
+%%   \name{joinWith} : (A \to B \to \bool) \to (A \fto P) \lto (B \fto Q) \lto (A \fto B \fto P \otimes Q)\\
+%%   \name{joinWith} \<\name{test} \<f \<g \<a \<b =
+%%     (f\<a, g\<b) \when \name{test}\<a \<b
+%% \end{code}
 
 \noindent\xxx
 
