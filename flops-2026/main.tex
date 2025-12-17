@@ -1243,7 +1243,11 @@ This, then, will serve both as our elimination rule for finite maps and our usag
 \end{mathpar}
 
 \noindent
-But what about $\with$ and $\otimes$?
+\TODO{connection to the graded co/monad on pointed sets here!}
+
+\todo{but unfortunately, not all of our desired typing rules fall out of this connection. In particular, let's take a look at the rules for $\with$ and $\otimes$.}
+
+% But what about $\with$ and $\otimes$?
 
 \TODO{explain how we add another context for finitely supported variables and how that works, especially the funky $\otimes$ rule with context hopping. explain connection with the graded co/monad structure of $A \fto P$ on pointed sets.}
 
@@ -1400,8 +1404,9 @@ The attentive reader will find few surprises.
 \xxx
 
 
+%% MERGED WITH PRIOR SECTION, PROBABLY
 %\section{Semantics of \fslang}
-\section{What does it all mean?}
+%\section{What does it all mean?}
 
 
 %% ---- REMOVED BECAUSE I DIDN'T HAVE TIME ---- %%
@@ -1416,7 +1421,10 @@ Our explicit modedness via separating functions from finite maps is similar to M
 
 Semiring languages! In particular that system with compact maps from Henglein et al. but no language there. But also Amir Shaikhha's work.
 
-\todo{future directions: implementation, fixed points, commutative monoids, incrementality}
+\todo{future directions:
+  interleaved $\D$/$\O$ contexts so that we can bind interleaved pointed/finitely supported variables and lift the restriction on \rulename{$\lto$\,i}.
+  allowing deconstruction of $\with$-pairs.
+  implementation. fixed points. Speculatively: commutative monoids, incrementality}
 
 \todo{IMPLEMENTATION ideas}.
 Strong connection to tensor algebra; in particular we think indexed streams might be a good impl strategy.
