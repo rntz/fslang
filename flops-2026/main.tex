@@ -628,7 +628,7 @@ Indeed, being unable to decide equality with \nil\ is the common case: most high
 A similar mismatch happens, for instance, with curried finite maps $A \fto B \fto \Maybe~C$.
 This can be represented by a dictionary \texttt{Map (A,B) C}, but this misses the point---it's no longer curried.
 But the ``curried'' \texttt{Map A (Map B C)} also misses the mark, as it is isomorphic not to $A \fto B \fto \Maybe~C$ but to $A \fto \Maybe~(B \fto \Maybe~C)$.
-\todolater{this isn't as motivating as I had hoped, frankly. \strong{USE MAX'S COMMENTS TO REWRITE!}}
+\todolater{this isn't as motivating as I had hoped, frankly. \strong{USE MAX'S COMMENTS ABOUT DEFAULTDICT TO REWRITE!}}
 
 %\TODO{discuss currying of finite maps.}
 
@@ -1047,7 +1047,7 @@ Ensuring the existence of a fixed point would seem to require some sort of monot
 \noindent
 We saw in \cref{sec:support} why \name{union}, being a function out of a $\with$-type, cannot be curried.
 But why can't we destructure the pair $\name{fg}$?
-This will not become clear until we discuss typing rules in section \todo{FWD REF}; the `obvious' rules only permit destructuring $\ox$-pairs and not $\with$-pairs.
+This will not become clear until \cref{sec:relevance}; the `obvious' rules only permit destructuring $\ox$-pairs and not $\with$-pairs.
 Perhaps this limitation can be ducked with cleverer rules;
 but such rules would need to treat variables created by destructuring an $\with$-pair differently than those created by destructuring an $\otimes$-pair, otherwise we could give \name{union} the following incorrect type:
 
@@ -1298,7 +1298,25 @@ This, then, will serve both as our elimination rule for finite maps and our usag
 \end{mathpar}
 
 \noindent
-\TODO{connection to the graded co/monad on pointed sets here! also should we give the semantics, or at least the argument for finite support?}
+These rules structuralize the isomorphism $A \times B \fto P \cong A \fto B \fto P$ (which is more obvious after judicious renaming: $\O \times A \fto P \cong \O \fto A \fto P$).
+Combined with the isomorphism $(1 \fto P) \cong P$, this shows that finitely supported maps form not just a functor but a \emph{graded comonad} on \Point.
+
+\todolater{I'd really like to do this connection more justice. also, find better citations.}
+%
+A (non-graded) comonad is an endofunctor $F$ with natural transformations $\name{dup}_\alpha : F\alpha \to FF\alpha$ and $\name{extract}_\alpha : F\alpha \to \alpha$, satisfying certain laws which we omit for brevity.
+For our purposes, a \emph{graded comonad}~\cite{DBLP:conf/icalp/PetricekOM13} is a family of functors $F_m$ where $m \in M$ is drawn from some monoid of grades $(M, {\cdot}, 1)$, equipped with analogues of \name{dup} and \name{join} which interact with these gradings in the following way: $\name{dup}_\alpha : F_{mn}\alpha \to F_m F_n \alpha$ and $\name{extract}_\alpha : F_1 \alpha \to \alpha$, again satisfying certain omitted laws.
+
+In our case, the graded comonad is $F_A P = A \fto P$, and the monoid of grades is sets under cross product.\footnotemark{}
+This makes $\name{dup}_P : (A \times B \fto P) \lto (A \fto B \fto P)$ and $\name{extract}_P : (1 \fto P) \lto P$ merely the forward legs of our two isomorphisms.
+The laws we have omitted all hold trivially because these maps are isomorphisms---indeed, the reverse legs of these isomorphisms also make $F_A$ is a graded \emph{monad.}
+%
+Although almost trivial, this graded comonad is of practical interest because type systems for graded comonads (coeffect systems) have been extensively studied~\cite{DBLP:conf/icfp/PetricekOM14,DBLP:conf/esop/BrunelGMZ14,DBLP:phd/ethos/Orchard14,coeffects-thesis}.
+\todolater{THIS IS ALL WRONG ACTUALLY IT'S A GRADED EFFECT SYSTEM WHERE THE GRADING IS A CONTEXT, I THINK.}
+
+\footnotetext{Technically this is not a monoid, since $(A \times B) \times C$ is only isomorphic, not equal, to $A \times (B \times C)$. This technicality is not worth getting hung up on; it can be fixed in any number of ways, for instance, by taking grades to be contexts of types $\O$ under concatenation rather than sets themselves.}
+
+%% \noindent
+%% \TODO{connection to the graded co/monad on pointed sets here! also should we give the semantics, or at least the argument for finite support?}
 
 Unfortunately, our typing rules do not all follow neatly from this connection to grading.
 Let's examine the rules for $\with$ and $\otimes$.
