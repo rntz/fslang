@@ -2,10 +2,11 @@
 %%
 %% consider: format = acmsmall / sigplan / acmengage / sigconf / acmtog
 %% consider: review = true
-\documentclass[sigplan, screen, dvipsnames]{acmart}
-\settopmatter{printacmref=false}
-\setcopyright{none}
-\renewcommand\footnotetextcopyrightpermission[1]{}
+\documentclass[nonacm, sigplan, screen, dvipsnames]{acmart}
+
+%\setcopyright{none}
+%\renewcommand\footnotetextcopyrightpermission[1]{}
+
 %\pagestyle{plain}
 
 
@@ -26,14 +27,12 @@
 %\title{Functions with support}
 
 \author{Michael Arntzenius}
+\email{daekharel@gmail.com}
 \affiliation{%
   \institution{UC Berkeley}
-  \city{Berkeley}
+  %\city{Berkeley}
   \country{USA}
 }
-\email{daekharel@gmail.com}
-
-\acmConference{Work in progress}{2025}{Berkeley}
 
 
 %% ---- Packages ----
@@ -106,12 +105,13 @@
 \newcommand\x\times
 \newcommand\with{\mathbin{\&}}
 \newcommand\ox\otimes
-\newcommand\tbool{\name{bool}}
-\newcommand\tmaybe[1]{\ensuremath{{#1}_{*}}}
-\renewcommand\tmaybe[1]{\ensuremath{\name{maybe}~{#1}}}
+\newcommand\typename\text
+\newcommand\bool{\name{bool}}
+\newcommand\maybe[1]{\ensuremath{\typename{maybe}~{#1}}}
 
-\newcommand\undertype[2]{\underaccent{\textsf{\upshape\scshape#1}}{#2}}
-\newcommand\eqt[1]{\undertype{eq}{#1}}
+%% need \usepackage{accent} for these
+%\newcommand\undertype[2]{\underaccent{\textsf{\upshape\scshape#1}}{#2}}
+%\newcommand\eqt[1]{\undertype{eq}{#1}}
 
 \newcommand\G\Gamma
 \newcommand\D\Delta
@@ -141,9 +141,9 @@
 \newcommand\leteq[3]{\letin{{#1} = {#2}}{#3}}
 \newcommand\letjust[3]{\leteq{\tjust {#1}}{#2}{#3}}
 \newcommand\letpair[4]{\leteq{({#1}, {#2})}{#3}{#4}}
-\newcommand\ttrue{\ctrue}
-\newcommand\tfalse{\cfalse}
-\newcommand\tabsurd{\name{absurd}\<}
+\newcommand\ttrue{\name{true}}
+\newcommand\tfalse{\name{false}}
+\newcommand\tabsurd{\text{absurd}\<}
 \newcommand\tand{\mathrel{\mathbf{and}}}
 \newcommand\tor{\mathrel{\mathbf{or}}}
 
@@ -198,7 +198,7 @@ Predicates like \texttt{follows} and \texttt{mutuals} denote functions into bool
 Following this intuition, we can translate this logic program directly into a functional one:
 
 \begin{code}
-\name{follows},\, \name{mutuals} : \name{user} \to \name{user} \to \tbool\\
+\name{follows},\, \name{mutuals} : \name{user} \to \name{user} \to \bool\\
 \name{follows} \<x \<y = (\const{john} == x \tand \const{mary} == y)
 \\
 \phantom{\name{follows} \<x \<y =}
@@ -250,12 +250,12 @@ directed_actor(Director, Actor) :-
 
 \noindent
 Since \texttt{Film} does not appear in the head of the rule, the head is derivable if there \emph{exists} a \texttt{Film} satisfying the body.
-To embed this functionally, we could assume a function $\name{exists} : \fa{\alpha} (\alpha \to \tbool) \to \tbool$:
+To embed this functionally, we could assume a function $\name{exists} : \fa{\alpha} (\alpha \to \bool) \to \bool$:
 
 \begin{code}
-%% \name{directedFilm} : \name{person} \to \name{film} \to \tbool = \dots\\
-%% \name{starredIn} : \name{film} \to \name{person} \to \tbool = \dots\\
-\name{directedActor} : \name{person} \to \name{person} \to \tbool\\
+%% \name{directedFilm} : \name{person} \to \name{film} \to \bool = \dots\\
+%% \name{starredIn} : \name{film} \to \name{person} \to \bool = \dots\\
+\name{directedActor} : \name{person} \to \name{person} \to \bool\\
 \name{directedActor} \<\name{director} \<\name{actor} =\\
 \quad \name{exists}\<(\fn{\name{film}} \name{directedFilm} \<\name{director} \<\name{film}
 \\
@@ -265,7 +265,7 @@ To embed this functionally, we could assume a function $\name{exists} : \fa{\alp
 \end{code}
 
 \noindent
-Yet how can we implement $\name{exists} \< f$ for an arbitrary type $\alpha$ and an arbitrary function $f : \alpha \to \tbool$?
+Yet how can we implement $\name{exists} \< f$ for an arbitrary type $\alpha$ and an arbitrary function $f : \alpha \to \bool$?
 We are stymied by unidirectionality: all we can do with $f$ is give it inputs; since the input type is arbitrary, we cannot generate any.%
 \footnote{
   Of course, for specific types or functions we may be able to make headway.
@@ -308,28 +308,31 @@ Intriguingly, the typing rules for ensuring finite support resemble, though inex
 
 
 %% ---------- TYPING RULES ----------
-\begin{figure*}
+\newcommand\tvoid{0}
+\newcommand\tunit{1}
 
+\begin{figure*}
   \[\begin{array}{rccl}
     \text{types} & A,B &\bnfeq&
     P
     \bnfor A \cto B
     \bnfor A \times B
-    %\bnfor 0
+    \bnfor \tunit
     \bnfor \dots
     \\
     \text{pointed types} & P,Q &\bnfeq&
     P \with Q \bnfor P \otimes Q
     \bnfor P \lto Q
     \bnfor A \fto P
-    %% \bnfor \tmaybe A
-    \bnfor \tbool
+    \bnfor \maybe A
+    %% \bnfor \bool
     \\
     \text{terms} & e &\bnfeq&
     x
     \bnfor t
     \bnfor \fn{x} e \bnfor e_1\<e_2
     \bnfor (e_1,\, e_2) \bnfor \pi_i \<e
+    \bnfor ()
     %\bnfor \tabsurd e
     \bnfor \dots
     \\
@@ -339,9 +342,10 @@ Intriguingly, the typing rules for ensuring finite support resemble, though inex
     \bnfor \fn{x} t \bnfor t \< u \bnfor t \< x
     \bnfor (t,u) \bnfor \pi_i \<t
     \bnfor \letpair{x}{y}{t}{u}
-    \bnfor \leteq x t u
     %\bnfor t \tand u \bnfor t \tor u
-    %\bnfor \tjust e \bnfor \letjust x t u
+    \\ &&&
+    \tjust e \bnfor \letjust x t u
+    \bnfor \leteq x t u
     \\
     \text{contexts} & \G,\O &\bnfeq& \emptycx \bnfor \G, \hyp x A
     \\
@@ -416,12 +420,28 @@ Intriguingly, the typing rules for ensuring finite support resemble, though inex
       \J{\letpair{x}{y} t s}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
     }
 
+    %% LET
     \infer*[right=let]{
       \J t P \G {\D_1} {\O_1}
       \\\\
       \J u Q {\G, \O_1} {\D_2, x : P} {\O_2}
     }{
       \J {\leteq x t u} Q \G {\D_1 \cup \D_2} {\O_1,\O_2}
+    }
+
+    %% MAYBE
+    \infer*[right=just]{
+      \cJ e A \G
+    }{
+      \J {\tjust e} {\maybe A} \G \emptycx \emptycx
+    }
+
+    \infer*[right=let just]{
+      \J t {\maybe A} \G {\D_1} {\O_1}
+      \\
+      \J u P {\G, \O_1, x : A} {\D_2} {\O_2}
+    }{
+      \J {\letjust x t u} P \G {\D_1 \cup \D_2} {\O_1, \O_2}
     }
   \end{mathpar}
 
@@ -442,16 +462,19 @@ A function $f : A \fto P$ is finitely supported iff $\name{support}\<f \defeq \{
 This generalizes (finite) support to non-boolean functions.
 
 \begin{figure}
-  \[\begin{array}{r@{\hskip 0.3em}l}
+  \setlength\arraycolsep{0.2em}
+  \[\begin{array}{rcl}
   %\begin{align*}
-    \name{true} &: \tbool\\
-    \name{and} &: \tbool \ox \tbool \lto \tbool\\
-    \name{or} &: \tbool \with \tbool \lto \tbool\\
-    \name{exists} &: (A \fto \tbool) \lto \tbool\\
-    \name{==} &: A \cto (A \fto \tbool)
-  %\end{align*}\vspace{-1.5\baselineskip}
+    \bool &=& \maybe \tunit\\
+    \name{or} &:& \bool \with \bool \lto \bool\\
+    \name{exists} &:& (A \fto \bool) \lto \bool\\
+    \name{==} &:& A \cto (A \fto \bool)\\
+    \tfalse &=& \tnil\\
+    \ttrue  &=& \tjust ()\\
+    t \tand u &=& \letjust {\textunderscore} t u
+  %\end{align*}\vspace{-1\baselineskip}
   \end{array}\]\vspace{-1\baselineskip}
-  \caption{Primitive functions}
+  \caption{Primitive functions and definitions}
   \label{fig-primitives}
 \end{figure}
 
@@ -499,7 +522,7 @@ The unrestricted and finitely supported contexts interact via \emph{grounding.} 
 This internalizes the fact that point-preserving maps preserve finite support.
 
 Our pointed types have the two products characteristic of linear logic: the additive direct product $P \with Q$ of pairs with $\tnil_{P \with Q} = (\tnil_P, \tnil_Q)$; and the multiplicative tensor product $P \otimes Q$, which is the ``smash'' quotient of the direct product by $\tnil_{P \otimes Q} = (\tnil_P, y) = (x, \tnil_Q)$ for any $x : P$ or $y : Q$.
-The easiest example of this distinction is that \name{and} takes $\tbool \ox \tbool$, because $\name{and} \<(x,y)$ preserves points in both arguments: it is false ($= \tnil_\tbool$) if either $x$ or $y$ is. But $\name{or} \<(x,y) = \tnil$ only if both $x,y$ are $\tnil$, so $\name{or}$ accepts $\tbool \with \tbool$.
+The easiest example of this distinction is that \name{and} takes $\bool \ox \bool$, because $\name{and} \<(x,y)$ preserves points in both arguments: it is false ($= \tnil_\bool$) if either $x$ or $y$ is. But $\name{or} \<(x,y) = \tnil$ only if both $x,y$ are $\tnil$, so $\name{or}$ accepts $\bool \with \bool$.
 
 
 %% \noindent
@@ -508,7 +531,7 @@ The easiest example of this distinction is that \name{and} takes $\tbool \ox \tb
 %% 1. shouldn't $\leteq x t u$ be derivable as syntax sugar? what even is its cut reduction / $\beta$-reduction / substitution-based operational semantics?
 
 %% 2. how do we make \name{or} definable? what about \name{exists}?
-%% \name{or} is definable via outer-join property, $\name{outer} : \tmaybe \<A \with \tmaybe B \lto \tmaybe (A + B + A \times B)$? yech! and this doesn't handle exists. could have a ``comm. monoid'' typeclass, $P$ a c.mon if it admits $\name{plus} : P \with P \lto P$ and $\name{sum} : (A \fto P) \lto P$, but this doesn't allow defining \name{outer}, does it?
+%% \name{or} is definable via outer-join property, $\name{outer} : \maybe \<A \with \maybe B \lto \maybe (A + B + A \times B)$? yech! and this doesn't handle exists. could have a ``comm. monoid'' typeclass, $P$ a c.mon if it admits $\name{plus} : P \with P \lto P$ and $\name{sum} : (A \fto P) \lto P$, but this doesn't allow defining \name{outer}, does it?
 
 
 %% \section{Challenges}
