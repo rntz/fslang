@@ -70,19 +70,6 @@
 \hyphenation{co-domain}
 
 
-%% %% TEMPORARY: different fonts because I hate reading computer modern
-%% \usepackage[scaled=0.97]{XCharter}\linespread{1.0333}
-%% %\usepackage[scaled=0.965,proportional,semibold]{sourcesanspro}
-%% \usepackage[osf,scaled=1.0333]{AlegreyaSans}
-%% %\usepackage[scaled=1.08]{biolinum}
-%% \usepackage[scaled=1.021]{inconsolata}
-%% \usepackage[xcharter,scaled=1.0556,]{newtxmath}
-%% %\usepackage{mathastext}
-
-%% \setlength\tabcolsep{3pt}
-%% \setlength\arraycolsep{3pt}
-
-
 %% ---------- fullwidth environment, making figure* use it ----------
 
 
@@ -152,8 +139,9 @@
 \newcommand\TODO[1]{\todo{\strong{TODO}: #1}}
 \newcommand\xxx{\text{\todo{\strong{XXX}}}}
 
-\newcommand\todolater[1]{{\color{RoyalBlue}#1}}
-\renewcommand\todolater[1]{\ignorespaces}
+\newcommand\todolater\todo
+%\renewcommand\todolater[1]{{\color{RoyalBlue}#1}}
+%\renewcommand\todolater[1]{\ignorespaces}
 
 \newcommand\fslang{\ensuremath{\lambda_{\mathrm{FS}}}}
 \newcommand\catname[1]{\ensuremath{\mathrm{#1}}}
@@ -242,7 +230,6 @@
 \newcommand\teq[2]{{#1} = {#2}}
 %\newcommand\teq[2]{{#1} \mathrel{\kword{is}} {#2}}
 %\newcommand\teq[2]{{#2} \gets {#1}}
-\newcommand\tcomment[1]{\color{black!60}\textsf{\#\ #1}}
 \newcommand\withpair[1]{\ensuremath{\langle{#1}\rangle}}
 %\newcommand\tif[3]{\kword{if}~{#1}~\kword{then}~{#2}~\kword{else}~{#3}}
 \newcommand\ifjust[4]{%
@@ -265,6 +252,24 @@
 
 \newcommand\nat{\mathbb{N}}
 \newcommand\natz{\ensuremath{\nat_0}}
+
+
+%% %% TEMPORARY: different fonts because I hate reading computer modern
+%% \usepackage[scaled=0.97]{XCharter}\linespread{1.0333}
+%% %\usepackage[scaled=0.965,proportional,semibold]{sourcesanspro}
+%% \usepackage[osf,scaled=1.0333]{AlegreyaSans}
+%% %\usepackage[scaled=1.08]{biolinum}
+%% \usepackage[scaled=1.021]{inconsolata}
+%% %\usepackage[xcharter,scaled=1.0556,]{newtxmath}
+%% \usepackage{eulervm}
+%% %\usepackage{mathastext}
+
+%% \setlength\tabcolsep{3pt}
+%% \setlength\arraycolsep{3pt}
+
+%% \renewcommand\G\Gamma
+%% \renewcommand\D\Delta
+%% \renewcommand\O\Omega
 
 
 \begin{document}
@@ -871,8 +876,9 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
     \typeforget P \bnfor A \to B \bnfor A \times B \bnfor 1 \bnfor ...\\
     \text{pointed types} & P,Q &\bnfeq&
     P \with Q \bnfor P \ox Q \bnfor P \lto Q \bnfor A \fto Q
-    \bnfor \bool \bnfor \natz
     \bnfor \maybeof A
+    %\bnfor \bool
+    \bnfor \natz
     \\
     \text{expressions} & e &\bnfeq&
     \termforget t
@@ -928,7 +934,7 @@ For now we rely on intuition to see that they are semantically well-typed; in \c
 First, let's consider some basic uses of conjunction (inner joins, in database parlance), starting with the simplest, cross product:
 
 \begin{code}
-  \name{cross} : (A \fto \bool) \lto (B \fto bool) \lto (A \fto B \fto \bool)\\
+  \name{cross} : (A \fto \bool) \lto (B \fto \bool) \lto (A \fto B \fto \bool)\\
   \name{cross} \<f \<g \<x \<y = f\<x \tand g\<y
 \end{code}
 
@@ -1056,7 +1062,7 @@ but such rules would need to treat variables created by destructuring an $\with$
 \begin{code}
   \color{invalid}
   \name{falseUnion} : (A \fto \bool) \ox (A \fto \bool) \lto (A \fto \bool)
-  \qquad\qquad\textsf{\strong{INVALID!}}
+  \qquad\qquad \textsc{\ding{55} invalid}
   \\
   \color{invalid}
   \name{falseUnion} \<(f,g) \<x = f\<x \tor g\<x
@@ -1763,20 +1769,20 @@ To make it clear that terms are finitely supported with respect to the context $
 %\section{Curing maybe-addiction with class}
 
 
-%% \section{Onward}
+\section{Onward}
 
-%% \todo{related work:} Inspired by RelationalAI's internal language (do they have any papers on its design). all the various attempts to combine Datalog and functional programming: Datafun, Flix, $\lambda_\vee$. Functional logic programming: Curry, Verse---but these are top-down and use unification and existential variables. \fslang's approach of treating relations as maps with an explicit output type seems to distinguish us from other functional logic programming languages, which ``hide'' the boolean-ness.
-%% Our explicit modedness via separating functions from finite maps is similar to Mercury.
+\todo{related work:} Inspired by RelationalAI's internal language (do they have any papers on its design). all the various attempts to combine Datalog and functional programming: Datafun, Flix, $\lambda_\vee$. Functional logic programming: Curry, Verse---but these are top-down and use unification and existential variables. \fslang's approach of treating relations as maps with an explicit output type seems to distinguish us from other functional logic programming languages, which ``hide'' the boolean-ness.
+Our explicit modedness via separating functions from finite maps is similar to Mercury.
 
-%% Semiring languages! In particular that system with compact maps from Henglein et al. but no language there. But also Amir Shaikhha's work.
+Semiring languages! In particular that system with compact maps from Henglein et al. but no language there. But also Amir Shaikhha's work.
 
-%% \todo{future directions:
-%%   interleaved $\D$/$\O$ contexts so that we can bind interleaved pointed/finitely supported variables and lift the restriction on \rulename{$\lto$\,i}.
-%%   allowing deconstruction of $\with$-pairs.
-%%   implementation. fixed points. Speculatively: commutative monoids, incrementality}
+\todo{future directions:
+  interleaved $\D$/$\O$ contexts so that we can bind interleaved pointed/finitely supported variables and lift the restriction on \rulename{$\lto$\,i}.
+  allowing deconstruction of $\with$-pairs.
+  implementation. fixed points. Speculatively: commutative monoids, incrementality}
 
-%% \todo{IMPLEMENTATION ideas}.
-%% Strong connection to tensor algebra; in particular we think indexed streams might be a good impl strategy.
+\todo{IMPLEMENTATION ideas}.
+Strong connection to tensor algebra; in particular we think indexed streams might be a good impl strategy.
 
 
 %% END MATTER
