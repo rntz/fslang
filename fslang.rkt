@@ -132,6 +132,7 @@
        [_ (error 'elab "bad type for lambda: ~a" want)])]
     ))
 
+
 (module+ tests
   (require rackunit)
 
@@ -158,7 +159,7 @@
   (check-equal? xuses (set 'x))         ;this test is overly specific but whatever
 
   (test-elab 'x #f '(x (point bool))
-             #:type 'bool #:uses '(x))g
+             #:type 'bool #:uses '(x))
 
   (test-elab '(f x) #f '(f (point (-o bool bool))
                          x (point bool))
