@@ -112,13 +112,57 @@
        [`(-> ,A ,B) (todo)]
        [_ (error 'elab "cannot apply non-function of type: ~a" fun-type)])]
 
-    #;
-    [`(,(or 'lambda 'λ) (,(? symbol? x)) ,t)
+    [`(,(or 'lambda 'λ) (,(? symbol? param)) ,body)
      (match (cannot-infer "lambda")
-       [`(-> ,P ,Q) (todo)]
-       [`(=> ,A ,P) (todo)]
+       [`(=> ,A ,P)
+        (define-values (body-type body-uses)
+          (elab body P (hash-set cx param (list 'fs A))))
+        (unless (set-member? param body-uses)
+          (error 'elab "ungrounded lambda parameter: ~a" param))
+        (values `(=> ,A ,body-type) (set-remove body-uses param))]
+
+       [`(-o ,P ,Q) (todo)]
+       [`(-> ,A ,B) (todo)]
        [_ (error 'elab "bad type for lambda: ~a" want)])]
     ))
+
+(module+ tests
+  (require rackunit)
+
+  (define (test-elab term want vartypes
+                     #:type expect-type
+                     #:uses expect-uses)
+    (define cx (apply hash vartypes))
+    (define-values (term-type term-uses)
+      (elab term want cx))
+    (check-equal? expect-type term-type)
+    (check-equal? (list->set expect-uses) term-uses))
+
+  (define-values (xtype xuses) (elab 'x #f (hash 'x '(set bool))))
+  (check-equal? xtype 'bool)
+  (check-equal? xuses (set 'x))         ;this test is overly specific but whatever
+
+  (test-elab 'x #f '(x (point bool))
+             #:type 'bool #:uses '(x))
+
+  (test-elab '(f x) #f '(f (point (-o bool bool))
+                         x (point bool))
+             #:type 'bool #:uses '(f x))
+
+  (test-elab 'nil 'bool '(x (fs bool) y (point bool))
+             #:type 'bool #:uses '(x y))
+
+  (test-elab 'x #f '(x (point bool) y (point bool) z (fs bool))
+             #:type 'bool #:uses '(x))
+
+  (test-elab '(f nil) #f '(f (point (-o bool bool)) x (point bool))
+             #:type 'bool #:uses '(f x))
+
+  (test-elab '((is (-o bool bool) nil) x) #f '(x (point bool))
+             #:type 'bool #:uses '(x))
+
+  #;(check-equal? #t #f)
+  )
 
 ;; PROBLEM 1: what to do, dynamically, about the different ways information can
 ;; pass around in tensor introduction. pure relational joins vs sideways
