@@ -117,11 +117,17 @@
        [`(=> ,A ,P)
         (define-values (body-type body-uses)
           (elab body P (hash-set cx param (list 'fs A))))
-        (unless (set-member? param body-uses)
+        (unless (set-member? body-uses param)
           (error 'elab "ungrounded lambda parameter: ~a" param))
         (values `(=> ,A ,body-type) (set-remove body-uses param))]
 
-       [`(-o ,P ,Q) (todo)]
+       [`(-o ,P ,Q)
+        (define-values (body-type body-uses)
+          (elab body P (hash-set cx param (list 'point P))))
+        (unless (set-member? body-uses param)
+          (error 'elab "lambda does not preserve nil in parameter: ~a" param))
+        (values `(-o ,P ,body-type) (set-remove body-uses param))]
+
        [`(-> ,A ,B) (todo)]
        [_ (error 'elab "bad type for lambda: ~a" want)])]
     ))
@@ -130,20 +136,29 @@
   (require rackunit)
 
   (define (test-elab term want vartypes
-                     #:type expect-type
-                     #:uses expect-uses)
+                     #:type [expect-type #f]
+                     #:uses [expect-uses #f])
     (define cx (apply hash vartypes))
     (define-values (term-type term-uses)
       (elab term want cx))
-    (check-equal? expect-type term-type)
-    (check-equal? (list->set expect-uses) term-uses))
+    ;; The used variables should be a subset of all variables.
+    (check subset? term-uses (list->set (hash-keys cx)))
+    ;; The inferred type should be a subtype of the `want' type.
+    (when want
+     (check subtype? term-type want))
+    ;; The inferred type should equal the expected type.
+    (when expect-type
+      (check-equal? expect-type term-type))
+    ;; The used variables should equal the expected used variables.
+    (when expect-uses
+     (check-equal? (list->set expect-uses) term-uses)))
 
   (define-values (xtype xuses) (elab 'x #f (hash 'x '(set bool))))
   (check-equal? xtype 'bool)
   (check-equal? xuses (set 'x))         ;this test is overly specific but whatever
 
   (test-elab 'x #f '(x (point bool))
-             #:type 'bool #:uses '(x))
+             #:type 'bool #:uses '(x))g
 
   (test-elab '(f x) #f '(f (point (-o bool bool))
                          x (point bool))
@@ -160,6 +175,14 @@
 
   (test-elab '((is (-o bool bool) nil) x) #f '(x (point bool))
              #:type 'bool #:uses '(x))
+
+  (test-elab '(λ (x) nil) '(=> nat bool) '()
+             #:type '(=> nat bool))
+
+  (test-elab '(λ (x) x) '(-o bool bool) '()
+             #:type '(-o bool bool))
+
+  (test-elab '(λ (x) (λ (y) (x y))) '(-o (-o bool bool) (-o bool bool)) '())
 
   #;(check-equal? #t #f)
   )
