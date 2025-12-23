@@ -1429,6 +1429,7 @@ any variable finitely supported by $t$ maybe used unrestricted in $u$, so the fi
 
 \noindent
 Despite combining $\O_1,\O_2$ disjointly rather than by union, this rule is strictly more general then the previous two.
+\todo{THIS IS INCORRECT, because I don't allow finite maps to be applied to variables that are not in the fs context $\O$! need to fix this.}
 This is because a variable finitely supported by both $t$ and $u$ can simply be placed into $\O_1$: having an unrestricted variable in $u$ is strictly more general than having a finitely supported variable. \todolater{really don't like this this needs better explanation}
 \todolater{connect this to input/output modes! discuss how it's not symmetric but this is an arbitrary choice! so much to discuss here!}
 
@@ -1467,6 +1468,8 @@ This is because a variable finitely supported by both $t$ and $u$ can simply be 
     \boxed{\cJ e A \G}\hfill\\  % SET RULES
 
     \infer*[right=include]{\J t P \G \emptycx \emptycx}{\cJ t P \G}
+
+    \text{\TODO{need elim rule that \textsc{include} is intro for}}
 
     \infer*[right=evar]{\hyp x A \in \G}{\cJ x A \G}
 
@@ -1531,7 +1534,7 @@ This is because a variable finitely supported by both $t$ and $u$ can simply be 
     \infer*[right=$\fto$\,e]{
       \J t {A \fto P} \G {\D} {\O}
     }{
-      \J {t\<x} P \G {\D} {\O, x : A}
+      \J {t\<x} P \G {\D} {\O \cup x : A}
     }
 
     \infer*[right=$\with$\,i]{
