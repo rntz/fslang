@@ -33,9 +33,6 @@
 ;; vars to values) to their values.
 (define deno/c (-> env? (hash/c row? value? #:immutable #t #:flat? #t)))
 
-(define (infer term [cx (hash)] #:want [want #f])
-  (elab term want cx))
-
 ;; three kinds of variables in context:
 ;; 1 - arbitrary use
 ;; 2 - point preserving (relevant) use
@@ -348,6 +345,8 @@
                         (hash 'x 23 'y 17) 2317
                         (hash 'x 23 'y 23) 2323))
 
+  ;; AN ACTUAL RELATIONAL JOIN
+  ;; (ok its just set intersection BUT STILL!)
   (test-elab '(and (f x) (g x))
              #f
              '([and set (-o bool (-o bool bool))]
