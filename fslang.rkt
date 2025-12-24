@@ -134,7 +134,10 @@
         (unless (symbol? arg)
           ;; TODO LATER: weaken this restriction to allow patterns.
           (error 'elab "can only apply finite maps to variables"))
-        (unless (eq? 'fs (var-area arg))
+        (define arg-area (var-area arg))
+        (define arg-type (var-type arg))
+        #;
+        (unless (eq? 'fs arg-area)
           ;; TODO FIXME: this invalidates the idea that it's always legitimate
           ;; to "promote" a fs var to a set var that justifies my approach to
           ;; tensor products.
@@ -142,22 +145,35 @@
           ;; THIS ALSO NEEDS FIXING IN THE TYPING RULES!
           ;; (ALSO IN THE DENOTATIONS!
           (error 'elab "cannot only apply finite map to a f.s. variable"))
-        (define arg-type (var-type arg))
         ;; TODO: which direction should the subtyping relationship go???
         (unless (equal? A arg-type)
           (error 'elab "applying finite map (~a => ~a) to invalid input (~a)"
                  A P arg-type))
         (values
          P
-         (set-add fun-uses arg)
+         (match arg-area
+           ['point fun-uses]          ; finite map lookup does not preserve nil.
+           [_ (set-add fun-uses arg)])
          (λ (env)
            (define fun-map (fun-deno env))
-           (for*/hash ([(row subtable) fun-map]
-                       [(key value) subtable])
-             ;; FIXME: what if `arg` is already in `row`???
-             (when (hash-has-key? row arg)
-               (error 'elab "shit I didn't handle this case"))
-             (values (hash-set row arg key) value)))
+           (define execution-strategy
+             (if (and (eq? 'fs arg-area) (not (set-member? fun-uses arg)))
+                 'support
+                 'lookup))
+           ;; TODO: tests that exercise all three arms of this match!
+           (match arg-area
+             ['fs #:when (set-member? fun-uses arg)
+              (for/hash ([(row table) fun-map])
+                (values row (hash-ref table (hash-ref row arg))))]
+             ['fs
+              (for*/hash ([(row table) fun-map]
+                          [(key value) table])
+                (when (hash-has-key? row arg) (error 'elab "fuck"))
+                (values (hash-set row arg key) value))]
+             [(or 'set 'point)
+              (define key (hash-ref env arg))
+              (for/hash ([(row table) fun-map])
+                (values row (hash-ref table key)))]))
          )]
 
        [`(-o ,P ,Q)
@@ -194,11 +210,13 @@
 
   (define (test-elab term want vartypes
                      #:type [expect-type #f]
-                     #:uses [expect-uses #f])
+                     #:uses [expect-uses #f]
+                     #:eval [eval-env #f]
+                     #:to   [expect-eval any/c])
     (define cx (for/hash ([vartype vartypes])
                  (match-define (list var area type) vartype)
                  (values var (list area type))))
-    (define-values (term-type term-uses _)
+    (define-values (term-type term-uses term-deno)
       (elab term want cx))
     ;; The used variables should be a subset of all variables.
     (check subset? term-uses (list->set (hash-keys cx)))
@@ -210,61 +228,95 @@
       (check-equal? expect-type term-type))
     ;; The used variables should equal the expected used variables.
     (when expect-uses
-     (check-equal? (list->set expect-uses) term-uses)))
+     (check-equal? (list->set expect-uses) term-uses))
+    ;; evaluate if requested
+    (when eval-env
+      (define term-map (term-deno eval-env))
+      (if (procedure? expect-eval)
+          (check-pred expect-eval term-map)
+          (check-equal? expect-eval term-map)
+          )))
 
   (test-elab 'x #f '([x point bool])
-             #:type 'bool #:uses '(x))
+             #:type 'bool #:uses '(x)
+             #:eval (hash 'x #t) #:to (hash (hash) #t))
 
   (test-elab '(f x) #f '([f point (-o bool bool)]
                          [x point bool])
-             #:type 'bool #:uses '(f x))
+             #:type 'bool #:uses '(f x)
+             ;; #:eval (hash 'f (λ (x) x) 'x #t) ;; TODO: enable
+             )
+
+  (test-elab '(f x) #f '([f set (=> nat bool)]
+                         [x fs nat])
+             #:type 'bool
+             #:uses '(f x)
+             #:eval (hash 'f (hash 17 #t 23 #t))
+             #:to (hash (hash 'x 23) #t (hash 'x 17) #t)
+             )
 
   (test-elab 'nil 'bool '([x fs bool] [y point bool])
-             #:type 'bool #:uses '(x y))
+             #:type 'bool #:uses '(x y)
+             #:eval (hash 'y #t) #:to (hash))
 
   (test-elab 'x #f '([x point bool] [y point bool] [z fs bool])
-             #:type 'bool #:uses '(x))
+             #:type 'bool #:uses '(x)
+             #:eval (hash 'x #f 'y #t) #:to (hash (hash) #f))
 
   (test-elab '(f nil)
              #f
              '([f point (-o bool bool)] [x point bool])
-             #:type 'bool #:uses '(f x))
+             #:type 'bool #:uses '(f x)
+             ;; #:eval (hash 'f (λ (x) x) 'x #t) ;; TODO: enable
+             )
 
   (test-elab '((is (-o bool bool) nil) x)
              #f
              '([x point bool])
-             #:type 'bool #:uses '(x))
+             #:type 'bool #:uses '(x)
+             ;; #:eval (hash 'x #t) ;; TODO: enable
+             )
 
   (test-elab '(λ (x) nil)
              '(=> nat bool)
              '()
-             #:type '(=> nat bool))
+             #:type '(=> nat bool)
+             ;; #:eval (hash)              ;; TODO: enable
+             )
 
   (test-elab '(λ (x) x)
              '(-o bool bool)
              '()
-             #:type '(-o bool bool))
+             #:type '(-o bool bool)
+             ;; #:eval (hash)              ;; TODO: enable
+             )
 
   (test-elab '(λ (x) (λ (y) (x y)))
              '(-o (-o bool bool) (-o bool bool))
-             '())
+             '()
+             ;; #:eval (hash)              ;; TODO: enable
+             )
 
   ;; multi-argument/curried application desugaring
-  (test-elab '(f x x) 'bool '([f point (-o bool (-o bool bool))]
-                              [x point bool]))
+  (test-elab '(f x x)
+             'bool
+             '([f point (-o bool (-o bool bool))]
+               [x point bool])
+             #:uses '(f x)
+             ;; #:eval (hash 'f (λ (x) (λ (y) (and x y))) 'x #t) ;; TODO: enable
+             )
 
-  #;
   (test-elab '(and (f x) (g x))
              #f
              '([and set (-o bool (-o bool bool))]
                [x fs nat]
                [f set (=> nat bool)]
-               ;; this shouldn't type check! the argument to g is supposed to be
-               ;; a pointed variable, but we're supplying a set variable.
-               [g point (=> nat bool)]  ; TODO FAILS: can't yet apply a finite map to a non-fs var
+               [g point (=> nat bool)]
                )
              #:type 'bool
-             #:uses '(and f g x))
+             #:uses '(and f g x)
+             ;; #:eval (todo)              ;; TODO: enable
+             )
 
   #;
   (check-equal? #t #f)
