@@ -346,7 +346,7 @@
                         (hash 'x 23 'y 23) 2323))
 
   ;; AN ACTUAL RELATIONAL JOIN
-  ;; (ok its just set intersection BUT STILL!)
+  ;; (ok it's just set intersection BUT STILL!)
   (test-elab '(and (f x) (g x))
              #f
              '([and set (-o bool (-o bool bool))]
