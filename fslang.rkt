@@ -162,15 +162,15 @@
                  'lookup))
            ;; TODO: tests that exercise all three arms of this match!
            (match arg-area
-             ['fs #:when (set-member? fun-uses arg)
+             ['fs #:when (set-member? fun-uses arg) ; NOT YET COVERED
               (for/hash ([(row table) fun-map])
                 (values row (hash-ref table (hash-ref row arg))))]
-             ['fs
+             ['fs                       ; covered by a test
               (for*/hash ([(row table) fun-map]
                           [(key value) table])
                 (when (hash-has-key? row arg) (error 'elab "fuck"))
                 (values (hash-set row arg key) value))]
-             [(or 'set 'point)
+             [(or 'set 'point)          ;NOT YET COVERED
               (define key (hash-ref env arg))
               (for/hash ([(row table) fun-map])
                 (values row (hash-ref table key)))]))
@@ -255,6 +255,14 @@
              #:to (hash (hash 'x 23) #t (hash 'x 17) #t)
              )
 
+  (test-elab '(f x) #f '([f set (=> nat bool)]
+                         [x set nat])
+             #:type 'bool
+             #:uses '(f x)
+             #:eval (hash 'f (hash 17 #t 23 #t) 'x 17)
+             #:to (hash (hash) #t)
+             )
+
   (test-elab 'nil 'bool '([x fs bool] [y point bool])
              #:type 'bool #:uses '(x y)
              #:eval (hash 'y #t) #:to (hash))
@@ -304,6 +312,16 @@
                [x point bool])
              #:uses '(f x)
              ;; #:eval (hash 'f (λ (x) (λ (y) (and x y))) 'x #t) ;; TODO: enable
+             )
+
+  (test-elab '(f x x) #f '([f set (=> nat (=> nat nat))]
+                           [x set nat])
+             #:type 'nat
+             #:uses '(f x)
+             #:eval (hash 'x 23
+                          'f (hash 17 (hash 17 1717 23 1723)
+                                   23 (hash 23 2323 17 2317)))
+             #:to (hash (hash) 2323)
              )
 
   (test-elab '(and (f x) (g x))
