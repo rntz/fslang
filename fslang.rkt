@@ -32,14 +32,15 @@
 ;; vars to values) to their values.
 (define deno/c (-> env? (hash/c row? value? #:immutable #t #:flat? #t)))
 
-;; three kinds of variables in context:
-;; 1 - arbitrary use
-;; 2 - point preserving (relevant) use
-;; 3 - finite support (ie not yet grounded)
+;; Typecheck/elaborate/interpret a term. Parameters:
+;;   term   - The term to elaborate
+;;   want   - The expected type; #f to try to infer it.
+;;   cx     - The variable context (maps vars in scope to their area & type).
 ;;
-;; problem: I want to use a grading system to distinguish 1 & 2.
-;; but 3 seems to need left-to-right information passing.
-;; can I use a non-commutative grading monoid?
+;; Returned values:
+;;   type   - The inferred type. A subtype of `want` if want ≠ #f.
+;;   uses   - Set of vars used by the term. See usage?, above.
+;;   deno   - The term's denotation. See deno/c, above.
 (define/contract (elab term want cx)
   (-> term? (or/c #f type?) cx?
       ;; type, variable usage, denotation
