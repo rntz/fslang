@@ -88,7 +88,8 @@
 
     [`(,(or 'lambda 'λ) (,(? symbol? param)) ,body) ; LAMBDAS
      (match (cannot-infer "lambda")
-       [`(=> ,A ,P)
+
+       [`(=> ,A ,P)                     ; FINITE LAMBDA
         (define-values (body-type body-uses body-deno)
           (elab body P (hash-set cx param (list 'fs A))))
         (unless (set-member? body-uses param)
@@ -108,7 +109,7 @@
            (todo)
            ))]
 
-       [`(-o ,P ,Q)
+       [`(-o ,P ,Q)                     ; POINTED LAMBDA
         (define fs-vars
           (for/list ([(x xinfo) cx] #:when (eq? 'fs (get-area xinfo)))
             x))
@@ -123,14 +124,14 @@
                 (set-remove body-uses param)
                 (λ (env) (todo)))]
 
-       [`(-> ,A ,B) (todo)]
+       [`(-> ,A ,B) (todo)]             ; SET LAMBDA
        [_ (error 'elab "bad type for lambda: ~a" want)])]
 
     [`(app ,fun ,arg)                       ; FUNCTION APPLICATION
      (define-values (fun-type fun-uses fun-deno) (elab fun #f cx))
      (match fun-type
 
-       [`(=> ,A ,P)                     ; FINITE MAP APPLICATION
+       [`(=> ,A ,P)                     ; FINITE APPLICATION
         (unless (symbol? arg)
           ;; TODO LATER: weaken this restriction to allow patterns.
           (error 'elab "can only apply finite maps to variables"))
@@ -156,28 +157,23 @@
            [_ (set-add fun-uses arg)])
          (λ (env)
            (define fun-map (fun-deno env))
-           (define execution-strategy
-             (if (and (eq? 'fs arg-area) (not (set-member? fun-uses arg)))
-                 'support
-                 'lookup))
-           ;; TODO: tests that exercise all three arms of this match!
            (match arg-area
-             ['fs #:when (set-member? fun-uses arg) ; NOT YET COVERED
+             ['fs #:when (set-member? fun-uses arg)
               (for/hash ([(row table) fun-map])
                 (values row (hash-ref table (hash-ref row arg))))]
-             ['fs                       ; covered by a test
+             ['fs
               (for*/hash ([(row table) fun-map]
                           [(key value) table])
                 (when (hash-has-key? row arg) (error 'elab "fuck"))
                 (values (hash-set row arg key) value))]
-             [(or 'set 'point)          ;NOT YET COVERED
+             [(or 'set 'point)
               (define key (hash-ref env arg))
               (for/hash ([(row table) fun-map]
                          #:when (hash-has-key? table key))
                 (values row (hash-ref table key)))]))
          )]
 
-       [`(-o ,P ,Q)                     ; POINTED MAP APPLICATION
+       [`(-o ,P ,Q)                     ; POINTED APPLICATION
         ;; take all fs vars used by `fun` and make them set vars for `arg`
         (define arg-cx
           (for/hash ([(x xinfo) cx])
@@ -202,7 +198,7 @@
                      (hash-union row1 row2)
                      (fun-val arg-val)))))]
 
-       [`(-> ,A ,B) (todo)]             ; SET FUNCTION APPLICATION
+       [`(-> ,A ,B) (todo)]             ; SET APPLICATION
        [_ (error 'elab "cannot apply non-function of type: ~a" fun-type)])]
 
     ;; Any other list with two or more elements gets elaborated into function
