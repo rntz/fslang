@@ -216,6 +216,8 @@
 (module+ test
   (require rackunit)
 
+  ;; TODO: typecheck failure tests for ILL-TYPED terms
+
   (define (test-elab term want vartypes
                      #:type [expect-type #f]
                      #:uses [expect-uses #f]
