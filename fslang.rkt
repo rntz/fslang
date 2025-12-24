@@ -324,6 +324,18 @@
              #:to (hash (hash) 2323)
              )
 
+  (test-elab '(f x y) #f '([f set (=> nat (=> nat bool))]
+                           [x fs nat]
+                           [y fs nat])
+             #:type 'bool
+             #:uses '(f x y)
+             #:eval (hash 'f (hash 17 (hash 17 1717 23 1723)
+                                   23 (hash 23 2323 17 2317)))
+             #:to (hash (hash 'x 17 'y 17) 1717
+                        (hash 'x 17 'y 23) 1723
+                        (hash 'x 23 'y 17) 2317
+                        (hash 'x 23 'y 23) 2323))
+
   (test-elab '(and (f x) (g x))
              #f
              '([and set (-o bool (-o bool bool))]
