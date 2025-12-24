@@ -1,5 +1,7 @@
 #lang racket
 
+(require racket/hash)
+
 (define-syntax-rule (todo)
   (error "todo"))
 
@@ -130,7 +132,8 @@
     [`(app ,fun ,arg)                       ; FUNCTION APPLICATION
      (define-values (fun-type fun-uses fun-deno) (elab fun #f cx))
      (match fun-type
-       [`(=> ,A ,P)
+
+       [`(=> ,A ,P)                     ; FINITE MAP APPLICATION
         (unless (symbol? arg)
           ;; TODO LATER: weaken this restriction to allow patterns.
           (error 'elab "can only apply finite maps to variables"))
@@ -172,11 +175,12 @@
                 (values (hash-set row arg key) value))]
              [(or 'set 'point)          ;NOT YET COVERED
               (define key (hash-ref env arg))
-              (for/hash ([(row table) fun-map])
+              (for/hash ([(row table) fun-map]
+                         #:when (hash-has-key? table key))
                 (values row (hash-ref table key)))]))
          )]
 
-       [`(-o ,P ,Q)
+       [`(-o ,P ,Q)                     ; POINTED MAP APPLICATION
         ;; take all fs vars used by `fun` and make them set vars for `arg`
         (define arg-cx
           (for/hash ([(x xinfo) cx])
@@ -188,9 +192,20 @@
           (elab arg P arg-cx))
         (values Q
                 (set-union fun-uses arg-uses)
-                (λ (env) (todo)))]
+                ;; TODO: TEST THIS CODE EXTENSIVELY
+                (λ (env)
+                  (define fun-map (fun-deno env))
+                  ;; any fs vars grounded by fun get bound in arg's environment.
+                  (for*/hash
+                      ([(row1 fun-val) (fun-deno env)]
+                       ;; is it really as simple as a hash-union?
+                       #:do [(define arg-env (hash-union env row1))]
+                       [(row2 arg-val) (arg-deno arg-env)])
+                    (values
+                     (hash-union row1 row2)
+                     (fun-val arg-val)))))]
 
-       [`(-> ,A ,B) (todo)]
+       [`(-> ,A ,B) (todo)]             ; SET FUNCTION APPLICATION
        [_ (error 'elab "cannot apply non-function of type: ~a" fun-type)])]
 
     ;; Any other list with two or more elements gets elaborated into function
@@ -225,16 +240,16 @@
      (check subtype? term-type want))
     ;; The inferred type should equal the expected type.
     (when expect-type
-      (check-equal? expect-type term-type))
+      (check-equal? term-type expect-type))
     ;; The used variables should equal the expected used variables.
     (when expect-uses
-     (check-equal? (list->set expect-uses) term-uses))
+     (check-equal? term-uses (list->set expect-uses)))
     ;; evaluate if requested
     (when eval-env
       (define term-map (term-deno eval-env))
       (if (procedure? expect-eval)
           (check-pred expect-eval term-map)
-          (check-equal? expect-eval term-map)
+          (check-equal? term-map expect-eval)
           )))
 
   (test-elab 'x #f '([x point bool])
@@ -244,7 +259,7 @@
   (test-elab '(f x) #f '([f point (-o bool bool)]
                          [x point bool])
              #:type 'bool #:uses '(f x)
-             ;; #:eval (hash 'f (λ (x) x) 'x #t) ;; TODO: enable
+             #:eval (hash 'f (λ (x) x) 'x #t) #:to (hash (hash) #t)
              )
 
   (test-elab '(f x) #f '([f set (=> nat bool)]
@@ -275,15 +290,13 @@
              #f
              '([f point (-o bool bool)] [x point bool])
              #:type 'bool #:uses '(f x)
-             ;; #:eval (hash 'f (λ (x) x) 'x #t) ;; TODO: enable
-             )
+             #:eval (hash 'f (λ (x) x) 'x #t) #:to (hash))
 
   (test-elab '((is (-o bool bool) nil) x)
              #f
              '([x point bool])
              #:type 'bool #:uses '(x)
-             ;; #:eval (hash 'x #t) ;; TODO: enable
-             )
+             #:eval (hash 'x #t) #:to (hash))
 
   (test-elab '(λ (x) nil)
              '(=> nat bool)
@@ -311,8 +324,8 @@
              '([f point (-o bool (-o bool bool))]
                [x point bool])
              #:uses '(f x)
-             ;; #:eval (hash 'f (λ (x) (λ (y) (and x y))) 'x #t) ;; TODO: enable
-             )
+             #:eval (hash 'f (λ (x) (λ (y) (and x y))) 'x #t)
+             #:to (hash (hash) #t))
 
   (test-elab '(f x x) #f '([f set (=> nat (=> nat nat))]
                            [x set nat])
@@ -321,8 +334,7 @@
              #:eval (hash 'x 23
                           'f (hash 17 (hash 17 1717 23 1723)
                                    23 (hash 23 2323 17 2317)))
-             #:to (hash (hash) 2323)
-             )
+             #:to (hash (hash) 2323))
 
   (test-elab '(f x y) #f '([f set (=> nat (=> nat bool))]
                            [x fs nat]
@@ -345,8 +357,10 @@
                )
              #:type 'bool
              #:uses '(and f g x)
-             ;; #:eval (todo)              ;; TODO: enable
-             )
+             #:eval (hash 'and (λ (x) (λ (y) (and x y)))
+                          'f (hash 17 #t 23 #t)
+                          'g (hash 23 #t 54 #t))
+             #:to (hash (hash 'x 23) #t))
 
   #;
   (check-equal? #t #f)
