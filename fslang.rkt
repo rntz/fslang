@@ -9,10 +9,10 @@
 (define type? any/c)
 (define subtype? equal?)
 
-;; variable context (Γ/Δ/Ω in typing judgment):
-;; maps variables to which context (set, pointed, or finite support)
-;; and their type
+;; Which kind of context: set (Γ) or pointed set (Δ) or finite support (Ω)
 (define area? (or/c 'set 'point 'fs))
+;; cx = a variable context (Γ/Δ/Ω in typing judgment):
+;; maps variables to their area and type
 (define cx? (hash/c symbol? (list/c area? type?)
                     #:immutable #t #:flat? #t))
 
