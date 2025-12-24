@@ -321,39 +321,3 @@
   #;
   (check-equal? #t #f)
   )
-
-;; PROBLEM 1: what to do, dynamically, about the different ways information can
-;; pass around in tensor introduction. pure relational joins vs sideways
-;; information passing vs mixed. Ideally I'd use static information to decide
-;; how to execute. But the most general strategy is just nested loops.
-;;
-;; Alternatively, I could let the user give me a variable order.
-;; Then what does "exists" do to the var order, append or prepend?
-;;
-;; PROBLEM 2: when I see function application, how do I know whether it's
-;; grounding a variable or looking it up?
-;;
-;; SOLUTION: I evaluate the LHS and check whether it's a finite map. if so, and
-;; if argument is variable, I check whether it's bound; if so, lookup;
-;; otherwise, ground. otherwise it better be ground.
-;;
-;; PROBLEM: how do I propagate variable bindings created by application.
-;; SOLUTION: evaluation ALWAYS produces a finite map and I need to combine these.
-;;
-;; PROBLEM: do I produce new maps or extend an existing map?
-#;
-(define (eval term [env (hash)] [known (hash)])
-  (match term
-    ['nil (hash)]
-    [(? symbol? x)
-     (hash known (hash-ref (if (hash-has-key? known x) known env) x))]
-    [`(just ,e) (todo)]
-    [`(letjust ,(? symbol? x) ,t ,u)
-     (todo)]
-    [`(,t ,u)
-     (for*/hash ([(fknown f) (eval t env known)]
-                 ;; TODO: what if f is finite map and x is a variable?
-                 [(uknown x) (eval u env fknown)])
-       ;; FIXME: what about the many different kinds of function application?
-       (values uknown (f x)))]
-    ))
