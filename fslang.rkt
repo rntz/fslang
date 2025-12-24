@@ -22,6 +22,15 @@
 ;; if a set var is in here, it means nothing.
 (define usage? (set/c symbol?))
 
+;;; semantic contracts
+(define value? any/c)
+(define env? (hash/c symbol? value? #:immutable #t #:flat? #t))
+(define row? env?)
+;; A term denotes a function from environments (maps from set or pointed vars to
+;; values) to finite maps (represented by hash maps) from "rows" (maps from fs
+;; vars to values) to their values.
+(define deno/c (-> env? (hash/c row? value? #:immutable #t #:flat? #t)))
+
 (define (infer term [cx (hash)] #:want [want #f])
   (elab term want cx))
 
@@ -35,8 +44,8 @@
 ;; can I use a non-commutative grading monoid?
 (define/contract (elab term want cx)
   (-> term? (or/c #f type?) cx?
-      ;; TODO: also produce compiled term.
-      (values type? usage?))
+      ;; type, variable usage, denotation
+      (values type? usage? deno/c))
 
   (define get-area car)
   (define get-type cadr)
@@ -65,7 +74,8 @@
      (values (cannot-infer "nil")
              ;; uses all point & fs variables
              (for/set ([(x xinfo) cx] #:unless (eq? 'set (get-area xinfo)))
-               x))]
+               x)
+             (λ (_env) (hash)))]
 
     ;; TODO: should this be able to use set variables? they'll have types of the
     ;; wrong kind! how am I handling the adjunction / separation of syntax
@@ -73,29 +83,52 @@
     [(? symbol? x)                      ; VARIABLES
      (when (eq? 'fs (var-area x))
        (error 'elab "use of ungrounded variable ~a" x))
-     (values (inferred (var-type x)) (set x))]
+     (values (inferred (var-type x))
+             (set x)
+             (λ (env) (hash (hash) (hash-ref env x))))]
 
     [`(,(or 'lambda 'λ) (,(? symbol? param)) ,body) ; LAMBDAS
      (match (cannot-infer "lambda")
        [`(=> ,A ,P)
-        (define-values (body-type body-uses)
+        (define-values (body-type body-uses body-deno)
           (elab body P (hash-set cx param (list 'fs A))))
         (unless (set-member? body-uses param)
           (error 'elab "ungrounded lambda parameter: ~a" param))
-        (values `(=> ,A ,body-type) (set-remove body-uses param))]
+        (values
+         `(=> ,A ,body-type)
+         (set-remove body-uses param)
+         (λ (env)
+           (define temp (make-hash))
+           (for ([(row value) (body-deno env)])
+             (define outer-row (todo))
+             (define inner-key (hash-ref row param))
+             (hash-update! temp outer-row
+                           (λ (inner-map) (todo))
+                           (λ () (hash)))
+             )
+           (todo)
+           ))]
 
        [`(-o ,P ,Q)
-        (define-values (body-type body-uses)
+        (define fs-vars
+          (for/list ([(x xinfo) cx] #:when (eq? 'fs (get-area xinfo)))
+            x))
+        (unless (null? fs-vars)
+          (error 'elab "cannot close over these fs vars in pointed lambda: ~a"
+                 fs-vars))
+        (define-values (body-type body-uses body-deno)
           (elab body P (hash-set cx param (list 'point P))))
         (unless (set-member? body-uses param)
           (error 'elab "lambda does not preserve nil in parameter: ~a" param))
-        (values `(-o ,P ,body-type) (set-remove body-uses param))]
+        (values `(-o ,P ,body-type)
+                (set-remove body-uses param)
+                (λ (env) (todo)))]
 
        [`(-> ,A ,B) (todo)]
        [_ (error 'elab "bad type for lambda: ~a" want)])]
 
-    [`(,fun ,arg)                       ; FUNCTION APPLICATION
-     (define-values (fun-type fun-uses) (elab fun #f cx))
+    [`(app ,fun ,arg)                       ; FUNCTION APPLICATION
+     (define-values (fun-type fun-uses fun-deno) (elab fun #f cx))
      (match fun-type
        [`(=> ,A ,P)
         (unless (symbol? arg)
@@ -107,13 +140,25 @@
           ;; tensor products.
           ;;
           ;; THIS ALSO NEEDS FIXING IN THE TYPING RULES!
+          ;; (ALSO IN THE DENOTATIONS!
           (error 'elab "cannot only apply finite map to a f.s. variable"))
-        ;; TODO: which direction should the subtyping relationship go???
         (define arg-type (var-type arg))
+        ;; TODO: which direction should the subtyping relationship go???
         (unless (equal? A arg-type)
           (error 'elab "applying finite map (~a => ~a) to invalid input (~a)"
                  A P arg-type))
-        (values P (set-add fun-uses arg))]
+        (values
+         P
+         (set-add fun-uses arg)
+         (λ (env)
+           (define fun-map (fun-deno env))
+           (for*/hash ([(row subtable) fun-map]
+                       [(key value) subtable])
+             ;; FIXME: what if `arg` is already in `row`???
+             (when (hash-has-key? row arg)
+               (error 'elab "shit I didn't handle this case"))
+             (values (hash-set row arg key) value)))
+         )]
 
        [`(-o ,P ,Q)
         ;; take all fs vars used by `fun` and make them set vars for `arg`
@@ -123,20 +168,22 @@
                         [`(fs ,xtype) #:when (set-member? fun-uses x)
                          `(set ,xtype)]
                         [_ xinfo]))))
-        (define-values (_arg-type arg-uses)
+        (define-values (_arg-type arg-uses arg-deno)
           (elab arg P arg-cx))
-        (values Q (set-union fun-uses arg-uses))]
+        (values Q
+                (set-union fun-uses arg-uses)
+                (λ (env) (todo)))]
 
        [`(-> ,A ,B) (todo)]
        [_ (error 'elab "cannot apply non-function of type: ~a" fun-type)])]
 
-    ;; Any other list with more than two elements gets elaborated into nested
-    ;; application.
+    ;; Any other list with two or more elements gets elaborated into function
+    ;; application, nested/curried as necessary.
     [(and fun-app (list* _ _))
      (define curried-term
        (for/fold ([fun (car fun-app)])
                  ([arg (cdr fun-app)])
-         (list fun arg)))
+         `(app ,fun ,arg)))
      (elab curried-term want cx)]
 
     ))
@@ -151,7 +198,7 @@
     (define cx (for/hash ([vartype vartypes])
                  (match-define (list var area type) vartype)
                  (values var (list area type))))
-    (define-values (term-type term-uses)
+    (define-values (term-type term-uses _)
       (elab term want cx))
     ;; The used variables should be a subset of all variables.
     (check subset? term-uses (list->set (hash-keys cx)))
@@ -164,10 +211,6 @@
     ;; The used variables should equal the expected used variables.
     (when expect-uses
      (check-equal? (list->set expect-uses) term-uses)))
-
-  (define-values (xtype xuses) (elab 'x #f (hash 'x '(set bool))))
-  (check-equal? xtype 'bool)
-  (check-equal? xuses (set 'x))         ;this test is overly specific but whatever
 
   (test-elab 'x #f '([x point bool])
              #:type 'bool #:uses '(x))
@@ -246,6 +289,7 @@
 ;; SOLUTION: evaluation ALWAYS produces a finite map and I need to combine these.
 ;;
 ;; PROBLEM: do I produce new maps or extend an existing map?
+#;
 (define (eval term [env (hash)] [known (hash)])
   (match term
     ['nil (hash)]
