@@ -70,21 +70,24 @@
      (elab t anno cx)]
 
     ['nil                               ; NIL
-     (values (cannot-infer "nil")
-             ;; uses all point & fs variables
-             (for/set ([(x xinfo) cx] #:unless (eq? 'set (get-area xinfo)))
-               x)
-             (λ (_env) (hash)))]
+     (define point-fs-vars
+       (for/set ([(x xinfo) cx]
+                 #:when (match xinfo
+                          [(list (or 'point 'fs) _) #t]
+                          [_ #f]))
+         x))
+     (values (cannot-infer "nil") point-fs-vars (λ (_env) (hash)))]
 
     ;; TODO: should this be able to use set variables? they'll have types of the
     ;; wrong kind! how am I handling the adjunction / separation of syntax
     ;; classes anyway?
     [(? symbol? x)                      ; VARIABLES
-     (when (eq? 'fs (var-area x))
-       (error 'elab "use of ungrounded variable ~a" x))
-     (values (inferred (var-type x))
-             (set x)
-             (λ (env) (hash (hash) (hash-ref env x))))]
+     (match (var-area x)
+       ['fs (error 'elab "use of ungrounded variable ~a" x)]
+       [(or 'set 'point)
+        (values (inferred (var-type x))
+                (set x)
+                (λ (env) (hash (hash) (hash-ref env x))))])]
 
     [`(,(or 'lambda 'λ) (,(? symbol? param)) ,body) ; LAMBDAS
      (match (cannot-infer "lambda")
@@ -111,7 +114,7 @@
 
        [`(-o ,P ,Q)                     ; POINTED LAMBDA
         (define fs-vars
-          (for/list ([(x xinfo) cx] #:when (eq? 'fs (get-area xinfo)))
+          (for/list ([(x xinfo) cx] #:when (match xinfo [(list 'fs _) #t] [_ #f]))
             x))
         (unless (null? fs-vars)
           (error 'elab "cannot close over these fs vars in pointed lambda: ~a"
@@ -151,7 +154,7 @@
          P
          (match arg-area
            ['point fun-uses]          ; finite map lookup does not preserve nil.
-           [_ (set-add fun-uses arg)])
+           [(or 'set 'fs) (set-add fun-uses arg)])
          (λ (env)
            (define fun-map (fun-deno env))
            (match arg-area
@@ -195,7 +198,36 @@
                      (hash-union row1 row2)
                      (fun-val arg-val)))))]
 
-       [`(-> ,A ,B) (todo)]             ; SET APPLICATION
+       [`(-> ,A ,B)                     ; SET APPLICATION
+        ;; hide all pointed/fs arguments from the context
+        (define arg-cx
+          (for/hash ([(x xinfo) cx])
+            (values x (match xinfo
+                        [(list (or 'point 'fs) _) 'hidden]
+                        [_ xinfo]))))
+        (define-values (_arg-type arg-uses arg-deno) (elab arg A arg-cx))
+        (values
+         B                   ; TODO think about adjunction typing rule structure
+         (set-union fun-uses arg-uses)
+         (λ (env)
+           (define fun-table (fun-deno env))
+           (define arg-table (arg-deno env))
+           ;; TODO FIXME: need to generate nil of the appropriate type in the
+           ;; default case! but this shouldn't be possible. except it is because
+           ;; U is silent. augh.
+           (unless (= 1 (hash-count arg-table))
+             (error 'elab "evaled to non-singleton: ~a" arg))
+           (printf "fun ~a --> ~a\n" fun fun-table)
+           (printf "arg ~a --> ~a\n" arg arg-table)
+           (define arg-val (hash-ref arg-table (hash)))
+           (define result
+            (for/hash ([(row fun-val) fun-table])
+              (values row (fun-val arg-val))))
+           (printf "result => ~a\n" result)
+           result
+           )
+         )]
+
        [_ (error 'elab "cannot apply non-function of type: ~a" fun-type)])]
 
     ;; Any other list with two or more elements gets elaborated into function
@@ -340,6 +372,25 @@
                         (hash 'x 23 'y 17) 2317
                         (hash 'x 23 'y 23) 2323))
 
+  ;; Filtering a set. This was curiously harder to get working than set
+  ;; intersection, below.
+  (test-elab '(and (f x) (g x))
+             #f
+             '([and set (-o bool (-o bool bool))]
+               [x fs nat]
+               [f set (=> nat bool)]
+               [g set (-> nat bool)]    ;is this even coherent I don't know
+               )
+             #:type 'bool
+             #:uses '(and f g x)
+             #:eval (hash 'and (λ (x) (λ (y) (and x y)))
+                          'f (hash 17 #t 23 #t)
+                          'g (λ (x) (< x 20)))
+             ;; NB. the 23 doesn't get filtered out!
+             ;; TODO: filter out nils if type has decidable point?
+             #:to (hash (hash 'x 17) #t (hash 'x 23) #f)
+             )
+
   ;; AN ACTUAL RELATIONAL JOIN
   ;; (ok it's just set intersection BUT STILL!)
   (test-elab '(and (f x) (g x))
@@ -355,22 +406,6 @@
                           'f (hash 17 #t 23 #t)
                           'g (hash 23 #t 54 #t))
              #:to (hash (hash 'x 23) #t))
-
-  ;; a filtering of a set. set application not yet implemented.
-  #;
-  (test-elab '(and (f x) (g x))
-             #f
-             '([and set (-o bool (-o bool bool))]
-               [x fs nat]
-               [f set (=> nat bool)]
-               [g set (-> nat bool)]    ;is this even coherent I don't know
-               )
-             #:type 'bool
-             #:uses '(and f g x)
-             #:eval (hash 'and (λ (x) (λ (y) (and x y)))
-                          'f (hash 17 #t 23 #t)
-                          'g (λ (x) (< x 20)))
-             #:to (hash (hash 'x 17) #t))
 
   #;
   (check-equal? #t #f)
