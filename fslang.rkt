@@ -5,10 +5,9 @@
 (define-syntax-rule (todo)
   (error "todo"))
 
-(define subtype? equal?)
-
 (define term? any/c)
 (define type? any/c)
+(define subtype? equal?)
 
 ;; variable context (Γ/Δ/Ω in typing judgment):
 ;; maps variables to which context (set, pointed, or finite support)
