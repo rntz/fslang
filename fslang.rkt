@@ -54,14 +54,14 @@
       [else (error 'elab "wanted ~a, but inferred ~a" want got)]))
 
   (match term
-    [`(is ,anno ,t)                     ; type annotation
+    [`(is ,anno ,t)                     ; TYPE ANNOTATION
      (unless (type? anno)
        (error 'elab "type annotation is not a valid type: ~a" anno))
      (when (and want (not (subtype? anno want)))
        (error "wanted ~a, but annotated ~a" want anno))
      (elab t anno cx)]
 
-    ['nil
+    ['nil                               ; NIL
      (values (cannot-infer "nil")
              ;; uses all point & fs variables
              (for/set ([(x xinfo) cx] #:unless (eq? 'set (get-area xinfo)))
@@ -70,17 +70,33 @@
     ;; TODO: should this be able to use set variables? they'll have types of the
     ;; wrong kind! how am I handling the adjunction / separation of syntax
     ;; classes anyway?
-    [(? symbol? x)
+    [(? symbol? x)                      ; VARIABLES
      (when (eq? 'fs (var-area x))
        (error 'elab "use of ungrounded variable ~a" x))
      (values (inferred (var-type x)) (set x))]
 
-    ;; function application
-    [`(,fun ,arg)
-     (define-values (fun-type fun-uses)
-       (elab fun #f cx))
-     (match fun-type
+    [`(,(or 'lambda 'λ) (,(? symbol? param)) ,body) ; LAMBDAS
+     (match (cannot-infer "lambda")
+       [`(=> ,A ,P)
+        (define-values (body-type body-uses)
+          (elab body P (hash-set cx param (list 'fs A))))
+        (unless (set-member? body-uses param)
+          (error 'elab "ungrounded lambda parameter: ~a" param))
+        (values `(=> ,A ,body-type) (set-remove body-uses param))]
 
+       [`(-o ,P ,Q)
+        (define-values (body-type body-uses)
+          (elab body P (hash-set cx param (list 'point P))))
+        (unless (set-member? body-uses param)
+          (error 'elab "lambda does not preserve nil in parameter: ~a" param))
+        (values `(-o ,P ,body-type) (set-remove body-uses param))]
+
+       [`(-> ,A ,B) (todo)]
+       [_ (error 'elab "bad type for lambda: ~a" want)])]
+
+    [`(,fun ,arg)                       ; FUNCTION APPLICATION
+     (define-values (fun-type fun-uses) (elab fun #f cx))
+     (match fun-type
        [`(=> ,A ,P)
         (unless (symbol? arg)
           ;; TODO LATER: weaken this restriction to allow patterns.
@@ -89,6 +105,8 @@
           ;; TODO FIXME: this invalidates the idea that it's always legitimate
           ;; to "promote" a fs var to a set var that justifies my approach to
           ;; tensor products.
+          ;;
+          ;; THIS ALSO NEEDS FIXING IN THE TYPING RULES!
           (error 'elab "cannot only apply finite map to a f.s. variable"))
         ;; TODO: which direction should the subtyping relationship go???
         (define arg-type (var-type arg))
@@ -112,34 +130,27 @@
        [`(-> ,A ,B) (todo)]
        [_ (error 'elab "cannot apply non-function of type: ~a" fun-type)])]
 
-    [`(,(or 'lambda 'λ) (,(? symbol? param)) ,body)
-     (match (cannot-infer "lambda")
-       [`(=> ,A ,P)
-        (define-values (body-type body-uses)
-          (elab body P (hash-set cx param (list 'fs A))))
-        (unless (set-member? body-uses param)
-          (error 'elab "ungrounded lambda parameter: ~a" param))
-        (values `(=> ,A ,body-type) (set-remove body-uses param))]
+    ;; Any other list with more than two elements gets elaborated into nested
+    ;; application.
+    [(and fun-app (list* _ _))
+     (define curried-term
+       (for/fold ([fun (car fun-app)])
+                 ([arg (cdr fun-app)])
+         (list fun arg)))
+     (elab curried-term want cx)]
 
-       [`(-o ,P ,Q)
-        (define-values (body-type body-uses)
-          (elab body P (hash-set cx param (list 'point P))))
-        (unless (set-member? body-uses param)
-          (error 'elab "lambda does not preserve nil in parameter: ~a" param))
-        (values `(-o ,P ,body-type) (set-remove body-uses param))]
-
-       [`(-> ,A ,B) (todo)]
-       [_ (error 'elab "bad type for lambda: ~a" want)])]
     ))
 
 
-(module+ tests
+(module+ test
   (require rackunit)
 
   (define (test-elab term want vartypes
                      #:type [expect-type #f]
                      #:uses [expect-uses #f])
-    (define cx (apply hash vartypes))
+    (define cx (for/hash ([vartype vartypes])
+                 (match-define (list var area type) vartype)
+                 (values var (list area type))))
     (define-values (term-type term-uses)
       (elab term want cx))
     ;; The used variables should be a subset of all variables.
@@ -158,34 +169,62 @@
   (check-equal? xtype 'bool)
   (check-equal? xuses (set 'x))         ;this test is overly specific but whatever
 
-  (test-elab 'x #f '(x (point bool))
+  (test-elab 'x #f '([x point bool])
              #:type 'bool #:uses '(x))
 
-  (test-elab '(f x) #f '(f (point (-o bool bool))
-                         x (point bool))
+  (test-elab '(f x) #f '([f point (-o bool bool)]
+                         [x point bool])
              #:type 'bool #:uses '(f x))
 
-  (test-elab 'nil 'bool '(x (fs bool) y (point bool))
+  (test-elab 'nil 'bool '([x fs bool] [y point bool])
              #:type 'bool #:uses '(x y))
 
-  (test-elab 'x #f '(x (point bool) y (point bool) z (fs bool))
+  (test-elab 'x #f '([x point bool] [y point bool] [z fs bool])
              #:type 'bool #:uses '(x))
 
-  (test-elab '(f nil) #f '(f (point (-o bool bool)) x (point bool))
+  (test-elab '(f nil)
+             #f
+             '([f point (-o bool bool)] [x point bool])
              #:type 'bool #:uses '(f x))
 
-  (test-elab '((is (-o bool bool) nil) x) #f '(x (point bool))
+  (test-elab '((is (-o bool bool) nil) x)
+             #f
+             '([x point bool])
              #:type 'bool #:uses '(x))
 
-  (test-elab '(λ (x) nil) '(=> nat bool) '()
+  (test-elab '(λ (x) nil)
+             '(=> nat bool)
+             '()
              #:type '(=> nat bool))
 
-  (test-elab '(λ (x) x) '(-o bool bool) '()
+  (test-elab '(λ (x) x)
+             '(-o bool bool)
+             '()
              #:type '(-o bool bool))
 
-  (test-elab '(λ (x) (λ (y) (x y))) '(-o (-o bool bool) (-o bool bool)) '())
+  (test-elab '(λ (x) (λ (y) (x y)))
+             '(-o (-o bool bool) (-o bool bool))
+             '())
 
-  #;(check-equal? #t #f)
+  ;; multi-argument/curried application desugaring
+  (test-elab '(f x x) 'bool '([f point (-o bool (-o bool bool))]
+                              [x point bool]))
+
+  #;
+  (test-elab '(and (f x) (g x))
+             #f
+             '([and set (-o bool (-o bool bool))]
+               [x fs nat]
+               [f set (=> nat bool)]
+               ;; this shouldn't type check! the argument to g is supposed to be
+               ;; a pointed variable, but we're supplying a set variable.
+               [g point (=> nat bool)]  ; TODO FAILS: can't yet apply a finite map to a non-fs var
+               )
+             #:type 'bool
+             #:uses '(and f g x))
+
+  #;
+  (check-equal? #t #f)
   )
 
 ;; PROBLEM 1: what to do, dynamically, about the different ways information can
