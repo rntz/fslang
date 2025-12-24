@@ -137,14 +137,11 @@
           (error 'elab "can only apply finite maps to variables"))
         (define arg-area (var-area arg))
         (define arg-type (var-type arg))
-        #;
+        #; ;; FIXED but need to update typing rules.
         (unless (eq? 'fs arg-area)
-          ;; TODO FIXME: this invalidates the idea that it's always legitimate
-          ;; to "promote" a fs var to a set var that justifies my approach to
-          ;; tensor products.
-          ;;
-          ;; THIS ALSO NEEDS FIXING IN THE TYPING RULES!
-          ;; (ALSO IN THE DENOTATIONS!
+          ;; this invalidates the idea that it's always legitimate to "promote"
+          ;; a fs var to a set var that justifies my approach to tensor
+          ;; products.
           (error 'elab "cannot only apply finite map to a f.s. variable"))
         ;; TODO: which direction should the subtyping relationship go???
         (unless (equal? A arg-type)
@@ -358,6 +355,22 @@
                           'f (hash 17 #t 23 #t)
                           'g (hash 23 #t 54 #t))
              #:to (hash (hash 'x 23) #t))
+
+  ;; a filtering of a set. set application not yet implemented.
+  #;
+  (test-elab '(and (f x) (g x))
+             #f
+             '([and set (-o bool (-o bool bool))]
+               [x fs nat]
+               [f set (=> nat bool)]
+               [g set (-> nat bool)]    ;is this even coherent I don't know
+               )
+             #:type 'bool
+             #:uses '(and f g x)
+             #:eval (hash 'and (λ (x) (λ (y) (and x y)))
+                          'f (hash 17 #t 23 #t)
+                          'g (λ (x) (< x 20)))
+             #:to (hash (hash 'x 17) #t))
 
   #;
   (check-equal? #t #f)
