@@ -20,7 +20,7 @@
 ;; a set of variables.
 ;; if a pointed set var is in here, it's nil-preserved.
 ;; if a finite support var is in here, it's finitely supported.
-;; if a set var is in here, it means nothing.
+;; if a set var is NOT in here, it's unused.
 (define usage? (set/c symbol?))
 
 ;;; semantic contracts
@@ -147,6 +147,7 @@
           ;; products.
           (error 'elab "cannot only apply finite map to a f.s. variable"))
         ;; TODO: which direction should the subtyping relationship go???
+        ;; for now, requiring equality
         (unless (equal? A arg-type)
           (error 'elab "applying finite map (~a => ~a) to invalid input (~a)"
                  A P arg-type))
@@ -174,7 +175,7 @@
          )]
 
        [`(-o ,P ,Q)                     ; POINTED APPLICATION
-        ;; take all fs vars used by `fun` and make them set vars for `arg`
+        ;; take all fs vars used by `fun` and make them set vars for `arg`.
         (define arg-cx
           (for/hash ([(x xinfo) cx])
             (values x (match xinfo
@@ -183,12 +184,28 @@
                         [_ xinfo]))))
         (define-values (_arg-type arg-uses arg-deno)
           (elab arg P arg-cx))
+        ;; variables grounded by fun that are used non-groundingly by arg, ie:
+        ;; sideways information passing / subquery parameters.
+        (define sideways-vars
+          (for/list ([(x xinfo) cx]
+                     #:when (match xinfo [`(fs ,_) #t] [_ #f])
+                     #:when (set-member? fun-uses x)
+                     #:when (set-member? arg-uses x))
+             x))
+        (if (null? sideways-vars)
+          (printf "%%%%% JOIN ~a: ~a ====> ~a %%%%%\n"
+                  (for/list ([(x xinfo) cx] #:when (match xinfo [`(fs ,_) #t] [_ #f])) x)
+                  fun arg)
+          (printf "***** SIDEWAYS: ~a == ~a ==> ~a *****\n" fun sideways-vars arg))
         (values Q
                 (set-union fun-uses arg-uses)
                 ;; TODO: TEST THIS CODE EXTENSIVELY
                 (λ (env)
                   (define fun-map (fun-deno env))
                   ;; any fs vars grounded by fun get bound in arg's environment.
+                  ;; TODO: if (null? sideways-vars), there's no sideways info
+                  ;; passing, so I can eval arg _once_ and then join (iterate
+                  ;; smaller, probe larger) instead of subquerying.
                   (for*/hash
                       ([(row1 fun-val) (fun-deno env)]
                        ;; is it really as simple as a hash-union?
@@ -203,7 +220,7 @@
         (define arg-cx
           (for/hash ([(x xinfo) cx])
             (values x (match xinfo
-                        [(list (or 'point 'fs) _) 'hidden]
+                        [(list (or 'point 'fs) _) 'hidden] ;TODO: test this hiding!
                         [_ xinfo]))))
         (define-values (_arg-type arg-uses arg-deno) (elab arg A arg-cx))
         (values
