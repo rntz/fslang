@@ -184,7 +184,12 @@
                         [_ xinfo]))))
         (define-values (_arg-type arg-uses arg-deno)
           (elab arg P arg-cx))
-        ;; variables grounded by fun that are used non-groundingly by arg, ie:
+        ;; TODO: THIS IS WRONG WRONG WRONG. we've told arg that it can use vars grounded
+        ;; by fun arbitrarily, so it only records whether it USES them, not whether it
+        ;; uses them (1) arbitrarily or (2) groundingly or (3) not at all. We need this in
+        ;; order to figure out whether we execute as a join or a subquery.
+        ;;
+        ;; Variables grounded by fun that are used non-groundingly by arg, ie:
         ;; sideways information passing / subquery parameters.
         (define sideways-vars
           (for/list ([(x xinfo) cx]
@@ -192,26 +197,27 @@
                      #:when (set-member? fun-uses x)
                      #:when (set-member? arg-uses x))
              x))
+        #; ;; THIS IS WRONG for the same reason given above.
         (if (null? sideways-vars)
-          (printf "%%%%% JOIN ~a: ~a ====> ~a %%%%%\n"
+          (printf "%%%%% JOIN ON ~a: ~a ====> ~a %%%%%\n"
                   (for/list ([(x xinfo) cx] #:when (match xinfo [`(fs ,_) #t] [_ #f])) x)
                   fun arg)
-          (printf "***** SIDEWAYS: ~a == ~a ==> ~a *****\n" fun sideways-vars arg))
+          (printf "***** SUBQUERY: ~a == ~a ==> ~a *****\n" fun sideways-vars arg))
         (values Q
                 (set-union fun-uses arg-uses)
                 ;; TODO: TEST THIS CODE EXTENSIVELY
                 (λ (env)
-                  (define fun-map (fun-deno env))
-                  ;; any fs vars grounded by fun get bound in arg's environment.
-                  ;; TODO: if (null? sideways-vars), there's no sideways info
-                  ;; passing, so I can eval arg _once_ and then join (iterate
-                  ;; smaller, probe larger) instead of subquerying.
-                  (for*/hash
-                      ([(row1 fun-val) (fun-deno env)]
-                       ;; is it really as simple as a hash-union?
-                       #:do [(define arg-env (hash-union env row1))]
-                       [(row2 arg-val) (arg-deno arg-env)])
+                  ;; any fs vars grounded by fun get bound in arg's environment. TODO: if
+                  ;; there's no real sideways info passing, so I can eval arg _once_ and
+                  ;; then join (iterate smaller, probe larger) instead of subquerying.
+                  (for*/hash ([(row1 fun-val) (fun-deno env)]
+                              ;; is it really as simple as a hash-union?
+                              #:do [(define arg-env (hash-union env row1))]
+                              [(row2 arg-val) (arg-deno arg-env)])
                     (values
+                     ;; NB. This hash-union is only guaranteed not to hit any colliding
+                     ;; keys because we told `arg' that all of `fun's grounded variables
+                     ;; were arbitrary, not fs, variables.
                      (hash-union row1 row2)
                      (fun-val arg-val)))))]
 
