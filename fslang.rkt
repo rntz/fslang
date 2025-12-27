@@ -191,6 +191,7 @@
         ;;
         ;; Variables grounded by fun that are used non-groundingly by arg, ie:
         ;; sideways information passing / subquery parameters.
+        #;
         (define sideways-vars
           (for/list ([(x xinfo) cx]
                      #:when (match xinfo [`(fs ,_) #t] [_ #f])
