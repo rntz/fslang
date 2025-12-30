@@ -1,14 +1,12 @@
 ;; This is an example of a typechecker & interpreter for a simply typed lambda
-;; calculus written in an unusual style. I evolved this style after writing the
-;; compiler for Datafun in tagless-final style using OCaml modules. More
-;; recently I began writing an interpreter for a related language in Racket,
-;; initially in the same style, but later decided to just inline/fuse all the
-;; phases/passes together. This puts all information about a particular language
-;; construct in one place - one branch of a gigantic "match" over the input
-;; program.
-;;
-;; This is probably not a great way to structure a large compiler but it's
-;; pretty good for fast prototyping.
+;; calculus written in an unusual style. I wandered into this style after
+;; writing the compiler for Datafun in tagless-final style using OCaml modules;
+;; more recently I began writing an interpreter for a related language (see
+;; fslang.rkt), initially in the same style, but later decided to just
+;; inline/fuse all the phases/passes together. This puts all information about a
+;; particular language construct in one place - one branch of a gigantic "match"
+;; over the input syntax. This is probably not a great way to structure a large
+;; compiler but it's pretty good for fast prototyping.
 #lang racket
 
 (define term? any/c)
