@@ -1,12 +1,39 @@
 ;; This is an example of a typechecker & interpreter for a simply typed lambda
-;; calculus written in an unusual style. I wandered into this style after
-;; writing the compiler for Datafun in tagless-final style using OCaml modules;
-;; more recently I began writing an interpreter for a related language (see
-;; fslang.rkt), initially in the same style, but later decided to just
-;; inline/fuse all the phases/passes together. This puts all information about a
-;; particular language construct in one place - one branch of a gigantic "match"
-;; over the input syntax. This is probably not a great way to structure a large
-;; compiler but it's pretty good for fast prototyping.
+;; calculus written in an unusual style: one big "elaborator/evaluator" function
+;; that takes a term, an optional type to check it at (if absent, we try to
+;; infer it, as in bidirectional typechecking), and a typing context; and
+;; returns the type of the term and its denotation: a function from a value
+;; environment to a value.
+;;
+;; I wandered into this style after writing the compiler for Datafun in
+;; tagless-final style using OCaml modules; more recently I began writing an
+;; interpreter for a new language (see fslang.rkt) in the same style, but later
+;; decided to just inline/fuse all the phases/passes together.
+;;
+;; PROS vs separate typecheck/eval functions, or multiple passes generally:
+;;
+;; 1) It puts everything relating to a given source language construct in one
+;; place - one branch of a gigantic "match" over the input syntax.
+;;
+;; 2) If you want to elaborate/desugar your surface syntax, you don't need a
+;; new intermediate language with its own AST. Just "do it" inline.
+;;
+;; 3) It's easy to do type-directed stuff during evaluation; you have
+;; the typechecking info available in scope.
+;;
+;; Admittedly, the simply typed lambda calculus doesn't take advantage of (2–3).
+;; But fslang.rkt does.
+;;
+;; CONS:
+;;
+;; 1) It puts absolutely everything in one big "match" statement.
+;; 2) It generates a whole lot of closures.
+;; 3) Probably others I haven't thought of.
+;;
+;; While this is probably not a great way to structure a large compiler, it's
+;; pretty good for fast prototyping. That said, if your language has no syntax
+;; sugar and evaluation doesn't need any information from type checking, then
+;; probably just write typecheck/eval separately.
 #lang racket
 
 (define term? any/c)
