@@ -15,8 +15,8 @@
 ;; 1) It puts everything relating to a given source language construct in one
 ;; place - one branch of a gigantic "match" over the input syntax.
 ;;
-;; 2) If you want to elaborate/desugar your surface syntax, you don't need a
-;; new intermediate language with its own AST. Just "do it" inline.
+;; 2) If you want to elaborate/desugar your surface syntax, you don't need a new
+;; intermediate language with its own AST. Just call 'elab on the desugaring.
 ;;
 ;; 3) It's easy to do type-directed stuff during evaluation; you have
 ;; the typechecking info available in scope.
