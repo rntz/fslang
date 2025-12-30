@@ -1,5 +1,16 @@
 #lang racket
 
+;; CONNECTIVE TODOS:
+;; - with-pairs and projection, so I can have boolean "or"
+;; - finite map lambdas
+;; - linear lambdas
+;; - just/letjust
+;;
+;; OTHER TODOS:
+;; - think about U. and context.
+;; - implement 3-way grading (unused/ground/used) for fs vars
+;; - use 3-way grading to implement joins instead of subquerying all the time
+
 (require racket/hash)
 
 (define-syntax-rule (todo)
@@ -66,7 +77,7 @@
      (unless (type? anno)
        (error 'elab "type annotation is not a valid type: ~a" anno))
      (when (and want (not (subtype? anno want)))
-       (error "wanted ~a, but annotated ~a" want anno))
+       (error 'elab "wanted ~a, but annotated ~a" want anno))
      (elab t anno cx)]
 
     ['nil                               ; NIL
