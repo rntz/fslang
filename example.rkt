@@ -5,10 +5,10 @@
 ;; returns the type of the term and its denotation: a function from a value
 ;; environment to a value.
 ;;
-;; I wandered into this style after writing the compiler for Datafun in
-;; tagless-final style using OCaml modules; more recently I began writing an
-;; interpreter for a new language (see fslang.rkt) in the same style, but later
-;; decided to just inline/fuse all the phases/passes together.
+;; I wandered into this style after writing the compiler for Datafun in final
+;; style using OCaml modules; more recently I began writing an interpreter for a
+;; new language (see fslang.rkt) in the same style, but later decided to just
+;; inline/fuse all the phases/passes together.
 ;;
 ;; PROS vs separate typecheck/eval functions, or multiple passes generally:
 ;;
