@@ -129,7 +129,7 @@
           (error 'elab "cannot close over these fs vars in pointed lambda: ~a"
                  fs-vars))
         (define-values (body-type body-uses body-deno)
-          (elab body P (hash-set cx param (list 'point P))))
+          (elab body Q (hash-set cx param (list 'point P))))
         (unless (set-member? body-uses param)
           (error 'elab "lambda does not preserve nil in parameter: ~a" param))
         (values `(-o ,P ,body-type)
