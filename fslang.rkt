@@ -137,6 +137,7 @@
                 (λ (env) (todo)))]
 
        [`(-> ,A ,B) (todo)]             ; SET LAMBDA
+
        [_ (error 'elab "bad type for lambda: ~a" want)])]
 
     [`(app ,fun ,arg)                       ; FUNCTION APPLICATION
@@ -359,8 +360,7 @@
              '(=> nat bool)
              '()
              #:type '(=> nat bool)
-             ;; #:eval (hash)              ;; TODO: enable
-             )
+             #:eval (hash) #:to (hash))
 
   (test-elab '(λ (x) x)
              '(-o bool bool)
@@ -371,6 +371,13 @@
 
   (test-elab '(λ (x) (λ (y) (x y)))
              '(-o (-o bool bool) (-o bool bool))
+             '()
+             ;; #:eval (hash)              ;; TODO: enable
+             )
+
+  #; ;; fails b/c don't support set lambdas yet
+  (test-elab '(λ (f) (λ (x) (f x)))
+             '(-o (=> nat bool) (-> nat bool))
              '()
              ;; #:eval (hash)              ;; TODO: enable
              )
@@ -439,6 +446,59 @@
                           'f (hash 17 #t 23 #t)
                           'g (hash 23 #t 54 #t))
              #:to (hash (hash 'x 23) #t))
+
+  ;; cross product
+  (test-elab '(and (f x) (g y))
+             #f
+             '([and set (-o bool (-o bool bool))]
+               [x fs a]
+               [y fs b]
+               [f set   (=> a bool)]
+               [g point (=> b bool)]
+               )
+             #:type 'bool
+             #:uses '(and f g x y)
+             #:eval (hash 'and (λ (x) (λ (y) (and x y)))
+                          'f (hash 'ada #t 'bob #t)
+                          'g (hash 17 #t 23 #t))
+             #:to (hash (hash 'x 'ada 'y 17) #t
+                        (hash 'x 'ada 'y 23) #t
+                        (hash 'x 'bob 'y 17) #t
+                        (hash 'x 'bob 'y 23) #t))
+
+  ;; FINITE LAMBDAS
+  (test-elab '(λ (x) (f x))
+             '(=> nat bool)
+             '([f point (=> nat bool)])
+             #:eval (hash 'f (hash 17 #t)) #:to (hash (hash) (hash 17 #t))
+             )
+
+  (test-elab '(λ (x) (f x)) '(=> nat bool) '([f point (=> nat bool)])
+             #:eval (hash 'f (hash)) #:to (hash))
+
+  (test-elab '(λ (x) (and (f x) (g x)))
+             '(=> nat bool)
+             '([and set (-o bool (-o bool bool))]
+               [f point (=> nat bool)]
+               [g point (=> nat bool)])
+             #:uses '(and f g)
+             #:eval (hash 'and (λ (x) (λ (y) (and x y)))
+                          'f (hash 17 #t 23 #t)
+                          'g (hash 23 #t 54 #t))
+             #:to (hash (hash) (hash 23 #t)))
+
+  (test-elab '(λ (y) (and (f x) (g y)))
+             '(=> b bool)
+             '([and set (-o bool (-o bool bool))]
+               [f point (=> a bool)]
+               [g point (=> b bool)]
+               [x fs a])
+             #:uses '(and f g x)
+             #:eval (hash 'and (λ (x) (λ (y) (and x y)))
+                          'f (hash 'ada #t 'bob #t)
+                          'g (hash 17 #t 23 #t))
+             #:to (hash (hash 'x 'ada) (hash 17 #t 23 #t)
+                        (hash 'x 'bob) (hash 17 #t 23 #t)))
 
   #;
   (check-equal? #t #f)
