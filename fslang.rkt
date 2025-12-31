@@ -103,7 +103,7 @@
     [`(,(or 'lambda 'λ) (,(? symbol? param)) ,body) ; LAMBDAS
      (match (cannot-infer "lambda")
 
-       [`(=> ,A ,P)                     ; FINITE LAMBDA
+       [`(=> ,A ,P)                     ; FINITE LAMBDA, TODO: TEST
         (define-values (body-type body-uses body-deno)
           (elab body P (hash-set cx param (list 'fs A))))
         (unless (set-member? body-uses param)
@@ -112,16 +112,14 @@
          `(=> ,A ,body-type)
          (set-remove body-uses param)
          (λ (env)
-           (define temp (make-hash))
+           (define result (make-hash))
            (for ([(row value) (body-deno env)])
-             (define outer-row (todo))
-             (define inner-key (hash-ref row param))
-             (hash-update! temp outer-row
-                           (λ (inner-map) (todo))
-                           (λ () (hash)))
-             )
-           (todo)
-           ))]
+             (define key (hash-ref row param))
+             (hash-update! result
+                           (hash-remove row param)
+                           (λ (map) (hash-set map key value))
+                           (λ () (hash))))
+           (hash-map/copy result values #:kind 'immutable)))]
 
        [`(-o ,P ,Q)                     ; POINTED LAMBDA
         (define fs-vars
