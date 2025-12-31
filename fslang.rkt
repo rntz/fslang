@@ -251,13 +251,12 @@
            ;; U is silent. augh.
            (unless (= 1 (hash-count arg-table))
              (error 'elab "evaled to non-singleton: ~a" arg))
-           (printf "fun ~a --> ~a\n" fun fun-table)
-           (printf "arg ~a --> ~a\n" arg arg-table)
+           ;; (printf "fun ~a --> ~a\n" fun fun-table) (printf "arg ~a --> ~a\n" arg arg-table)
            (define arg-val (hash-ref arg-table (hash)))
            (define result
             (for/hash ([(row fun-val) fun-table])
               (values row (fun-val arg-val))))
-           (printf "result => ~a\n" result)
+           ;; (printf "result => ~a\n" result)
            result
            )
          )]
