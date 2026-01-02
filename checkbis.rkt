@@ -24,8 +24,10 @@
   [(_ _) #f])
 
 ;; Do we check function first or argument first? Function-first is the
-;; traditional, theoretically grounded bidirectional approach. However, it puts
-;; us into an awkward place in 
+;; traditional, theoretically grounded bidirectional approach. However, it seems
+;; awkward here for reasons explained below. Instead we can try to synthesize
+;; the argument first. This seems to fit better with our "unidirectional but
+;; with partial type information" approach.
 (define FUNCTION-FIRST #f)
 
 (define (check term want cx)
@@ -91,7 +93,10 @@
         (check u a cx)
         (inferred b)]
        [else
-        ;; 2. Argument-first.
+        ;; 2. Argument-first. This is less traditional, although I have seen
+        ;; papers suggesting it [1] (which I have not yet read in detail).
+        ;;
+        ;; [1] https://xnning.github.io/papers/let-arguments-go-first.pdf
         (define u-type (check u #t cx))
         (match-define `(-> ,_ ,result) (check t `(-> ,u-type ,want) cx))
         result])]
