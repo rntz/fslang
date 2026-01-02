@@ -233,7 +233,8 @@
                      (fun-val arg-val)))))]
 
        [`(-> ,A ,B)                     ; SET APPLICATION
-        ;; hide all pointed/fs arguments from the context
+        ;; we treat this like (-o (maybe A) B) and implicitly wrap the argument
+        ;; in "just", hiding all pointed/fs variables from its context.
         (define arg-cx
           (for/hash ([(x xinfo) cx])
             (values x (match xinfo
@@ -249,7 +250,7 @@
            ;; TODO FIXME: need to generate nil of the appropriate type in the
            ;; default case! but this shouldn't be possible. except it is because
            ;; U is silent. augh.
-           (unless (= 1 (hash-count arg-table))
+           (unless (= 1 (hash-count arg-table)) ; TODO: trip this case in a test!
              (error 'elab "evaled to non-singleton: ~a" arg))
            ;; (printf "fun ~a --> ~a\n" fun fun-table) (printf "arg ~a --> ~a\n" arg arg-table)
            (define arg-val (hash-ref arg-table (hash)))
