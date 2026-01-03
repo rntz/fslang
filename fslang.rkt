@@ -304,8 +304,13 @@
 
        [_ (error 'elab "cannot apply non-function of type: ~a" fun-type)])]
 
-    ;; Any other list with two or more elements gets elaborated into function
-    ;; application, nested/curried as necessary.
+    ;; SUGAR: "or" expressions get elaborated into calling "or" on with-pairs.
+    [`(or)            (elab 'nil (inferred 'bool) cx)]
+    [`(or ,x)         (elab x    (inferred 'bool) cx)]
+    [`(or ,x ,y ,@ys) (elab `(or (app or (cons ,x ,y)) ,@ys) want cx)]
+
+    ;; SUGAR: Any other list with two or more elements gets elaborated into
+    ;; function application, nested/curried as necessary.
     [(and fun-app (list* _ _))
      (define curried-term
        (for/fold ([fun (car fun-app)])
@@ -540,7 +545,7 @@
              #:to (hash (hash 'x 'ada) (hash 17 #t 23 #t)
                         (hash 'x 'bob) (hash 17 #t 23 #t)))
 
-  ;; WITH PAIRS
+  ;; WITH PAIRS. TODO: use #:eval argument once implemented.
   (test-elab '(cons x x) #f '([x point bool])
              #:type '(& bool bool)
              #:uses '(x))
@@ -564,6 +569,18 @@
                [f point (-o p (-o q bool))])
              #:type '(& p (& bool p))
              #:uses '(x))
+
+  ;; OR EXPRESSIONS
+  (test-elab '(or) #f '([x point p] [y fs q])
+             #:type 'bool #:uses '(x y))
+
+  (test-elab '(or x) #f '([x point bool] [y fs q])
+             #:type 'bool #:uses '(x))
+
+  (test-elab '(or x y) #f '([x point bool]
+                            [y point bool]
+                            [or set (-o (& bool bool) bool)])
+             #:type 'bool #:uses '(or))
 
   #;
   (check-equal? #t #f)
