@@ -118,16 +118,16 @@
           types]
          [_ (error 'elab "tuple cannot have type ~a" want)]))
      (define-values (types uses denos)
-      (for/lists (types uses denos)
+      (for/lists (_types _uses _denos)
                  ([t terms] [a wants])
         (elab t a cx)))
      (values
       `(& ,@types)
-      ;; Usage for with-pairs is complicated:n
+      ;; Usage for with-pairs is complicated:
       ;; - We point-preserve anything point-preserved by ALL terms = intersection.
       ;; - We support anything supported by ALL terms = intersection.
-      ;; - We use set variables used by ANY term = union.
-      ;;   (because we may depend on them at runtime.)
+      ;; - We use set variables used by ANY term = union
+      ;;   (because we may depend on them at runtime).
       (for/set ([(x xinfo) cx]
                 ;; TODO: this could be more efficient.
                 #:when (match (get-area xinfo)
@@ -135,9 +135,20 @@
                          ['set (for/or ([u uses]) (set-member? u x))]))
         x)
       (λ (env)
-        ;; TODO: need to union the supports.
+        ;; NB. need to _union_ the supports.
+        ;; wait, shit. but what are the variable entries in the row???
+        ;; they're the fs vars.
+        ;; PROBLEM:
+        ;; BUT WHAT IF DIFFERENT SUBEXPRS HAVE DIFFERENT FS VARS?
+        ;; THEN WE MIGHT GET MULTIPLE ROWS THAT COLLIDE!
+        ;; but in that case, we ought to get PASSED values for those, right?
+        ;; oh no, something is very wrong here. need to think about semantics.
         ;; also, I need to generate nil when one is missing!
-        (todo)
+        (define maps (for/list ([d denos]) (d env)))
+        (for/hash ([row (apply set-union (set) (map hash-keys maps))])
+          (values row
+                  (todo)
+                  ))
         ))]
 
     [`(,(or 'lambda 'λ) (,(? symbol? param)) ,body) ; LAMBDAS
@@ -545,7 +556,15 @@
              #:to (hash (hash 'x 'ada) (hash 17 #t 23 #t)
                         (hash 'x 'bob) (hash 17 #t 23 #t)))
 
-  ;; WITH PAIRS. TODO: use #:eval argument once implemented.
+  ;; WITH TUPLES. TODO: use #:eval argument once implemented.
+  (test-elab '(cons) #f '([x point bool] [y fs nat])
+             #:type '(&)
+             #:uses '(x y))
+
+  (test-elab '(cons (f x y)) #f '([f point (-o p (=> nat bool))] [x point p] [y fs nat])
+             #:type '(& bool)
+             #:uses '(f x y))
+
   (test-elab '(cons x x) #f '([x point bool])
              #:type '(& bool bool)
              #:uses '(x))
