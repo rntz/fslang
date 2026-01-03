@@ -92,7 +92,7 @@
           )
         (check u a cx)
         (inferred b)]
-       [else
+       [else                            ; not FUNCTION-FIRST
         ;; 2. Argument-first. This is less traditional, although I have seen
         ;; papers suggesting it [1] (which I have not yet read in detail).
         ;;
