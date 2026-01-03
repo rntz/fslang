@@ -17,7 +17,16 @@
   (error "todo"))
 
 (define term? any/c)
-(define type? any/c)
+(define type?
+  (flat-rec-contract type?
+    symbol?                             ; base types
+    (list/c '-o type? type?)
+    (list/c '=> type? type?)
+    (list/c '-> type? type?)
+    (cons/c '&  (listof type?))
+    ;; TODO: ⊗-tuples, maybe
+    ))
+
 (define subtype? equal?)
 
 ;; Which kind of context: set (Γ) or pointed set (Δ) or finite support (Ω)
@@ -31,7 +40,7 @@
 ;; a set of variables.
 ;; if a pointed set var is in here, it's nil-preserved.
 ;; if a finite support var is in here, it's finitely supported.
-;; if a set var is NOT in here, it's unused.
+;; if a set var is NOT in here, it's unused - no need to put it in the environment at runtime.
 (define usage? (set/c symbol?))
 
 ;;; semantic contracts
@@ -99,6 +108,37 @@
         (values (inferred (var-type x))
                 (set x)
                 (λ (env) (hash (hash) (hash-ref env x))))])]
+
+    [`(cons ,@terms)                    ; WITH TUPLES
+     (define wants
+       (match want
+         [#f (make-list (length terms) #f)]
+         [`(& ,@types)
+          (unless (= (length types) (length terms)) (error "tuple of wrong length"))
+          types]
+         [_ (error 'elab "tuple cannot have type ~a" want)]))
+     (define-values (types uses denos)
+      (for/lists (types uses denos)
+                 ([t terms] [a wants])
+        (elab t a cx)))
+     (values
+      `(& ,@types)
+      ;; Usage for with-pairs is complicated:n
+      ;; - We point-preserve anything point-preserved by ALL terms = intersection.
+      ;; - We support anything supported by ALL terms = intersection.
+      ;; - We use set variables used by ANY term = union.
+      ;;   (because we may depend on them at runtime.)
+      (for/set ([(x xinfo) cx]
+                ;; TODO: this could be more efficient.
+                #:when (match (get-area xinfo)
+                         [(or 'point 'fs) (for/and ([u uses]) (set-member? u x))]
+                         ['set (for/or ([u uses]) (set-member? u x))]))
+        x)
+      (λ (env)
+        ;; TODO: need to union the supports.
+        ;; also, I need to generate nil when one is missing!
+        (todo)
+        ))]
 
     [`(,(or 'lambda 'λ) (,(? symbol? param)) ,body) ; LAMBDAS
      (match (cannot-infer "lambda")
@@ -499,6 +539,31 @@
                           'g (hash 17 #t 23 #t))
              #:to (hash (hash 'x 'ada) (hash 17 #t 23 #t)
                         (hash 'x 'bob) (hash 17 #t 23 #t)))
+
+  ;; WITH PAIRS
+  (test-elab '(cons x x) #f '([x point bool])
+             #:type '(& bool bool)
+             #:uses '(x))
+
+  (test-elab '(cons x y) #f '([x point bool] [y set nat])
+             #:type '(& bool nat)
+             #:uses '(y)) ;; depends on y, but does not preserve point wrt x
+
+  (test-elab '(cons (f x) (g x))
+             #f
+             '([x fs nat]
+               [f set (=> nat bool)]
+               [g point (=> nat bool)])
+             #:type '(& bool bool)
+             #:uses '(x f))
+
+  (test-elab '(cons x (cons (f x y) x))
+             #f
+             '([x point p]
+               [y point q]
+               [f point (-o p (-o q bool))])
+             #:type '(& p (& bool p))
+             #:uses '(x))
 
   #;
   (check-equal? #t #f)
