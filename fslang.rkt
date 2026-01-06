@@ -1,8 +1,6 @@
 #lang racket
 
 ;; CONNECTIVE TODOS:
-;; - with-pairs and projection, so I can have boolean "or"
-;; - finite map lambdas
 ;; - linear lambdas
 ;; - just/letjust
 ;;
@@ -177,7 +175,7 @@
     [`(,(or 'lambda 'λ) (,(? symbol? param)) ,body) ; LAMBDAS
      (match (cannot-infer "lambda")
 
-       [`(=> ,A ,P)                     ; FINITE LAMBDA, TODO: TEST
+       [`(=> ,A ,P)                     ; FINITE LAMBDA
         (define-values (body-type body-uses body-deno)
           (elab body P (hash-set cx param (list 'fs A))))
         (unless (set-member? body-uses param)
