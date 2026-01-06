@@ -639,7 +639,10 @@
                [y point q]
                [f point (-o p (-o q bool))])
              #:type '(& p (& bool p))
-             #:uses '(x))
+             #:uses '(x)
+             #:eval (hash 'x 'x 'y 'y
+                          'f (λ (x) (λ (y) (and (eq? x 'x) (eq? y 'y)))))
+             #:to (hash (hash) '(x (#t x))))
 
   (test-elab '(cons x (f y))
              '(& p q)
@@ -658,15 +661,19 @@
 
   ;; OR EXPRESSIONS
   (test-elab '(or) #f '([x point p] [y fs q])
-             #:type 'bool #:uses '(x y))
+             #:type 'bool #:uses '(x y)
+             #:eval (hash 'x 'x) #:to (hash))
 
   (test-elab '(or x) #f '([x point bool] [y fs q])
-             #:type 'bool #:uses '(x))
+             #:type 'bool #:uses '(x)
+             #:eval (hash 'x #t) #:to (hash (hash) #t))
 
   (test-elab '(or x y) #f '([x point bool]
                             [y point bool]
                             [or set (-o (& bool bool) bool)])
-             #:type 'bool #:uses '(or))
+             #:type 'bool #:uses '(or)
+             #:eval (hash 'x #f 'y #t 'or (match-λ [`(,x ,y) (or x y)]))
+             #:to (hash (hash) #t))
 
   #;
   (check-equal? #t #f))
