@@ -1,7 +1,6 @@
 #lang racket
 
 ;; CONNECTIVE TODOS:
-;; - linear lambdas
 ;; - just/letjust
 ;;
 ;; OTHER TODOS:
@@ -193,10 +192,15 @@
                            (λ () (hash))))
            (hash-map/copy result values #:kind 'immutable)))]
 
-       [`(-o ,P ,Q)                     ; POINTED LAMBDA
+       [`(-o ,P ,Q)                     ; POINTED LAMBDA; TODO: implement & test evaluation
         (define fs-vars
           (for/list ([(x xinfo) cx] #:when (match xinfo [(list 'fs _) #t] [_ #f]))
             x))
+        ;; TODO: do I really need to ensure that cx has no fs-vars, or can I
+        ;; just make sure that body doesn't close over any of them and report
+        ;; that we use (ie support) none of them?
+        ;;
+        ;; find an example use-case. think about typing rules/semantics.
         (unless (null? fs-vars)
           (error 'elab "cannot close over these fs vars in pointed lambda: ~a"
                  fs-vars))
@@ -206,7 +210,11 @@
           (error 'elab "lambda does not preserve nil in parameter: ~a" param))
         (values `(-o ,P ,body-type)
                 (set-remove body-uses param)
-                (λ (env) (todo)))]
+                (λ (env)
+                  (hash (hash)
+                        (λ (x)
+                          (hash-ref (body-deno (hash-set env param x))
+                                    (hash))))))]
 
        [`(-> ,A ,B) (todo)]             ; SET LAMBDA
 
@@ -452,14 +460,14 @@
              '(-o bool bool)
              '()
              #:type '(-o bool bool)
-             ;; #:eval (hash)              ;; TODO: enable
-             )
+             #:eval (hash)
+             #:to (match-lambda [(hash (hash) (? procedure?)) #t] [_ #f]))
 
   (test-elab '(λ (x) (λ (y) (x y)))
              '(-o (-o bool bool) (-o bool bool))
              '()
-             ;; #:eval (hash)              ;; TODO: enable
-             )
+             #:eval (hash)
+             #:to (match-lambda [(hash (hash) (? procedure?)) #t] [_ #f]))
 
   #; ;; fails b/c don't support set lambdas yet
   (test-elab '(λ (f) (λ (x) (f x)))
