@@ -52,6 +52,17 @@
 ;; vars to values) to their values.
 (define deno/c (-> env? (hash/c row? value? #:immutable #t #:flat? #t)))
 
+(define/contract (make-nil type)
+  (-> type? value?)
+  (match type
+    ['bool #f]
+    ['nat #f]
+    [(? symbol? x) (error "do not know how to make nil for type: ~a" x)]
+    [`(& ,@types) (for/list ([t types]) (make-nil t))]
+    [`(-o ,_ ,b) (const (make-nil b))]
+    [`(-> ,_ ,b) (const (make-nil b))]
+    [`(=> ,_ ,_) (hash)]))
+
 ;; Typecheck/elaborate/interpret a term. Parameters:
 ;;   term   - The term to elaborate
 ;;   want   - The expected type; #f to try to infer it.
@@ -121,35 +132,47 @@
       (for/lists (_types _uses _denos)
                  ([t terms] [a wants])
         (elab t a cx)))
+     ;; Usage for with-pairs is complicated:
+     ;;
+     ;; 1. We use set variables used by ANY term = union (because we may depend
+     ;; on them at runtime).
+     ;;
+     ;; 2. We point-preserve anything point-preserved by ALL terms = intersection.
+     ;;
+     ;; 3. In theory, we finitely support anything supported by ALL terms =
+     ;; intersection. However, what do we do with fs vars used by SOME but not
+     ;; ALL terms? We still need them but we do not ground them. Presently we
+     ;; don't have a way of reporting this via usage.
+     ;;
+     ;; Moreover, it raises a semantic issue: what is the denotation of such a
+     ;; term? We might treat the unsupported fs vars as ordinary cartesian
+     ;; arguments. But since (A -> B => P) ≇ (B => A -> P), this opens the
+     ;; question of whether they go before or after the fs var arguments.
+     ;;
+     ;; Anyway, for now we require that the supported (used) fs vars be exactly
+     ;; the same between all terms.
+     (define used
+       (for/set ([(x xinfo) cx]
+                 ;; TODO: this could be more efficient.
+                 #:when (match (get-area xinfo)
+                          [(or 'point 'fs) (for/and ([u uses]) (set-member? u x))]
+                          ['set (for/or ([u uses]) (set-member? u x))]))
+         x))
+     ;; check all fs vars used by any term are supported by whole expr
+     (for* ([term-use uses] [x term-use] #:when (eq? 'fs (var-area x)))
+       (unless (set-member? used x)
+         (error 'elab "variable ~a is ground by some but not all with-pair components" x)))
      (values
       `(& ,@types)
-      ;; Usage for with-pairs is complicated:
-      ;; - We point-preserve anything point-preserved by ALL terms = intersection.
-      ;; - We support anything supported by ALL terms = intersection.
-      ;; - We use set variables used by ANY term = union
-      ;;   (because we may depend on them at runtime).
-      (for/set ([(x xinfo) cx]
-                ;; TODO: this could be more efficient.
-                #:when (match (get-area xinfo)
-                         [(or 'point 'fs) (for/and ([u uses]) (set-member? u x))]
-                         ['set (for/or ([u uses]) (set-member? u x))]))
-        x)
+      used
       (λ (env)
-        ;; NB. need to _union_ the supports.
-        ;; wait, shit. but what are the variable entries in the row???
-        ;; they're the fs vars.
-        ;; PROBLEM:
-        ;; BUT WHAT IF DIFFERENT SUBEXPRS HAVE DIFFERENT FS VARS?
-        ;; THEN WE MIGHT GET MULTIPLE ROWS THAT COLLIDE!
-        ;; but in that case, we ought to get PASSED values for those, right?
-        ;; oh no, something is very wrong here. need to think about semantics.
-        ;; also, I need to generate nil when one is missing!
         (define maps (for/list ([d denos]) (d env)))
-        (for/hash ([row (apply set-union (set) (map hash-keys maps))])
+        (for/hash ([row (apply set-union (set) (map (compose list->set hash-keys) maps))])
           (values row
-                  (todo)
-                  ))
-        ))]
+                  (for/list ([tp types] [m maps])
+                    ;; TODO: When one subterm is missing a row the others have,
+                    ;; I need to generate nil for that component.
+                    (hash-ref m row (λ () (make-nil tp))))))))]
 
     [`(,(or 'lambda 'λ) (,(? symbol? param)) ,body) ; LAMBDAS
      (match (cannot-infer "lambda")
@@ -336,35 +359,44 @@
   (require rackunit)
 
   ;; TODO: typecheck failure tests for ILL-TYPED terms
+  (define-syntax-rule (tester params ...)
+    (test-begin
+     (test-elab params ...)))
 
   (define (test-elab term want vartypes
+                     #:name [name #f]
+                     #:fail [exn-predicate #f]
                      #:type [expect-type #f]
                      #:uses [expect-uses #f]
                      #:eval [eval-env #f]
                      #:to   [expect-eval any/c])
-    (define cx (for/hash ([vartype vartypes])
-                 (match-define (list var area type) vartype)
-                 (values var (list area type))))
-    (define-values (term-type term-uses term-deno)
-      (elab term want cx))
-    ;; The used variables should be a subset of all variables.
-    (check subset? term-uses (list->set (hash-keys cx)))
-    ;; The inferred type should be a subtype of the `want' type.
-    (when want
-     (check subtype? term-type want))
-    ;; The inferred type should equal the expected type.
-    (when expect-type
-      (check-equal? term-type expect-type))
-    ;; The used variables should equal the expected used variables.
-    (when expect-uses
-     (check-equal? term-uses (list->set expect-uses)))
-    ;; evaluate if requested
-    (when eval-env
-      (define term-map (term-deno eval-env))
-      (if (procedure? expect-eval)
-          (check-pred expect-eval term-map)
-          (check-equal? term-map expect-eval)
-          )))
+    (test-case (or name (format "~a" term))
+      (let/ec exit-early
+        (define cx (for/hash ([vartype vartypes])
+                     (match-define (list var area type) vartype)
+                     (values var (list area type))))
+        (define-values (term-type term-uses term-deno)
+          (if exn-predicate
+              (exit-early (check-exn exn-predicate (λ () (elab term want cx))))
+              (elab term want cx)))
+        ;; The used variables should be a subset of all variables.
+        (check subset? term-uses (list->set (hash-keys cx)))
+        ;; The inferred type should be a subtype of the `want' type.
+        (when want
+          (check subtype? term-type want))
+        ;; The inferred type should equal the expected type.
+        (when expect-type
+          (check-equal? term-type expect-type))
+        ;; The used variables should equal the expected used variables.
+        (when expect-uses
+          (check-equal? term-uses (list->set expect-uses)))
+        ;; evaluate if requested
+        (when eval-env
+          (define term-map (term-deno eval-env))
+          (if (procedure? expect-eval)
+              (check-pred expect-eval term-map)
+              (check-equal? term-map expect-eval)
+              )))))
 
   (test-elab 'x #f '([x point bool])
              #:type 'bool #:uses '(x)
@@ -559,27 +591,47 @@
   ;; WITH TUPLES. TODO: use #:eval argument once implemented.
   (test-elab '(cons) #f '([x point bool] [y fs nat])
              #:type '(&)
-             #:uses '(x y))
+             #:uses '(x y)
+             #:eval (hash)
+             ;;#:to '() ;; TODO
+             )
 
-  (test-elab '(cons (f x y)) #f '([f point (-o p (=> nat bool))] [x point p] [y fs nat])
+  (test-elab '(cons (f x y))
+             #f
+             '([f point (-o p (=> nat bool))]
+               [x point p]
+               [y fs nat])
              #:type '(& bool)
-             #:uses '(f x y))
+             #:uses '(f x y)
+             #:eval (hash 'f (λ (x) (if (eq? x 'IAMX) (hash 17 #t 23 #t) (hash)))
+                          'x 'IAMX)
+             #:to (hash (hash 'y 17) '(#t)
+                        (hash 'y 23) '(#t)))
 
   (test-elab '(cons x x) #f '([x point bool])
              #:type '(& bool bool)
-             #:uses '(x))
+             #:uses '(x)
+             #:eval (hash 'x 'yes) #:to (hash (hash) '(yes yes)))
 
   (test-elab '(cons x y) #f '([x point bool] [y set nat])
              #:type '(& bool nat)
-             #:uses '(y)) ;; depends on y, but does not preserve point wrt x
+             #:uses '(y) ;; depends on y, but does not preserve point wrt x
+             #:eval (hash 'x #t 'y 17)
+             #:to (hash (hash) '(#t 17)))
 
+  ;; our first real outer join
   (test-elab '(cons (f x) (g x))
              #f
              '([x fs nat]
                [f set (=> nat bool)]
                [g point (=> nat bool)])
              #:type '(& bool bool)
-             #:uses '(x f))
+             #:uses '(x f)
+             #:eval (hash 'f (hash 17 #t 23 #t)
+                          'g (hash 23 #t 54 #t))
+             #:to (hash (hash 'x 17) '(#t #f)
+                        (hash 'x 23) '(#t #t)
+                        (hash 'x 54) '(#f #t)))
 
   (test-elab '(cons x (cons (f x y) x))
              #f
@@ -588,6 +640,21 @@
                [f point (-o p (-o q bool))])
              #:type '(& p (& bool p))
              #:uses '(x))
+
+  (test-elab '(cons x (f y))
+             '(& p q)
+             '([x point p]
+               [f point (=> nat q)]
+               [y fs nat])
+             #:fail #rx"variable y is ground by some but not all with-pair components")
+
+  (test-elab '(cons (f x) (g x y))
+             '(& p q)
+             '([f point (=> nat p)]
+               [g point (=> nat (=> nat q))]
+               [x fs nat]
+               [y fs nat])
+             #:fail #rx"variable y is ground by some but not all with-pair components")
 
   ;; OR EXPRESSIONS
   (test-elab '(or) #f '([x point p] [y fs q])
@@ -602,5 +669,4 @@
              #:type 'bool #:uses '(or))
 
   #;
-  (check-equal? #t #f)
-  )
+  (check-equal? #t #f))
