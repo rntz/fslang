@@ -1619,10 +1619,12 @@ This is because a variable finitely supported by both $t$ and $u$ can simply be 
 
   \textsc{semantics of $\J t P \G \D \O$:}
   \begin{align*}
-    \den{\J \nil P \G \D \O} \<\g \<\d &= \{\}
+    \den{\J \nil P \G \D \O} \<\g \<\d &= \{\} % NIL
     \\
+    %% VAR
     \den{\J x P \G {\hyp x P} \emptycx} \<\g \<x &= \{ () \mapsto x \}
     \\
+    %% \lto INTRO - POINTED LAMBDA
     \Den{\infer{
         \J t Q \G {\D, \hyp x P} {\emptycx}
       }{
@@ -1630,6 +1632,7 @@ This is because a variable finitely supported by both $t$ and $u$ can simply be 
     }} \<\g \<\d &=
     \{ () \mapsto \fn{x} \den{t} \<\g \<(\d,x) \}
     \\
+    %% \fto INTRO - FINITE MAP LAMBDA
     \Den{\infer{
         \J t P \G \D {\O, \hyp x A}
       }{
@@ -1638,6 +1641,7 @@ This is because a variable finitely supported by both $t$ and $u$ can simply be 
     \{ \o \mapsto \{ x \mapsto y : (\o, x) \mapsto y \in \den{t} \<\g \<\d \}
     : \ex{x,y} (\o,x) \mapsto y \in \den{t} \<\g \<\d \}
     \\
+    %% \lto ELIM - POINTED FUNCTION APPLICATION
     \Den{\infer{
         \J t {P \lto Q} \G {\D_1} {\O_1}
         \\\\
@@ -1650,15 +1654,17 @@ This is because a variable finitely supported by both $t$ and $u$ can simply be 
     \o_2 \mapsto y \in \den u \<(\g, \o_1) \<(\pi_{\D_2} \d)
     \}
     \\
+    %% 
     \Den{\infer{
       \J t {A \fto P} \G {\D} {\O}
     }{
-      \J {t\<x} P \G {\D} {\O, x : A}
+      \J {t\<x} P \G {\D} {\O \todo{{}\cup{}} x : A}
     }} \<\g \<\d &=
     \{ (\o, x) \mapsto y :
     \o \mapsto f \in \den{t} \<\g \<\d,
     x \mapsto y \in f
     \}
+    \text{ \sffamily\TODO{need case for if $x \in \O$?}}
     \\
     \Den{\infer{
       \J t P \G \D \O
@@ -1670,7 +1676,7 @@ This is because a variable finitely supported by both $t$ and $u$ can simply be 
     \{ \o \mapsto \withpair{x,y} :
     \o \mapsto x \in \den{t} \<\g \<\d,
     \o \mapsto y \in \den{u} \<\g \<\d
-    \}
+    \} \text{ \sffamily\todo{looks like intersection; should be a union!}}
     \\
     \Den{\infer{
       \J t P \G {\D_1} {\O_1}
