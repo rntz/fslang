@@ -4,7 +4,7 @@
 ;; - just/letjust
 ;;
 ;; OTHER TODOS:
-;; - think about U. and context.
+;; - think about U and context.
 ;; - implement 3-way grading (unused/ground/used) for fs vars
 ;; - use 3-way grading to implement joins instead of subquerying all the time
 
