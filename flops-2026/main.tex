@@ -51,7 +51,9 @@
 %\usepackage{minted}
 \usepackage{listings}           % lstlisting
 \lstset{language=prolog, columns=fullflexible,
-  basicstyle=\ttfamily, commentstyle=\color{Green}}
+  basicstyle=\ttfamily,
+  commentstyle=\color{Green},
+}
 
 \usepackage{url,hyperref}
 % If you use the hyperref package, please uncomment the following two lines
@@ -257,10 +259,13 @@
 %% TEMPORARY: different fonts because I hate reading computer modern
 \usepackage[scaled=0.97]{XCharter}\linespread{1.0333}
 %\usepackage[scaled=0.965,proportional,semibold]{sourcesanspro}
-\usepackage[osf,scaled=1.0333]{AlegreyaSans}
-%\usepackage[scaled=1.08]{biolinum}
+\usepackage[scaled=1.0333, scaled=1.04, ]{AlegreyaSans} % osf? scaled=1.03-1.067
+%\usepackage[scaled=1.03,]{biolinum} %scaled=1.08 too heavy/contrasty
+%% Inconsolata's capitals are taller and match Charter better than Source Code
+%% Pro's, eg in \texttt{Map (A,B) C}. The weight matches better, too.
 \usepackage[scaled=1.021]{inconsolata}
-%\usepackage[xcharter,scaled=1.0556,]{newtxmath}
+%\usepackage[scaled=0.94]{sourcecodepro} % 0.91-0.94
+%\usepackage[xcharter, scaled=1.0556]{newtxmath}  % scaling makes \Rightarrow too bold :(
 \usepackage{eulervm}
 %\usepackage{mathastext}
 
@@ -270,6 +275,8 @@
 \renewcommand\G\Gamma
 \renewcommand\D\Delta
 \renewcommand\O\Omega
+
+\raggedbottom                   % makes things look better in the worst case
 
 
 \begin{document}
@@ -313,7 +320,7 @@ mutuals(X,Y) :- follows(X,Y), follows(Y,X).
 \end{lstlisting}
 
 \noindent
-Predicates like \texttt{follows} and \texttt{mutuals} denote functions into booleans.
+Predicates like \lstinline{follows} and \lstinline{mutuals} denote functions into booleans.
 Following this intuition, we can translate this logic program directly into a functional one:
 
 \begin{code}
@@ -350,7 +357,7 @@ Evaluating $\name{mutuals} \<x \<y$ will test whether fixed users $x, y$ are mut
 %% \footnotetext{%
 %%   There is also the matter of efficiency.
 %%   Each call to $\name{mutuals} \<x \<y$ in a functional language performs two linear scans through \name{follows}.
-%%   Bottom-up logic programming languages like Datalog pre-compute tables for \texttt{follows} and \texttt{mutuals}, allowing logarithmic look-up.
+%%   Bottom-up logic programming languages like Datalog pre-compute tables for \lstinline{follows} and \lstinline{mutuals}, allowing logarithmic look-up.
 %%   However, top-down logic programming languages like Prolog and miniKanren use backtracking search, behaving similarly to our functional translation on this example; and memoization (\emph{tabling} in top-down logic programming) can amortize these costs over repeated tests.
 %%   Memoization alone, however, cannot handle existential quantification or aggregation, as we shall see.
 %% }
@@ -364,7 +371,7 @@ costars(Actor1, Actor2) :-
 \end{lstlisting}
 
 \noindent
-Since \texttt{Film} does not appear in the head of the rule, the head is derivable if there exists a \texttt{Film} satisfying the body.
+Since \lstinline{Film} does not appear in the head of the rule, the head is derivable if there exists a \lstinline{Film} satisfying the body.
 To embed this functionally, we could assume a function $\name{exists} : \fa{\alpha} (\alpha \to \bool) \to \bool$:
 
 \begin{code}
@@ -612,6 +619,10 @@ If finitely supported maps are this work's \emph{raison d'\^etre,} point-preserv
 
 \newcommand\Maybe{\typename{Maybe}}
 
+\lstset{language=haskell,
+  basicstyle=\sffamily,         %looks ok w/ sffamily = biolinum
+}
+
 The rest of this paper describes a type system for $\lambda$-terms dealing with the interaction of ordinary functions, point preserving functions, and finite maps.
 This may seem unnecessary.
 After all:
@@ -620,7 +631,7 @@ After all:
 
 \item Isn't any point-preserving map $\Maybe~ A \lto \Maybe~ B$ equivalent to an ordinary map $A \to \Maybe~ B$?
 
-\item Aren't finitely supported maps $A \fto \Maybe~ B$ equivalent to the run-of-the-mill ``finite map'' or ``dictionary'' type present in most programming languages' standard libraries, e.g.\ Haskell's \texttt{Map A B}?
+\item Aren't finitely supported maps $A \fto \Maybe~ B$ equivalent to the run-of-the-mill ``finite map'' or ``dictionary'' type present in most programming languages' standard libraries, e.g.\ Haskell's \lstinline{Map A B}?
 \end{enumerate}
 
 \noindent
@@ -633,8 +644,8 @@ Indeed, being unable to decide equality with \nil\ is the common case: most high
 
 %Nor as a practical matter, is it always convenient to represent point preserving maps using \Maybe{} types or finite maps using dictionaries, even when limited to first-order types as in (2--3).
 A similar mismatch happens, for instance, with curried finite maps $A \fto B \fto \Maybe~C$.
-This can be represented by a dictionary \texttt{Map (A,B) C}, but this misses the point---it's no longer curried.
-But the ``curried'' \texttt{Map A (Map B C)} also misses the mark, as it is isomorphic not to $A \fto B \fto \Maybe~C$ but to $A \fto \Maybe~(B \fto \Maybe~C)$.
+This can be represented by a dictionary \lstinline{Map (A,B) C}, but this misses the point---it's no longer curried.
+But the ``curried'' \lstinline{Map A (Map B C)} also misses the mark, as it is isomorphic not to $A \fto B \fto \Maybe~C$ but to $A \fto \Maybe~(B \fto \Maybe~C)$.
 \todolater{this isn't as motivating as I had hoped, frankly. \strong{USE MAX'S COMMENTS ABOUT DEFAULTDICT TO REWRITE!}}
 
 %\TODO{discuss currying of finite maps.}
@@ -995,7 +1006,7 @@ Let's move on to considering what we can express with the function $\name{exists
 \end{code}
 
 \noindent
-More generally, functions of the shape $(A \fto P) \lto P$ for some specific $P$ represent \emph{aggregations.}
+More generally, functions of the shape $(A \fto P) \lto P${\em P} for some specific $P$ represent \emph{aggregations.}
 For instance, $\name{sum} : (A \fto \natz) \lto \natz$ lets us count the number of films someone has starred in:
 
 \begin{code}
@@ -1112,6 +1123,7 @@ For a more practical example, the conjunction $(\fn{x} f\<x \tand g\<x)$ of two 
 
 Thus the appropriate approach is a \emph{relevant} type system, where variables must be used \emph{at least once,} or more simply, that each variable is used---although as we'll see presently, what counts as ``used'' can be a bit subtle.
 So far our examples fail to distinguish the behavior of $\ox$ from $\with$; let's fix that:
+\nopagebreak[2]
 
 \begin{align*}
   \color{invalid}
@@ -1348,7 +1360,7 @@ Both are informative: the former because it is straightforward, the latter becau
 
 \noindent
 The support of $\withpair{t,u}$ is the union of the supports of $t$ and $u$, since $\withpair{t,u}$ is non-\nil\ if either $t$ or $u$ is.
-\todolater{what did I mean to say here? I'm sure I meant to say something interesting.}
+\todolater{Do I need the previous sentence? Its purpose is unclear. It mirrors the investigation of support for $\ox$ pairs below, but maybe I don't need it here.}
 %
 Now let's
 %assume $f,g : \natz \fto \bool$ are finite sets of naturals and
