@@ -296,7 +296,8 @@ To this end, we demonstrate a simple type system to check finite support, using 
 %%   %% \todo{do I actually do this? $\rightarrow$}
 %%   %% I sketch future work on semantics and implementation strategies, particularly for recursion.
 
-\keywords{Logic programming \and Functional programming \and Categorical semantics \and Linear types \and Coeffects}
+\keywords{Logic programming \and Functional programming \and Categorical semantics \and Linear types \and Relevance types %\and Coeffects
+  \and Graded effects}
 \end{abstract}
 
 
@@ -1167,7 +1168,7 @@ By contrast, if a $\with$-pair is $\nil$ then both of its components are, so we 
 This is why $\name{fst}_{\ox}$ is invalid but $\name{fst}_{\with}$ is acceptable---and also why we use destructuring notation for $\ox$, but projection notation for $\with$.
 
 Conversely, constructing an $\ox$ pair $(t,u)$ ``uses'' all variables used by either $t$ or $u$, since if either $t$ or $u$ is $\nil$ the whole pair is.
-When constructing a $\with$ pair ``uses'' only variables used by both $t$ and $u$, since only these variables will force both components of $\withpair{t,u}$ to be $\nil$.
+However, constructing a $\with$ pair ``uses'' only variables used by both $t$ and $u$, since only these variables will force both components of $\withpair{t,u}$ to be $\nil$.
 This is why $\name{pair}_{\ox}$ and $\name{and3}_{\ox}$ are acceptable but $\name{pair}_{\with}$ and $\name{and3}_{\with}$ are invalid.
 
 %% \TODO{describe our ``fake'' typing judgment, its interpretation, lead in to rules:}
@@ -1180,14 +1181,14 @@ A few example rules: \todolater{again, don't like this paragraph}
 \begin{mathpar}
   \infer{
     \lJ t P \G \D\\
-    \lJ t Q \G \D
+    \lJ u Q \G \D
   }{
     \lJ {\withpair{t,u}} {P \with Q} \G \D
   }
 
   \infer{
     \lJ t P \G {\D_1}\\
-    \lJ t Q \G {\D_2}
+    \lJ u Q \G {\D_2}
   }{
     \lJ {(t,u)} {P \ox Q} \G {\D_1 \cup \D_2}
   }
@@ -1332,7 +1333,7 @@ Both are informative: the former because it is straightforward, the latter becau
 \begin{mathpar}
   \infer*[right=$\with$\,i]{
     \J t P \G \D \O
-    \\\\
+    \\
     \J u Q \G \D \O
   }{
     \J {\withpair{t,u}} {P \with Q} \G \D \O
@@ -1375,10 +1376,12 @@ consider what rules we would need to type the following examples involving $\oti
 %% \end{align*}
 
 \noindent
-First, of course, we must ask: do these each have finite support?
-Let's be even more precise: what is the support of each example, as a function of the supports of $f, g$?
+%First, of course, we must ask: do these each have finite support?
+%Let's be even more precise:
+Since we wish to guarantee finite support, we first ask:
+what is the support of each example (as a function of the supports of $f, g$)?
 
-Firstly, the support of the $f\<x \tand g\<y$ is the cross product of the support of $f : A \fto \bool$ and $g : A \fto \bool$.
+The support of $f\<x \tand g\<y$ is the cross product of the supports of $f : A \fto \bool$ and $g : A \fto \bool$.
 Fortunately, the cross product of finite sets is finite.
 So what typing rule does this example need?
 We have used each variable $x,y$ in our finite support context $\O$ exactly once, so it suffices to be able to split this context between the (implicit) $\ox$-pair of arguments to `and':
@@ -1387,7 +1390,7 @@ We have used each variable $x,y$ in our finite support context $\O$ exactly once
 \[
   \infer*{
     \J t P \G {\D_1} {\O_1}
-    \\\\
+    \\
     \J u Q {\G} {\D_2} {\O_2}
   }{
     \J{(t, u)}{P \ox Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
@@ -1396,14 +1399,14 @@ We have used each variable $x,y$ in our finite support context $\O$ exactly once
 
 \noindent
 This rule does not suffice for our second example $f\<x \tand g\<x$, which uses the same finitely supported variable $x$ twice.
-Nonetheless this has finite supported: namely, the intersection of $f$'s and $g$'s supports.
+Nonetheless this has finite support, namely, the intersection of $f$'s and $g$'s supports.
 So we can relax our rules to union contexts, much like the rules for the relevant context $\D$:
 \nopagebreak[2]
 
 \[
   \infer*{
     \J t P \G {\D_1} {\O_1}
-    \\\\
+    \\
     \J u Q {\G} {\D_2} {\O_2}
   }{
     \J{(t, u)}{P \ox Q}{\G}{\D_1 \cup \D_2}{\O_1 \cup \O_2}
@@ -1414,13 +1417,17 @@ So we can relax our rules to union contexts, much like the rules for the relevan
 Yet this still fails to check our final example, which filters the finite set $f: A \fto \bool$ by an arbitrary boolean function $g: A \to \bool$.
 This is unproblematic semantically: we can filter a finite set by any predicate we like and the result remains finite!
 The solution is a rule that breaks the rules:
-any variable finitely supported by $t$ maybe used unrestricted in $u$, so the finite support context $\Omega_1$ for $t$ will \emph{jump} across two slanted lines into the unrestricted context for $u$:
+any variable finitely supported by $t$ maybe used unrestricted in $u$, so the finite support context $\O_1$ for $t$ will \emph{jump}
+%across two slanted lines
+across the railway tracks
+%the rails
+into the unrestricted context for $u$:
 \nopagebreak[2]
 
 \[
   \infer*[right=$\ox$\,i]{
     \J t P \G {\D_1} {\O_1}
-    \\\\
+    \\
     \J u Q {\G, \O_1} {\D_2} {\O_2}
   }{
     \J{(t, u)}{P \ox Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
