@@ -257,17 +257,23 @@
 
 
 %% TEMPORARY: different fonts because I hate reading computer modern
-\usepackage[scaled=0.97]{XCharter}\linespread{1.0333}
-%\usepackage[scaled=0.965,proportional,semibold]{sourcesanspro}
-\usepackage[scaled=1.0333, scaled=1.04, ]{AlegreyaSans} % osf? scaled=1.03-1.067
+\usepackage[scaled=0.965, scaled=0.98, proportional,semibold]{sourcesanspro}
+%\usepackage[scaled=1.0333, scaled=1.04, ]{AlegreyaSans} % osf? scaled=1.03-1.067
 %\usepackage[scaled=1.03,]{biolinum} %scaled=1.08 too heavy/contrasty
 %% Inconsolata's capitals are taller and match Charter better than Source Code
 %% Pro's, eg in \texttt{Map (A,B) C}. The weight matches better, too.
-\usepackage[scaled=1.021]{inconsolata}
+\usepackage[scaled=1.021,var0,varl,]{inconsolata}
 %\usepackage[scaled=0.94]{sourcecodepro} % 0.91-0.94
-%\usepackage[xcharter, scaled=1.0556]{newtxmath}  % scaling makes \Rightarrow too bold :(
-\usepackage{eulervm}
-%\usepackage{mathastext}
+
+\usepackage[scaled=0.97]{XCharter}\linespread{1.0333}
+\usepackage[xcharter, alty, scaled=1.0556, % scaling makes \Rightarrow too bold :(
+  %scaled=1.0424,
+]{newtxmath}
+%\usepackage{eulervm}
+
+%% \usepackage[llscale=1.0424,p,mono=false]{libertine}
+%% \linespread{1.0387}
+%% \usepackage[scaled=1.0424,libertine]{newtxmath}
 
 \setlength\tabcolsep{3pt}
 \setlength\arraycolsep{3pt}
@@ -276,7 +282,82 @@
 \renewcommand\D\Delta
 \renewcommand\O\Omega
 
-\raggedbottom                   % makes things look better in the worst case
+%% \usepackage[asterisk,noequal,nolessnomore,eulergreek,
+%%   %% frenchmath,                   % lowercase italic, uppercase upright
+%% ]{mathastext}
+%% \renewcommand\<\;
+%% %% everything upright; comment out for frenchmath.
+%% \renewcommand\name[1]{\ensuremath{\mathrm{#1}}}
+%% \renewcommand\typename\text
+%% %\renewcommand\kword[1]{\textit{#1}}
+%% \renewcommand\tand{\mathrel{\textit{and}}}
+%% \renewcommand\tor{\mathrel{\textit{or}}}
+%% \renewcommand\when{\mathrel{\textit{when}}}
+
+\raggedbottom                   %% makes things look better in the worst case
+
+
+%% %% XELATEX to use Fern. problems:
+%% %% - the japanese text at end of intro is tofu
+%% %% - costars logic program overflows hbox on p2
+%% \usepackage{fontspec}
+%% \setmainfont{Fern}[
+%%   Extension=.otf,
+%%   Path=/Users/marntzenius/rntz/c/tex/fonts/FernText/otf/FernText-,
+%%   UprightFont=Regular, ItalicFont=Italic, BoldFont=Bold, BoldItalicFont=BoldItalic,
+%%   SmallCapsFeatures={LetterSpace=8,},
+%%   Numbers={OldStyle,Proportional}]
+
+%% \linespread{1.07}
+
+%% %\usepackage[scale=0.92]{sourcecodepro} % would prefer Inconsolata :(
+%% \setmonofont{Inconsolatazi4}[
+%%   %Scale=1.021, % too big. definitely doesn't match x-heights.
+%%   Scale=1.01, % about matches i-dot heights.
+%%   %Scale=1,    % compromise?
+%%   %Scale=0.98,          % matches x-heights, but then Inconsolata feels too light
+%%   Extension=.otf,
+%%   Path=/usr/local/texlive/2025/texmf-dist/fonts/opentype/public/inconsolata/Inconsolatazi4-,
+%%   UprightFont=Regular, BoldFont=Bold,
+%%   %% stylistic sets
+%%   %% 1: shapely/curvy l
+%%   %% 2: unslashed zero
+%%   %% 3: straight/upright quotes
+%%   StylisticSet={1,2,3},
+%% ]
+%% %\usepackage[scaled=1.021]{inconsolata}
+%% %\usepackage{eulervm}
+%% \usepackage[libertine]{newtxmath} %or mathpazo or newpxmath?
+%% \usepackage[asterisk,noequal,nolessnomore,eulergreek,
+%%   %% frenchmath,                   % lowercase italic, uppercase upright
+%% ]{mathastext}
+
+%% \renewcommand\G\Gamma
+%% \renewcommand\D\Delta
+%% \renewcommand\O\Omega
+
+%% %% everything upright; comment out for frenchmath.
+%% \renewcommand\name[1]{\ensuremath{\mathrm{#1}}}
+%% \renewcommand\typename\text
+%% %\renewcommand\kword[1]{\textit{#1}}
+%% \renewcommand\tand{\mathrel{\textit{and}}}
+%% \renewcommand\tor{\mathrel{\textit{or}}}
+%% \renewcommand\when{\mathrel{\textit{when}}}
+%% \renewcommand\<\;
+
+%% \raggedbottom
+
+
+%% %% \usepackage[scaled=1.12]{ebgaramond}\linespread{1.12}
+%% %% \usepackage[ebgaramond]{newtxmath}
+%% %% %\usepackage{urw-garamond}
+%% %% %\usepackage{garamond}
+
+
+%% %scaled=1.12 ~x-match Charter
+%% \usepackage[mainfont,scaled=1.025,scaled=1.11]{ysabeau}
+%% \linespread{1.12}
+%% \usepackage[italic]{mathastext}
 
 
 \begin{document}
