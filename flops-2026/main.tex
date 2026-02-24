@@ -11,7 +11,7 @@
 
 
 \title{Finite Functional Programming}
-\subtitle{or, LAMBDA: The Ultimate Relation}
+\subtitle{or, LAMBDA: The Ultimate Predicate}
 %\title{Finite Functional Logic Programming \\via Pointed Types}
 % If the paper title is too long for the running head, you can set
 % an abbreviated paper title here
@@ -227,7 +227,7 @@
 %\newcommand\twhen[2]{{#1} \Rightarrow {#2}}
 %\newcommand\twhen[2]{{#2} \mathrel{\kword{when}} {#1}}
 \newcommand\whenkword{\kword{when}}
-\newcommand\when{~\whenkword~}
+\newcommand\when{\mathrel{\whenkword}}
 %\newcommand\teq[2]{\name{eq} \<{#1} \<{#2}}
 \newcommand\teq[2]{{#1} = {#2}}
 %\newcommand\teq[2]{{#1} \mathrel{\kword{is}} {#2}}
@@ -312,6 +312,8 @@ To this end, we demonstrate a simple type system to check finite support, using 
 
 Consider the following simple logic program to find mutual follows in a social network graph:
 
+\newcommand\pred\lstinline
+
 \begin{lstlisting}
 follows(john, mary).
 follows(mary, john).
@@ -319,8 +321,18 @@ follows(mary, john).
 mutuals(X,Y) :- follows(X,Y), follows(Y,X).
 \end{lstlisting}
 
+%% \renewcommand\pred\name
+%% \renewcommand\land{\mathrel{\wedge}}
+%% \newcommand\var\mathit
+
+%% \begin{code}
+%% \pred{follows}(\const{john}, \const{mary}).\\
+%% \pred{follows}(\const{mary}, \const{john}).\\
+%% \pred{mutuals}(X, Y) \gets \pred{follows}(X,Y) \land \pred{follows}(Y,X).
+%% \end{code}
+
 \noindent
-Predicates like \lstinline{follows} and \lstinline{mutuals} denote functions into booleans.
+Predicates like \pred{follows} and \pred{mutuals} denote functions into booleans.
 Following this intuition, we can translate this logic program directly into a functional one:
 
 \begin{code}
@@ -362,13 +374,18 @@ Evaluating $\name{mutuals} \<x \<y$ will test whether fixed users $x, y$ are mut
 %%   Memoization alone, however, cannot handle existential quantification or aggregation, as we shall see.
 %% }
 
-For the same reason, direct functional translation cannot handle existential quantification (also called `projection' in databases). Consider this logic program to find actors who have appeared in the same film:
+For the same reason, our functional translation cannot handle existential quantifiers (also called `projection' in databases). Consider this logic program to find actors who have appeared in the same film:
 
 \begin{lstlisting}
-costars(Actor1, Actor2) :-
-  stars(Film, Actor1),
-  stars(Film, Actor2).
+costars(Actor1, Actor2) :- stars(Film, Actor1), stars(Film, Actor2).
 \end{lstlisting}
+
+%% \begin{code}
+%%   \pred{costars}(\var{Actor}_1,\, \var{Actor}_2) \gets
+%%   \pred{stars}(\var{Film},\, \var{Actor}_1)
+%%   \land
+%%   \pred{stars}(\var{Film},\, \var{Actor}_2).
+%% \end{code}
 
 \noindent
 Since \lstinline{Film} does not appear in the head of the rule, the head is derivable if there exists a \lstinline{Film} satisfying the body.
@@ -378,26 +395,45 @@ To embed this functionally, we could assume a function $\name{exists} : \fa{\alp
 %% \name{directedFilm} : \name{person} \to \name{film} \to \bool = \dots\\
 %% \name{starsIn} : \name{film} \to \name{person} \to \bool = \dots\\
 \name{costars} : \name{person} \to \name{person} \to \bool\\
-\name{costars} \<\name{actor1} \<\name{actor2} =\\
-\quad \name{exists}\<(\fn{\name{film}}
-%\name{directedFilm} \<\name{director} \<\name{film}
+
+%% %% OPTION 1: THREE LINES %%
+%% \name{costars} \<\name{actor1} \<\name{actor2} =\\
+%% \quad \name{exists}\<(\fn{\name{film}}
+%% %\name{directedFilm} \<\name{director} \<\name{film}
+%% \name{stars} \<\name{film} \<\name{actor1}
+%% \\
+%% \quad \phantom{\name{exists}\<(\fn{\name{film}}}
+%% \negphantom{{}\tand{}}
+%% \tand \name{stars} \<\name{film} \<\name{actor2})
+
+%% %% OPTION 2: TWO LINES %%
+%% \name{costars} \<\name{actor1} \<\name{actor2} =
+%% \name{exists}\<(\fn{\name{film}}
+%% \name{stars} \<\name{film} \<\name{actor1}
+%% \\
+%% \phantom{\name{costars} \<\name{actor1} \<\name{actor2} = \name{exists}\<(\fn{\name{film}}}
+%% \negphantom{{}\tand{}}
+%% \tand \name{stars} \<\name{film} \<\name{actor2})
+
+%% %% OPTION 3: ONE LINE %%
+\name{costars} \<\name{actor1} \<\name{actor2} =
+\name{exists}\<(\fn{\name{film}}
 \name{stars} \<\name{film} \<\name{actor1}
-\\
-\quad \phantom{\name{exists}\<(\fn{\name{film}}}
-\negphantom{{}\tand{}}
-\tand \name{stars} \<\name{film} \<\name{actor2})
+\tand
+\name{stars} \<\name{film} \<\name{actor2})
+
 \end{code}
 
 \noindent
-Yet how can we implement $\name{exists} \< f$ for an arbitrary type $\alpha$ and an arbitrary function $f : \alpha \to \bool$?
+Yet how can we implement $\name{exists} \<f$ for an arbitrary type $\alpha$ and an arbitrary function $f : \alpha \to \bool$?
 We are stymied by unidirectionality: all we can do with $f$ is give it inputs; since the input type is arbitrary, we cannot generate any.%
 \footnote{%
-  Of course, for specific types we may be able to make headway.
-  One can define \name{exists} for any finite type $\alpha$ by enumeration.
+  Of course, one can define \name{exists} for any finite type $\alpha$ by enumeration, and
   %% For arbitrary $f$, one might expect this is the best you can do:
-  Since determining $\name{exists}\<f = \false$ seems to require applying $f$ to every possible input, one might expect the infinite cases to be impossible;
-  however, \name{exists} can be implemented for some infinite types by exploiting continuity~\cite{seemingly-impossible-functional-programs,DBLP:conf/lics/Escardo07}.
-  However, our approach here is to presume knowledge, not of the structure of the type, but of the support of the function.
+  even for some infinite types by exploiting continuity of $f$~\cite{seemingly-impossible-functional-programs,DBLP:conf/lics/Escardo07}.
+  %Since determining $\name{exists}\<f = \false$ seems to require applying $f$ to every possible input, one might expect the infinite cases to be impossible;
+  %however, \name{exists} can be implemented for some infinite types by exploiting continuity~\cite{seemingly-impossible-functional-programs,DBLP:conf/lics/Escardo07}.
+  However, our approach will be to presume, not static knowledge of the type, but dynamic knowledge of $f$'s support.
 }
 
 Logic programming implements existential quantification by rejecting input-output directionality:
@@ -435,7 +471,7 @@ We make the following contributions:
 
 %% \item We use these insights to construct a type system whose well typed terms have finite support, and which is expressive enough to capture relational algebra augmented with some forms of aggregation.
 
-\item We give a denotational semantics of \fslang\ in \Point.
+\item We give a denotational semantics of \fslang\ in \Point. \TODO{cut this?}
 \end{enumerate}
 
 \noindent
@@ -588,7 +624,7 @@ If one regards $\nil_P$ as an uninteresting, default value, a function's support
 %% \footnotetext{\todo{explain why we pick \false\ not \true: because the support is the range of ``interesting'' outputs.}}
 
 We write $A \fto P = \{ f \in A \to P : \support f ~\text{is finite} \}$ for the finitely supported functions from $A$ to $P$.
-Naturally this is a pointed set with $\nil_{A \fto P} = \fn{x} \nil_P$;
+This is a pointed set with $\nil_{A \fto P} = \fn{x} \nil_P$;
 the boring, default finite map is the one with empty support.
 What can we do with finite maps?
 We can of course apply them---this is look-up in a key-value table.
@@ -609,7 +645,7 @@ However, we \emph{can} compose a finite map with a function $f$ if $f(\nil_P) = 
 %\todo{because it can only contract the support.}
 %
 These are the \emph{point-preserving maps}, which we notate $P \lto Q = \{ f \in P \to Q : f(\nil_P) = \nil_Q \}$.
-These are again naturally pointed with $\nil_{P \lto Q} = \fn{x} \nil_Q$.
+These are pointed with $\nil_{P \lto Q} = \fn{x} \nil_Q$.
 The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps as morphisms; what we have just observed is that, for any set $A$, there is a functor $F_A : \Point \to \Point$ given by $F_A(P) = A \fto P$.
 If finitely supported maps are this work's \emph{raison d'\^etre,} point-preserving maps are how we will manipulate and combine them.
 
@@ -619,11 +655,11 @@ If finitely supported maps are this work's \emph{raison d'\^etre,} point-preserv
 
 \newcommand\Maybe{\typename{Maybe}}
 
-\lstset{language=haskell,
-  basicstyle=\sffamily,         %looks ok w/ sffamily = biolinum
+\lstset{language={},
+  %basicstyle=\sffamily,
 }
 
-The rest of this paper describes a type system for $\lambda$-terms dealing with the interaction of ordinary functions, point preserving functions, and finite maps.
+The rest of this paper describes a type system handling the interaction of ordinary functions, point preserving functions, and finite maps.
 This may seem unnecessary.
 After all:
 \begin{enumerate}
@@ -639,7 +675,7 @@ However, if we care about higher order programming, the answer to (1) is \emph{n
 % not every pointed set is computably isomorphic to a \typename{Maybe}.
 Take any infinite pointed set: say, the naturals $\natz$ where $\nil_{\natz} = 0$.
 Then $\natz \lto \natz$ is a pointed set, with $\nil_{\natz \lto \natz} = \fn{\pwild} 0$.
-But it is undecidable whether a function is equal to $\fn{\pwild} 0$; so $\natz \lto \natz$ is not computably isomorphic to any \Maybe\ type in a way that sends $\nil$ to \texttt{Nothing}.
+But it is undecidable whether a function is equal to $\fn{\pwild} 0$; so $\natz \lto \natz$ is not computably isomorphic to any \Maybe\ type in a way that sends $\nil$ to \lstinline{Nothing}.
 Indeed, being unable to decide equality with \nil\ is the common case: most higher order types are not \Maybe\ types.
 
 %Nor as a practical matter, is it always convenient to represent point preserving maps using \Maybe{} types or finite maps using dictionaries, even when limited to first-order types as in (2--3).
@@ -714,17 +750,16 @@ The motivation for the design of \fslang, then, is to handle the combination of 
 Following logic programming, we take particular interest in two point-pre\-serv\-ing maps: boolean disjunction and conjunction.
 Let's start with their types.
 Recall that $\nil_\bool = \false$.
-Observe that `or' yields \nil\ when \emph{both} its arguments are \nil, while `and' yields \nil\ when \emph{either} argument is \nil:
-% while `and' preserves $\nil$ in each argument separately:
-
-\begin{align*}
-  \false \tor \false &= \false
-  &
-  \false \tand y &= \false
-  &
-  x \tand \false &= \false
-\end{align*}
-
+Observe that `or' yields \nil\ when both its arguments are \nil, while `and' yields \nil\ when either argument is.
+%% \todo{ditch these equations -- too obvious?}
+%% % while `and' preserves $\nil$ in each argument separately:
+%% \begin{align*}
+%%   \false \tor \false &= \false
+%%   &
+%%   \false \tand y &= \false
+%%   &
+%%   x \tand \false &= \false
+%% \end{align*}
 %% \begin{align*}
 %%   \false \tor \false &= \false
 %%   &
@@ -736,9 +771,7 @@ Observe that `or' yields \nil\ when \emph{both} its arguments are \nil, while `a
 %%   &
 %%   x \tand \false &= \false
 %% \end{align*}
-
-\noindent
-We reflect this both/either distinction by giving distinct types to their arguments.
+We can reflect this both/either distinction using distinct types.
 %
 \noindent
 The argument to `or' is a pair which is \nil\ when both components are.
@@ -759,15 +792,25 @@ Thus:
 In fact, in our examples it will be useful to generalize `and' to type $\bool \otimes P \lto P$, as well as its mirror image `\whenkword' of type $P \otimes \bool \lto P$, defined:\footnotemark{}
 \nopagebreak[2]
 
-\begin{align*}
-  \false \tand x &= \nil_P
-  &
-  x \when \false &= \nil_P
+\[\begin{array}{rclcl}
+  \true \tand x
+  &=& x \when \true
+  &=& x
   \\
-  \true \tand x &= x
-  &
-  x \when \true &= x
-\end{align*}
+  \false \tand x
+  &=& x \when \false
+  &=& \nil_P
+\end{array}\]
+
+%% \begin{align*}
+%%   \true \tand x &= x
+%%   &
+%%   x \when \true &= x
+%%   \\
+%%   \false \tand x &= \nil_P
+%%   &
+%%   x \when \false &= \nil_P
+%% \end{align*}
 
 \footnotetext{An edifying exercise for the reader is to verify that the generalized `and' is one leg of an isomorphism $\bool \otimes P \cong P$.
   In \fslang\ the reverse leg, perhaps counterintuitively, is simply $\fn{x} (\true, x) : P \lto \bool \otimes P$.}
@@ -1006,7 +1049,7 @@ Let's move on to considering what we can express with the function $\name{exists
 \end{code}
 
 \noindent
-More generally, functions of the shape $(A \fto P) \lto P${\em P} for some specific $P$ represent \emph{aggregations.}
+More generally, functions of the shape $(A \fto P) \lto P$ for some specific $P$ represent \emph{aggregations.}
 For instance, $\name{sum} : (A \fto \natz) \lto \natz$ lets us count the number of films someone has starred in:
 
 \begin{code}
@@ -1116,12 +1159,13 @@ To gain some intuition, let's look at a few simple examples and whether they pre
 
 \noindent
 Plainly the identity function preserves \nil.
-Just as plainly, constant functions do not (save for the constantly-\nil\ function).
+Just as plainly, constant functions do not (unless they are constantly \nil).
 This suggests a linear type system, which ensures each variable is used exactly once; constant functions, which ignore their argument, are thus prohibited.
 However, duplication does preserve \nil, whether into $\ox$ or $\with$-pairs: $(\nil, \nil) = \nil$ and $\withpair{nil,nil} = \nil$.
-For a more practical example, the conjunction $(\fn{x} f\<x \tand g\<x)$ of two maps $f,g : P \lto \bool$ uses $x$ twice but nonetheless preserves \nil.
+Or, consider the intersection $(\fn{x} f\<x \tand g\<x)$ of two maps $f,g : P \lto \bool$, which uses its argument twice yet still preserves \nil.
+%
+Thus the appropriate approach is a \emph{relevant} type system, which ensures variables are used \emph{at least once}---although as we'll see presently, what counts as ``used'' can be a bit subtle.
 
-Thus the appropriate approach is a \emph{relevant} type system, where variables must be used \emph{at least once,} or more simply, that each variable is used---although as we'll see presently, what counts as ``used'' can be a bit subtle.
 So far our examples fail to distinguish the behavior of $\ox$ from $\with$; let's fix that:
 \nopagebreak[2]
 
@@ -1275,9 +1319,11 @@ Well, constant functions like \name{three} are not finite because their support 
 Similarly, the support of \name{id}, $\name{dup}_{\ox}$, and $\name{dup}_{\with}$ is their entire domain, minus \nil; we cannot generally use a finite map's argument directly in its output.\footnotemark{}
 
 \footnotetext{We could in principle make a carve-out in our type system for maps with finite domains.
-  However, since we intend to represent finite maps by tables, we probably do not want to allow these examples if the type is finite but large:
-  enumerating all 64-bit integers just because the programmer wrote $\fn{x} 3$ would be a usability hazard!
-  We could restrict our carve-out to \emph{small} finite types, for some value of ``small'', but this seems rather niche.}
+  As we intend to represent finite maps by tables, however, this poses a usability hazard: enumerating all 64-bit integers just because a programmer wrote $\fn{x} \true$ is not desirable.
+  %% However, since we intend to represent finite maps by tables, we probably do not want to allow these examples if the type is finite but large:
+  %% enumerating all 64-bit integers just because the programmer wrote $\fn{x} \true$ would be a usability hazard!
+  %% %% We could restrict our carve-out to \emph{small} finite types, for some value of ``small'', but this seems rather niche.
+}
 
 If $\fn{x} x$ is not well typed, what does our variable rule look like?
 How do we use variables in our finitely supported context $\O$?
