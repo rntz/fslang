@@ -261,9 +261,13 @@
 
 
 %% TEMPORARY: different fonts because I hate reading computer modern
+
+%% WHERE IS SANS-SERIF USED? %%
 \usepackage[scaled=0.965, scaled=0.98, proportional,semibold]{sourcesanspro}
 %\usepackage[scaled=1.0333, scaled=1.04, ]{AlegreyaSans} % osf? scaled=1.03-1.067
 %\usepackage[scaled=1.03,]{biolinum} %scaled=1.08 too heavy/contrasty
+%\renewcommand\fslang{\ensuremath{\lambda_{\mathsf{FS}}}}
+
 %% Inconsolata's capitals are taller and match Charter better than Source Code
 %% Pro's, eg in \texttt{Map (A,B) C}. The weight matches better, too.
 \usepackage[scaled=1.021,var0,varl,]{inconsolata}
@@ -1983,68 +1987,48 @@ To make it clear that terms are finitely supported with respect to the context $
 %% Flix and $\lambda_\vee$ do generalize to other semilattices, \xxx
 %% $\fslang$ also deliberately separates 
 
-\todo{TODO WRITE: related work, limitations, future work, conclusion}
+\todo{TODO WRITE: related work, \strong{LIMITATIONS and future work} (recursion poses semantic problems but implementation should be manageable), conclusion}
 
 \todo{WHICH SEMIRING/TENSOR THINGS TO CITE? Shaikhha's ``Functional Collection Programming with Semi-ring Dictionaries''~\cite{DBLP:journals/pacmpl/ShaikhhaHSO22}.
-  what else? semiring provenance paper? Datalogo paper?
-  some Kjolstad paper?}
+  semiring provenance and $K$-relations~\cite{DBLP:conf/pods/GreenKT07} and
+  Datalog\textdegree~\cite{DBLP:journals/jacm/KhamisNPSW24}.
+  %\textsf{datalog\textdegree}
+  Maybe Henglein et al's ``The Programming of Algebra''~\cite{DBLP:journals/corr/abs-2207-00850} and/or some Kjolstad paper on TACO?
+}
 
 There are many ways to combine logic and functional programming.
-Curry~\cite{curry} and Verse~\cite{DBLP:journals/pacmpl/AugustssonBCJJSSS23} add logic variables, unification, and disjunction as ambient effects to a functional language.
+Curry~\cite{curry} and Verse~\cite{DBLP:journals/pacmpl/AugustssonBCJJSSS23} add existentials, unification, and disjunction as ambient effects to a functional language.
 \TODO{Mercury~\cite{DBLP:journals/jlp/SomogyiHC96}.}
+Flix~\cite{10.1145/3428193,flix} combines two sublanguages, one Datalog-like and one functional, each of which can use the other.
 \TODO{Flix~\cite{flix}.}
-Datafun~\cite{datafun} and $\lambda_\vee$~\cite{DBLP:journals/pacmpl/RiouxZ25} enrich functional programming with types and operations that can represent relations (e.g.\ finite sets, set comprehensions, and fixed points).
+Datafun~\cite{datafun} and $\lambda_\vee$~\cite{DBLP:journals/pacmpl/RiouxZ25} enrich functional programming with types (finite sets) and operations (set comprehensions and fixed points) that can express relational programming.
 \TODO{semiring languages!}
 %
 So far as we know,
 %To the best of our knowledge,
 only \fslang\ treats predicates as a special function type, introduced by $\lambda$ and eliminated by application.
-This was inspired by the concrete syntax of RelationalAI's Rel language~\todo{CITE}, \TODO{discuss}.
+This was inspired by the syntax of the Rel language~\cite{10.1145/3722212.3724450}, \TODO{discuss}.
 
 %% Unlike Curry and Verse, but like Flix and Datafun, this approach clearly separates ordinary, procedural functions ($A \to B$) from logical predicates/relations ($A \fto P$).
 %% Not coincidentally, Curry and Verse are based on top-down logic programming and Flix and Datafun on bottom-up logic programming.
 
-This approach makes the return type of this function explicit, unlike the implicitly boolean worldview of Curry and Mercury.
-(Verse's relations are ordered sequences, which are not equivalent to functions into any value type.)
+Giving predicates an explicit return type moves beyond the implicit boolean worldview of logic programming languages like Prolog and Datalog, inherited by Curry and Mercury.
+(Verse's relations are ordered sequences, which are not equivalent to functions into any type.)
 This is not unique to \fslang:
-Flix, $\lambda_\vee$, and Datafun permit generalization to non-Boolean semilattices.
+Flix, $\lambda_\vee$, and Datafun generalize to non-boolean semilattices.
 \TODO{semiring languages}
 \TODO{probabilistic logic languages, ProbLog; what was that thing at the most recent miniKanren workshop?}
 \xxx\
 So far as we know,
 %To the best of our knowledge,
 only \fslang\ generalizes to pointed sets---the least structure required to define a function's support.
+\TODO{this supports moving \emph{between} different pointed sets, rather than having to pick one semiring/value type and stick with it.}
 
 \TODO{Discuss input/output modes.
   Cite Mercury, Mistral Contrastin, and wossernames paper with Neel K.
   This idea is latent in languages like Datafun, Flix, and $\lambda_\vee$ that separate procedural functions from logical predicates.
   But, although we have barely discussed it in this paper, our observation that grounding corresponds to a effect graded by the set of grounded variables seems novel (so far as we know).
 }
-
-\todo{DRAFT STUFF:} As an approach to combining functional and logic programming, $\fslang$ makes two key choices:
-
-\begin{enumerate}
-\item Generalizing implicitly boolean predicates to \emph{supported functions} with explicit return types.
-
-We generalize the implicit boolean-ness of logic programming to other \draft{explicit functions-into-a-type perspective; avoid the implicit ``boolean-ness'' of other FLP systems. there are other systems with a value-oriented perspective (\emph{weighted} logic programming; or \emph{semiring} approaches on the DB end)}
-
-\item finite support and tables, no unification: Datalog not Prolog. this is not novel, rather a well-established choice on a well-established spectrum, but it's worth pointing out as many other FLP systems are more top-down/unification based.
-\end{enumerate}
-
-\textbf{DRAFT/IDEAS:}
-
-\begin{itemize}
-\item Loosely inspired by RelationalAI's internal language (do they have any papers on its design?).
-\item Difference from most FLPs: make the booleanization explicit!
-\item Curry, Verse: top down and use existential variables.
-\item Mercury: explicit modes, similar to us in that way. (is it bottom up though?)
-\item Flix, FP in Datalog, Datafun, $\lambda_\vee$.
-\end{itemize}
-
- all the various attempts to combine Datalog and functional programming: Datafun, Flix, $\lambda_\vee$. Functional logic programming: Curry, Verse---but these are top-down and use unification and existential variables. \fslang's approach of treating relations as maps with an explicit output type seems to distinguish us from other functional logic programming languages, which `hide' the boolean-ness.
-Our explicit modedness via separating functions from finite maps is similar to Mercury.
-
-Semiring languages! In particular that system with compact maps from Henglein et al. but no language there. But also Amir Shaikhha's work.
 
 \textbf{future directions:}
 interleaved $\D$/$\O$ contexts so that we can bind interleaved pointed/finitely supported variables and lift the restriction on \rulename{$\lto$\,i}.
