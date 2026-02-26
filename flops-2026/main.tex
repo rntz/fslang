@@ -1998,34 +1998,68 @@ To make it clear that terms are finitely supported with respect to the context $
 
 There are many ways to combine logic and functional programming.
 Curry~\cite{curry} and Verse~\cite{DBLP:journals/pacmpl/AugustssonBCJJSSS23} add existentials, unification, and disjunction as ambient effects to a functional language.
-\TODO{Mercury~\cite{DBLP:journals/jlp/SomogyiHC96}.}
-Flix~\cite{10.1145/3428193,flix} combines two sublanguages, one Datalog-like and one functional, each of which can use the other.
-\TODO{Flix~\cite{flix}.}
-Datafun~\cite{datafun} and $\lambda_\vee$~\cite{DBLP:journals/pacmpl/RiouxZ25} enrich functional programming with types (finite sets) and operations (set comprehensions and fixed points) that can express relational programming.
-\TODO{semiring languages!}
-%
+%% Omitting Mercury for now. Seems less interesting than when I previously
+%% looked at it and less well academically explained, alas.
+Mercury~\cite{DBLP:journals/jlp/SomogyiHC96} integrates pure higher-order functional programming into a logical paradigm.
+Flix~\cite{10.1145/3428193} combines two sublanguages, one logical, one functional, which can each invoke the other.
+Datafun~\cite{datafun} and $\lambda_\vee$~\cite{DBLP:journals/pacmpl/RiouxZ25} embed Datalog into functional programming using set comprehensions and fixed points, while
+functional IncA~\cite{DBLP:conf/ecoop/PacakE22} embeds functional programming into Datalog using a demand transform.
+
 So far as we know,
 %To the best of our knowledge,
-only \fslang\ treats predicates as a special function type, introduced by $\lambda$ and eliminated by application.
-This was inspired by the syntax of the Rel language~\cite{10.1145/3722212.3724450}, \TODO{discuss}.
+only \fslang\ takes predicates to be functions (albeit special ones) returning booleans.\footnotemark{}
+This was inspired by the syntax of Rel~\cite{10.1145/3722212.3724450}, which lets users define relations pointwise via `and', `or', and `exists', and supports numeric operations and aggregations, as if relations had return values.
+However, Rel implements this by desugaring to a Datalog-like core where the `value' of a Rel expression is just the denoted relation's final argument (column).
+\xxx\ We think this approach has two benefits: support and weight.
 
-%% Unlike Curry and Verse, but like Flix and Datafun, this approach clearly separates ordinary, procedural functions ($A \to B$) from logical predicates/relations ($A \fto P$).
-%% Not coincidentally, Curry and Verse are based on top-down logic programming and Flix and Datafun on bottom-up logic programming.
+\footnotetext{
+  This should not be confused with the typical functional logic programming approach where a relation $A \times B \to \bool$ is represented as a `function' $A \to B$ that yields multiple (or no) $B$ values for a given $A$.
+  %This hides the implicit boolean and makes ``multiple returns'' an ambient effect.
+}
+
+\todo{
+  Key insight is to treat relations as supported functions.
+  TAKEAWAYS: relations are supported functions.
+  This has two main design benefits: (a) it puts focus on support and how you ascertain it; (b) makes return type explicit so that we can do weighted programming \& aggregation.
+  IF YOU WANT SUPPORT TO BE FINITE:
+  variable grounding is an effect graded by the context of variables it grounds. relevance or linear types interact with this grading so we track inner vs outer joins and their effect on grounding properly.
+  Our type system for checking finite support draws a connection between variable grounding and moding on the one hand, and graded coeffects over relevance types on the other, which we have not seen noticed before (except maybe in that Neel K / Ariadne Si Suo paper! it uses linear types!).
+}
+
+\todo{TWO BENEFITS: (1) makes explicit the role of support so you can control it. (2) makes explicit role of return type so you can think about that.
+%
+  (1) is a NON-GOAL for functional logic programming languages like Curry, Verse, where we want existential variables to be ambient and pervasive rather than tightly controlled; there, \emph{every function is a relation} and there is no point distinguishing them. But it is very much a goal if for efficiency we want to limit or avoid the use of logic variables and unification, as in Mercury or Datalog-inspired languages like Flix and Datafun.
+%
+  (2) is not new, but we think we are the first to observe that pointed sets are the minimum necessary structure but also seem to be sufficient for doing aggregations and weighted logic programming.
+}
+
+\todo{NOVEL CONTRIBUTIONS:
+  \begin{enumerate}
+  \item show one can take seriously the idea that predicates are functions into booleans, if one represents these functions' support.
+
+  \item observes that pointed sets are the minimum structure necessary to define support, and that they allow expressing aggregations and weighted logic programming. (Previous approaches have used semilattices or semirings or specific weights such as probabilities.)
+
+  \item when finite support is desired, draws a connection between variable grounding and moding on the one hand, and graded coeffects over relevance types on the other
+  \end{enumerate}
+}
 
 Giving predicates an explicit return type moves beyond the implicit boolean worldview of logic programming languages like Prolog and Datalog, inherited by Curry and Mercury.
 (Verse's relations are ordered sequences, which are not equivalent to functions into any type.)
 This is not unique to \fslang:
-Flix, $\lambda_\vee$, and Datafun generalize to non-boolean semilattices.
+Flix, $\lambda_\vee$, and Datafun generalize from booleans to semilattices.
 \TODO{semiring languages}
 \TODO{probabilistic logic languages, ProbLog; what was that thing at the most recent miniKanren workshop?}
 \xxx\
 So far as we know,
 %To the best of our knowledge,
-only \fslang\ generalizes to pointed sets---the least structure required to define a function's support.
+only \fslang\ generalizes to pointed sets---the
+least structure needed
+%minimum necessary
+to define a function's support.
 \TODO{this supports moving \emph{between} different pointed sets, rather than having to pick one semiring/value type and stick with it.}
 
 \TODO{Discuss input/output modes.
-  Cite Mercury, Mistral Contrastin, and wossernames paper with Neel K.
+  Cite Mercury, Mistral Contrastin~\cite{DBLP:conf/ppdp/ContrastinOR18}, and wossernames paper with Neel K.
   This idea is latent in languages like Datafun, Flix, and $\lambda_\vee$ that separate procedural functions from logical predicates.
   But, although we have barely discussed it in this paper, our observation that grounding corresponds to a effect graded by the set of grounded variables seems novel (so far as we know).
 }
