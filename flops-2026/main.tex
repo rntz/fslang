@@ -1077,16 +1077,16 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
 \end{figure}
 
 \begin{figure}[t]
-  \newcommand\defeq{\longrightarrow}
+  \newcommand\desugar{\longrightarrow}
   \begin{align*}
-    \bool &\defeq \maybeof 1 &
-    (t \tand u) &\defeq (\letjust \pwild t u)
+    \bool &\desugar \maybeof 1 &
+    t \tand u &\desugar \letjust \pwild t u
     \\
-    \true &\defeq \tjust () &
-    (\leteq x t u) &\defeq (\letin{(x,y) = (t, \true)} (y \tand u))
+    \true &\desugar \tjust () &
+    \leteq x t u &\desugar \letin{(x,y) = (t, \true)} (y \tand u)
     \\
-    \false &\defeq \nil &
-    (t \when u) &\defeq (\leteq x t {(u \tand x)})
+    \false &\desugar \nil &
+    t \when u &\desugar \leteq x t {(u \tand x)}
     \\
     \kword{or} &: \bool \with \bool \lto \bool
     &
@@ -1613,9 +1613,13 @@ into the unrestricted context for $u$:
 
 \noindent
 Despite combining $\O_1,\O_2$ disjointly rather than by union, this rule is strictly more general then the previous two.
-\todo{THIS IS INCORRECT, because I don't allow finite maps to be applied to variables that are not in the fs context $\O$! need to fix this.}
-This is because a variable finitely supported by both $t$ and $u$ can simply be placed into $\O_1$: having an unrestricted variable in $u$ is strictly more general than having a finitely supported variable. \todolater{really don't like this this needs better explanation}
-\todolater{connect this to input/output modes! discuss how it's not symmetric but this is an arbitrary choice! so much to discuss here!}
+\todo{THIS IS WRONG: I don't allow finite maps to be applied to variables that aren't in $\O$! FIX THIS.}
+This is because a variable finitely supported by both $t$ and $u$ can simply be placed into $\O_1$: having an unrestricted variable in $u$ is strictly more general than having a finitely supported variable.
+\todo{
+  EXPLAIN THIS ASYMMETRY BETTER.
+  connect it to input/output modes!
+  discuss how it's not symmetric, but this is an arbitrary choice!
+}
 
 
 %% ---- TYPES & SEMANTICS FIGURES ----
