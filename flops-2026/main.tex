@@ -142,10 +142,8 @@
 \newcommand\todo[1]{{\color{IndianRed}#1}}
 \newcommand\TODO[1]{\todo{\strong{TODO}: #1}}
 \newcommand\xxx{\text{\todo{\strong{XXX}}}}
-
 \newcommand\todolater\todo
 \renewcommand\todolater[1]{\todo{\color{RoyalBlue}#1}}
-
 \newcommand\draft[1]{{\color{RoyalBlue}#1}}
 
 %\renewcommand\todo[1]{\ignorespaces}
@@ -597,6 +595,16 @@ We make the following contributions:
 
 \item We give a denotational semantics of \fslang\ in \Point. \TODO{cut semantics figure and rephrase as ``\emph{sketch} a denotational semantics of \fslang\ in \Point.''?}
 \end{enumerate}
+
+\todolater{NOVEL CONTRIBUTIONS from thinking about paper conclusion / related work:
+  \begin{enumerate}
+  \item show one can take seriously the idea that predicates are functions into booleans, if one represents these functions' support.
+
+  \item observes that pointed sets are the minimum structure necessary to define support, and that they allow expressing aggregations and weighted logic programming. (Previous approaches have used semilattices or semirings or specific weights such as probabilities.)
+
+  \item when finite support is desired, draws a connection between variable grounding and moding on the one hand, and graded coeffects over relevance types on the other
+  \end{enumerate}
+}
 
 \noindent
 Along the way we will observe other curious connections:
@@ -2010,15 +2018,10 @@ To make it clear that terms are finitely supported with respect to the context $
 %% Flix and $\lambda_\vee$ do generalize to other semilattices, \xxx
 %% $\fslang$ also deliberately separates 
 
-\todo{TODO WRITE: related work, \strong{LIMITATIONS and future work} (recursion poses semantic problems but implementation should be manageable), conclusion}
-
-\noindent
 There are many ways to combine logic and functional programming.
 Mercury~\cite{DBLP:journals/jlp/SomogyiHC96} integrates pure higher order functional programming into a top-down logical programming language.
 Functional IncA~\cite{DBLP:conf/ecoop/PacakE22} embeds functional programming into Datalog using a demand transform.
 Flix~\cite{10.1145/3428193} combines two sublanguages, one logical, one functional, which can each invoke the other.
-
-\pagebreak
 
 \fslang, however, belongs to the subfamily of languages integrating logical features into a functional substrate.
 %
@@ -2039,16 +2042,6 @@ Rel also supports arithmetic operators and aggregations, as if relations had ret
 However, Rel implements this by desugaring to a Datalog-like core where the `value' of a Rel expression is just the relation's final column.
 \fslang\ reimagines this syntactic sugar semantically.
 
-\todo{NOVEL CONTRIBUTIONS (should we adjust contributions at paper top for this?):
-  \begin{enumerate}
-  \item show one can take seriously the idea that predicates are functions into booleans, if one represents these functions' support.
-
-  \item observes that pointed sets are the minimum structure necessary to define support, and that they allow expressing aggregations and weighted logic programming. (Previous approaches have used semilattices or semirings or specific weights such as probabilities.)
-
-  \item when finite support is desired, draws a connection between variable grounding and moding on the one hand, and graded coeffects over relevance types on the other
-  \end{enumerate}
-}
-
 
 %% \todo{
 %%   Key insight is to treat relations as supported functions.
@@ -2068,7 +2061,6 @@ However, Rel implements this by desugaring to a Datalog-like core where the `val
 
 
 By generalizing beyond booleans, \fslang\ moves closer to weighted logic programming languages like Dyna~\cite{filardo:dyna2,matthewfl:thesis}, ProbLog~\cite{DBLP:conf/ijcai/RaedtKT07}, or Datalog\textdegree~\cite{DBLP:journals/jacm/KhamisNPSW24}.
-\todolater{mention tensor algebra stuff!}
 Indeed, \fslang\ is inspired by and indebted to databases research on $K$-relations~\cite{DBLP:conf/pods/GreenKT07}, generalizing Datalog semantics from booleans to semirings, which has in turn inspired functional query languages~\cite{DBLP:journals/corr/abs-2207-00850,DBLP:journals/pacmpl/ShaikhhaHSO22}.
 Other Datalog-inspired languages like Datafun, Flix, and $\lambda_\vee$ generalize to semilattices.
 However, so far as we know only \fslang\ uses {pointed sets}---the minimal, most general structure required to define a function's support.
@@ -2076,7 +2068,7 @@ Semirings then emerge as a natural structure over pointed sets:
 we can generalize \name{or} and \name{exists} to an `additive' commutative monoid $(P, \oplus : P \with P \lto P, \nil_P)$ and its aggregation operator $\bigoplus : (A \fto P) \lto P$, and similarly \name{and} generalizes to a `multiplicative' monoid $(P, {\oast} : P \otimes P \lto P, \boldsymbol 1)$ distributing over $\oplus$.
 
 \todolater{Discuss input/output modes.
-  Cite Mercury, Mistral Contrastin~\cite{DBLP:conf/ppdp/ContrastinOR18}, and wossernames paper with Neel K.
+  Cite Mercury, Mistral Contrastin~\cite{DBLP:conf/ppdp/ContrastinOR18}, and Ariadne Si Suo's paper with Neel K (unpublished!).
   This idea is latent in languages like Datafun, Flix, and $\lambda_\vee$ that separate procedural functions from logical predicates.
   But, although we have barely discussed it in this paper, our observation that grounding corresponds to a effect graded by the set of grounded variables seems novel (so far as we know).
 }
@@ -2089,28 +2081,18 @@ we can generalize \name{or} and \name{exists} to an `additive' commutative monoi
   using bidirectional type inference, which we lack space to discuss here; it can be found at \url{https://github.com/rntz/fslang/blob/main/fslang.rkt}.
 
 \item Our contexts have a fixed order, $\G \cxsep \D \cxsep \O \vdash P$, glossed as $\G \to \D \lto \O \fto P$.
-  This is not fully general: in particular, because $A \fto P \lto Q \ncong P \lto A \fto Q$ to write programs with the former type naturally we would need an additional context $\G \cxsep \D_1 \cxsep \O \cxsep \D_2 \vdash P$.
+  This is not fully general: because $P \lto A \fto Q \ncong A \fto P \lto Q$, to write programs of the latter type naturally we would need an additional context $\G \cxsep \D_1 \cxsep \O \cxsep \D_2 \vdash P$.
   In general, any number of interleavings of point preserving $\D$ and finitely supported $\O$ contexts may be necessary.
 
-\item It would be pleasant to support destructuring syntax for $\with$ pairs.
+\item Destructuring syntax for $\with$ pairs would be highly convenient for writing outer joins.
+  However, standard rules for linear or relevance logic do not permit this.
+  We suspect it may be possible to steal rules from the logic of bunched implications~\cite{DBLP:journals/bsl/OHearnP99}.
+
+\item How can \fslang\ be implemented? Our finite map operations have a strong connection to tensor algebra; perhaps indexed streams~\cite{10.1145/3591268} may provide a strategy for implementing them.
+
+  \todo{\item commutative monoids
+  \item incrementality}
 \end{itemize}
-
-\TODO{limitations / future work:
-  \begin{itemize}
-  \item no recursion. poses semantic problems but implementation seems straightforward: as in Datalog or Datafun or Datalog etc, iterate to fixed point starting from empty!
-  \item showing how to implement type checking bidirectionally. we believe it's simpler than it appears.
-  \item destructuring for $\with$ pairs? bunched implications?
-  \end{itemize}
-}
-
-\textbf{future directions:}
-interleaved $\D$/$\O$ contexts so that we can bind interleaved pointed/finitely supported variables and lift the restriction on \rulename{$\lto$\,i}.
-allowing deconstruction of $\with$ pairs.
-implementation.
-Speculatively: commutative monoids, incrementality.
-
-\textbf{IMPLEMENTATION ideas}.
-Strong connection to tensor algebra; in particular we think indexed streams might be a good impl strategy.
 
 
 %% END MATTER
