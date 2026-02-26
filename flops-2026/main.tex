@@ -2075,7 +2075,7 @@ we can generalize \name{or} and \name{exists} to an `additive' commutative monoi
 
 \fslang\ has many limitations which we would like to lift in future work:
 \begin{itemize}
-\item It lacks recursion, which requires more complex semantics to handle---perhaps domain theory as in $\lambda_\vee$---but are operationally straightforward: as in Datalog or Datafun, we iterate until fixed point starting from the empty finite map.
+\item It lacks recursion, which requires more complex semantics to handle---perhaps domain theory as in $\lambda_\vee$---but seems operationally straightforward: as in Datalog, we iterate until fixed point starting from the empty finite map.
 
 \item We did not show how to implement our type system, although we have built \href{https://github.com/rntz/fslang/blob/b2730369f68f1cdb4fd69b4a8d997b167d29b7a0/fslang.rkt}{a prototype}
   using bidirectional type inference, which we lack space to discuss here; it can be found at \url{https://github.com/rntz/fslang/blob/main/fslang.rkt}.
@@ -2084,9 +2084,8 @@ we can generalize \name{or} and \name{exists} to an `additive' commutative monoi
   This is not fully general: because $P \lto A \fto Q \ncong A \fto P \lto Q$, to write programs of the latter type naturally we would need an additional context $\G \cxsep \D_1 \cxsep \O \cxsep \D_2 \vdash P$.
   In general, any number of interleavings of point preserving $\D$ and finitely supported $\O$ contexts may be necessary.
 
-\item Destructuring syntax for $\with$ pairs would be highly convenient for writing outer joins.
-  However, standard rules for linear or relevance logic do not permit this.
-  We suspect it may be possible to steal rules from the logic of bunched implications~\cite{DBLP:journals/bsl/OHearnP99}.
+\item Destructuring of $\with$ pairs would be convenient for writing outer joins, but standard linear/relevance typing rules do not permit this.
+  We suspect it may be possible by stealing rules from the logic of bunched implications~\cite{DBLP:journals/bsl/OHearnP99}.
 
 \item How can \fslang\ be implemented? Our finite map operations have a strong connection to tensor algebra; perhaps indexed streams~\cite{10.1145/3591268} may provide a strategy for implementing them.
 
