@@ -2016,27 +2016,6 @@ Rel also supports arithmetic operators and aggregations, as if relations had ret
 However, Rel implements this by desugaring to a Datalog-like core where the `value' of a Rel expression is just the relation's final column.
 \fslang\ reimagines this syntactic sugar semantically.
 
-%% There are many ways to combine logic and functional programming.
-%% %% Omitting Mercury for now. Seems less interesting than when I previously
-%% %% looked at it and less well academically explained, alas.
-%% Mercury~\cite{DBLP:journals/jlp/SomogyiHC96} integrates pure higher-order functional programming into a logical paradigm.
-%% Flix~\cite{10.1145/3428193} combines two sublanguages, one logical, one functional, which can each invoke the other.
-%% Datafun~\cite{datafun} and $\lambda_\vee$~\cite{DBLP:journals/pacmpl/RiouxZ25} embed Datalog into functional programming using set comprehensions and fixed points, while
-%% functional IncA~\cite{DBLP:conf/ecoop/PacakE22} embeds functional programming into Datalog using a demand transform.
-%% %
-%% So far as we know,
-%% only \fslang\ embeds logic programming into functional programming by taking predicates to be functions (albeit special ones) returning booleans.\footnotemark{}
-%% This should not be confused with the functional logic programming approach of Curry~\cite{curry} and Verse~\cite{DBLP:journals/pacmpl/AugustssonBCJJSSS23}, %add existentials, unification, and disjunction as ambient effects to a functional language.
-%%  where a relation $A \times B \to \bool$ is represented as a `function' $A \to B$ that yields multiple (or no) $B$ values for a given $A$.
-%%   This (a) makes multiple returns an ambient effect and (b) hides the boolean-ness.
-%%   We believe these are neither necessary nor desirable sacrifices.
-%% \xxx
-%% \draft{Based on the first author's experience at RelationalAI, we think that treating predicates as functions is ergonomically pleasant.}
-%% \footnotetext{
-%%   This was inspired by the syntax of Rel~\cite{10.1145/3722212.3724450}, which lets users define relations pointwise via `and', `or', and `exists', and supports numeric operations and aggregations, as if relations had return values.
-%%   However, Rel implements this by desugaring to a Datalog-like core where the `value' of a Rel expression is just the denoted relation's final argument (column).
-%% }
-
 \todo{NOVEL CONTRIBUTIONS:
   \begin{enumerate}
   \item show one can take seriously the idea that predicates are functions into booleans, if one represents these functions' support.
