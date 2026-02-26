@@ -2007,7 +2007,7 @@ Flix~\cite{10.1145/3428193} combines two sublanguages, one logical, one function
 Perhaps the most well known examples are `functional logic programming' languages like Curry~\cite{curry} and Verse~\cite{DBLP:journals/pacmpl/AugustssonBCJJSSS23}, %add existentials, unification, and disjunction as ambient effects to a functional language.
 where relations $A \times B \to \bool$ become `functions' $A \to B$ that may yield many $B$s for a given $A$.
 %
-We find this undesirable because it (a) makes multiple returns an ambient effect and (b) hides the boolean-ness, losing the opportunity to generalize from \bool\ to other types.
+We find this undesirable because it (a) makes multiple returns and unification into pervasive ambient effects and (b) hides the boolean-ness, losing the opportunity to generalize from \bool\ to other types.
 %We believe these choices are neither necessary nor desirable.
 \fslang\ is closer to Datafun~\cite{datafun} and $\lambda_\vee$~\cite{DBLP:journals/pacmpl/RiouxZ25}, which avoid ambient effects by representing relations as finite sets, a separate type from normal functions.
 Consequently they express logical operations via loops or set comprehensions.
@@ -2037,6 +2037,16 @@ However, Rel implements this by desugaring to a Datalog-like core where the `val
 %%   However, Rel implements this by desugaring to a Datalog-like core where the `value' of a Rel expression is just the denoted relation's final argument (column).
 %% }
 
+\todo{NOVEL CONTRIBUTIONS:
+  \begin{enumerate}
+  \item show one can take seriously the idea that predicates are functions into booleans, if one represents these functions' support.
+
+  \item observes that pointed sets are the minimum structure necessary to define support, and that they allow expressing aggregations and weighted logic programming. (Previous approaches have used semilattices or semirings or specific weights such as probabilities.)
+
+  \item when finite support is desired, draws a connection between variable grounding and moding on the one hand, and graded coeffects over relevance types on the other
+  \end{enumerate}
+}
+
 \todo{
   Key insight is to treat relations as supported functions.
   TAKEAWAYS: relations are supported functions.
@@ -2051,16 +2061,6 @@ However, Rel implements this by desugaring to a Datalog-like core where the `val
   (1) is a NON-GOAL for functional logic programming languages like Curry, Verse, where we want existential variables to be ambient and pervasive rather than tightly controlled; there, \emph{every function is a relation} and there is no point distinguishing them. But it is very much a goal if for efficiency we want to limit or avoid the use of logic variables and unification, as in Mercury or Datalog-inspired languages like Flix and Datafun.
 %
   (2) is not new, but we think we are the first to observe that pointed sets are the minimum necessary structure but also seem to be sufficient for doing aggregations and weighted logic programming.
-}
-
-\todo{NOVEL CONTRIBUTIONS:
-  \begin{enumerate}
-  \item show one can take seriously the idea that predicates are functions into booleans, if one represents these functions' support.
-
-  \item observes that pointed sets are the minimum structure necessary to define support, and that they allow expressing aggregations and weighted logic programming. (Previous approaches have used semilattices or semirings or specific weights such as probabilities.)
-
-  \item when finite support is desired, draws a connection between variable grounding and moding on the one hand, and graded coeffects over relevance types on the other
-  \end{enumerate}
 }
 
 Giving predicates an explicit return type moves beyond the implicit boolean worldview of logic programming languages like Prolog and Datalog, inherited by Curry and Mercury.
