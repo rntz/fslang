@@ -394,12 +394,18 @@
 \maketitle              % typeset the header of the contribution
 
 \begin{abstract}
-We propose unifying functional and logic/relational programming by treating predicates/relations as functions equipped with their support: the set of inputs whose output is nonzero.
-For instance, the logic programming language Datalog is a language of finitely supported boolean functions.
-Finite support allows representing the function, not as code, but as data---as a table of input-output pairs---making bulk operations more efficient.
-Aggregation and weighted logic programming are naturally handled by generalizing the definition of support from booleans to other pointed sets.
+We unify functional and logic %/relational
+programming by treating predicates %/relations
+as functions equipped with their support: the set of inputs whose output is nonzero.
+Datalog, for instance, is a language of finitely supported boolean functions.
+%For instance, the logic programming language Datalog is a language of finitely supported boolean functions.
+Finite support allows representing functions as input-output tables.
+%Finite support allows representing a function not as code but as data: a table of input-output pairs.
+%---making bulk operations more efficient.
+Generalizing from boolean functions to other pointed sets neatly handles aggregation and weighted logic programming.
+%Aggregation and weighted logic programming are naturally handled by generalizing the definition of support from booleans to other pointed sets.
 We refer to the combination of finitely supported functions, represented as data, with higher order functions, represented as code, as \emph{finite functional programming.}
-To this end, we demonstrate a simple type system to check finite support, using a combination of graded coeffects to check variable grounding and relevance types to model pointed sets.
+We give a simple type system to check finite support, using graded effects to check variable grounding and relevance types to model pointed sets.
 
 %% %% ---------- OLD ABSTRACT ----------
 %%   I propose unifying functional and logic/relational programming by treating predicates/relations as functions equipped with their support---the set of inputs whose output is non-false.
@@ -414,7 +420,9 @@ To this end, we demonstrate a simple type system to check finite support, using 
 %%   %% \todo{do I actually do this? $\rightarrow$}
 %%   %% I sketch future work on semantics and implementation strategies, particularly for recursion.
 
-\keywords{Logic programming \and Functional programming \and Categorical semantics \and Linear types \and Relevance types %\and Coeffects
+\keywords{Logic programming \and Functional programming
+  %\and Categorical semantics
+  \and Linear types \and Relevance types %\and Coeffects
   \and Graded effects}
 \end{abstract}
 
@@ -582,7 +590,7 @@ We make the following contributions:
 
 %% \item We use these insights to construct a type system whose well typed terms have finite support, and which is expressive enough to capture relational algebra augmented with some forms of aggregation.
 
-\item We give a denotational semantics of \fslang\ in \Point. \TODO{cut this?}
+\item We give a denotational semantics of \fslang\ in \Point. \TODO{cut semantics figure and rephrase as ``\emph{sketch} a denotational semantics of \fslang\ in \Point.''?}
 \end{enumerate}
 
 \noindent
@@ -761,51 +769,52 @@ The category \Point\ has pointed sets $P,Q$ as objects and point-preserving maps
 If finitely supported maps are this work's \emph{raison d'\^etre,} point-preserving maps are how we will manipulate and combine them.
 
 
-%% ---------- CUT FOR TIME ----------
-\subsection{Why not just...?}
+%% %% ---------- CUT FOR TIME ----------
+%% \subsection{Why not just...?}
 
-\newcommand\Maybe{\typename{Maybe}}
+%% \newcommand\Maybe{\typename{Maybe}}
+%% \renewcommand\Maybe\maybe
 
-\lstset{language={},
-  %basicstyle=\sffamily,
-}
+%% \lstset{language={},
+%%   %basicstyle=\sffamily,
+%% }
 
-The rest of this paper describes a type system handling the interaction of ordinary functions, point preserving functions, and finite maps.
-This may seem unnecessary.
-After all:
-\begin{enumerate}
-\item Isn't any pointed set $P$ equivalent to an `option' or `maybe' type, $\Maybe~ A$?
+%% The rest of this paper describes a type system handling the interaction of ordinary functions, point preserving functions, and finite maps.
+%% This may seem unnecessary.
+%% After all:
+%% \begin{enumerate}
+%% \item Isn't any pointed set $P$ equivalent to an `option' or `maybe' type, $\Maybe~ A$?
 
-\item Isn't any point-preserving map $\Maybe~ A \lto \Maybe~ B$ equivalent to an ordinary map $A \to \Maybe~ B$?
+%% \item Isn't any point-preserving map $\Maybe~ A \lto \Maybe~ B$ equivalent to an ordinary map $A \to \Maybe~ B$?
 
-\item Aren't finitely supported maps $A \fto \Maybe~ B$ equivalent to the run-of-the-mill `finite map' or `dictionary' type present in most programming languages' standard libraries, e.g.\ Haskell's \lstinline{Map A B}?
-\end{enumerate}
+%% \item Aren't finitely supported maps $A \fto \Maybe~ B$ equivalent to the run-of-the-mill `finite map' or `dictionary' type present in most programming languages' standard libraries, e.g.\ Haskell's \lstinline{Map A B}?
+%% \end{enumerate}
 
-\noindent
-However, if we care about higher order programming, the answer to (1) is \emph{no!}
-% not every pointed set is computably isomorphic to a \typename{Maybe}.
-Take any infinite pointed set: say, the naturals $\natz$ where $\nil_{\natz} = 0$.
-Then $\natz \lto \natz$ is a pointed set, with $\nil_{\natz \lto \natz} = \fn{\pwild} 0$.
-But it is undecidable whether a function is equal to $\fn{\pwild} 0$; so $\natz \lto \natz$ is not computably isomorphic to any \Maybe\ type in a way that sends $\nil$ to \lstinline{Nothing}.
-Indeed, being unable to decide equality with \nil\ is the common case: most higher order types are not \Maybe\ types.
+%% \noindent
+%% However, if we care about higher order programming, the answer to (1) is \emph{no!}
+%% % not every pointed set is computably isomorphic to a \typename{Maybe}.
+%% Take any infinite pointed set: say, the naturals $\natz$ where $\nil_{\natz} = 0$.
+%% Then $\natz \lto \natz$ is a pointed set, with $\nil_{\natz \lto \natz} = \fn{\pwild} 0$.
+%% But it is undecidable whether a function is equal to $\fn{\pwild} 0$; so $\natz \lto \natz$ is not computably isomorphic to any \Maybe\ type in a way that sends $\nil$ to \lstinline{Nothing}.
+%% Indeed, being unable to decide equality with \nil\ is the common case: most higher order types are not \Maybe\ types.
 
-%Nor as a practical matter, is it always convenient to represent point preserving maps using \Maybe{} types or finite maps using dictionaries, even when limited to first-order types as in (2--3).
-A similar mismatch happens, for instance, with curried finite maps $A \fto B \fto \Maybe~C$.
-This can be represented by a dictionary \lstinline{Map (A,B) C}, but this misses the point---it's no longer curried.
-But the `curried' \lstinline{Map A (Map B C)} also misses the mark, as it is isomorphic not to $A \fto B \fto \Maybe~C$ but to $A \fto \Maybe~(B \fto \Maybe~C)$.
-\todolater{this isn't as motivating as I had hoped, frankly. \strong{USE MAX'S COMMENTS ABOUT DEFAULTDICT TO REWRITE!}}
+%% %Nor as a practical matter, is it always convenient to represent point preserving maps using \Maybe{} types or finite maps using dictionaries, even when limited to first-order types as in (2--3).
+%% A similar mismatch happens, for instance, with curried finite maps $A \fto B \fto \Maybe~C$.
+%% This can be represented by a dictionary \lstinline{Map (A,B) C}, but this misses the point---it's no longer curried.
+%% But the `curried' \lstinline{Map A (Map B C)} also misses the mark, as it is isomorphic not to $A \fto B \fto \Maybe~C$ but to $A \fto \Maybe~(B \fto \Maybe~C)$.
+%% \todolater{this isn't as motivating as I had hoped, frankly. \strong{USE MAX'S COMMENTS ABOUT DEFAULTDICT TO REWRITE!}}
 
-%\TODO{discuss currying of finite maps.}
+%% %\TODO{discuss currying of finite maps.}
 
-As questions (2--3) limit themselves to \Maybe-types, their answers are, technically, yes.
-However, even in this case, actually programming this way can be quite awkward.
-For instance, consider working with the type $\natz$ of naturals where $\nil_{\natz} = 0$. How do we represent $\natz$ as a \Maybe\ type?
-We need either a type containing only the nonzero naturals (not easy to do in most languages), or we need to constantly work across the isomorphism $\nat \setminus \{0\} \cong \nat$ which subtracts one from every natural number, meaning all our arithmetic operators are now off by one---supremely awkward.
+%% As questions (2--3) limit themselves to \Maybe-types, their answers are, technically, yes.
+%% However, even in this case, actually programming this way can be quite awkward.
+%% For instance, consider working with the type $\natz$ of naturals where $\nil_{\natz} = 0$. How do we represent $\natz$ as a \Maybe\ type?
+%% We need either a type containing only the nonzero naturals (not easy to do in most languages), or we need to constantly work across the isomorphism $\nat \setminus \{0\} \cong \nat$ which subtracts one from every natural number, meaning all our arithmetic operators are now off by one---supremely awkward.
 
-The motivation for the design of \fslang, then, is to handle the combination of higher order functions and finite support in a harmonious, uniform manner.
-%% Ultimately, the proof is in the pudding: does \fslang\ hang together and let us express programs we care about \todo{more nicely than existing systems}?
-%% Our goal is not merely to make programs expressible, but give them an expression that mirrors their logical structure---not merely to implement logic programs in a functional language, but to unify logic and functional programming.
-%% \todo{Only you can be the judge of that.}
+%% The motivation for the design of \fslang, then, is to handle the combination of higher order functions and finite support in a harmonious, uniform manner.
+%% %% Ultimately, the proof is in the pudding: does \fslang\ hang together and let us express programs we care about \todo{more nicely than existing systems}?
+%% %% Our goal is not merely to make programs expressible, but give them an expression that mirrors their logical structure---not merely to implement logic programs in a functional language, but to unify logic and functional programming.
+%% %% \todo{Only you can be the judge of that.}
 
 
 %% \TODO{rewrite this. ditch the "why do we do things pointwise" section. instead focus on why we have our type system machinery: because we're going higher-order. at first-order types, we don't need any of this. but as soon as (eg) currying gets involved, we do. I think this can go as a subsection of section 2, after we introduce pointed sets but before we introduce and/or and $\ox$/$\with$.}
@@ -947,7 +956,7 @@ curried maps $f : P \lto Q \lto R$ must preserve \nil\ in each argument separate
 
 \noindent
 In fact, currying and uncurrying of point-preserving maps forms an isomorphism $P \ox Q \lto R \cong P \lto Q \lto R$.
-But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') that yield \nil\ only when both arguments are \nil\ (phrased categorically, \Point\ lacks exponential objects).
+But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') that yield \nil\ only when both arguments are \nil.\footnote{Phrased categorically, \Point\ does not have all exponential objects.}
 
 %This is precisely what `and' does that `or' does not.
 
