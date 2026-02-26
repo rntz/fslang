@@ -1109,6 +1109,7 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
     &
     \name{sum} &: (A \fto \natz) \lto \natz
     \\
+    (\times) &: \natz \ox \natz \lto \natz &
     ({=}) &: A \to A \fto \bool
   \end{align*}
   \caption{Syntax sugar and primitive functions in \fslang}
@@ -1192,6 +1193,15 @@ For instance, $\name{sum} : (A \fto \natz) \lto \natz$ lets us count the number 
 \end{code}
 
 \noindent
+It also lets us express matrix multiplication over sparse matrices of arbitrary rank:
+\begin{code}
+  \name{matrixMul} : (A \times B \fto \nat_0) \lto
+  (B \times C \fto \nat_0) \lto
+  A \times C \fto \nat_0\\
+  \name{matrixMul} \<M \<N \<i \<k = \name{sum} \<(\fn j M\,i\,j \times N\,j\,k)
+\end{code}
+
+\noindent
 We might even dare to consider defining finitely supported predicates recursively:
 
 \begin{code}
@@ -1241,20 +1251,24 @@ Finally, let's turn our attention to the prototypical outer join: union.
 \noindent
 We saw in \cref{sec:support} why \name{union}, being a function out of a $\with$-type, cannot be curried.
 But why can't we destructure the pair $\name{fg}$?
-This will not become clear until \cref{sec:relevance}; the `obvious' rules only permit destructuring $\ox$-pairs and not $\with$-pairs.
-Perhaps this limitation can be ducked with cleverer rules;
-but such rules would need to treat variables created by destructuring an $\with$-pair differently than those created by destructuring an $\otimes$-pair, otherwise we could give \name{union} the following incorrect type:
+To explain this, we must understand the variable usage rules that ensure functions preserve \nil.
 
 \colorlet{invalid}{BrickRed}
-\begin{code}
-  \color{invalid}
-  \name{falseUnion} : (A \fto \bool) \ox (A \fto \bool) \lto (A \fto \bool)
-  \qquad\qquad \textsc{\ding{55} invalid}
-  \\
-  \color{invalid}
-  \name{falseUnion} \<(f,g) \<x = f\<x \tor g\<x
-  %% \hspace{13em} \textsf{INVALID CODE}
-\end{code}
+
+%% This will not become clear until \cref{sec:relevance}; the `obvious' rules only permit destructuring $\ox$-pairs and not $\with$-pairs.
+%% %
+%% Perhaps this limitation can be ducked with cleverer rules;
+%% but such rules would need to treat variables created by destructuring an $\with$-pair differently than those created by destructuring an $\otimes$-pair, otherwise we could give \name{union} the following incorrect type:
+
+%% \begin{code}
+%%   \color{invalid}
+%%   \name{falseUnion} : (A \fto \bool) \ox (A \fto \bool) \lto (A \fto \bool)
+%%   \qquad\qquad \textsc{\ding{55} invalid}
+%%   \\
+%%   \color{invalid}
+%%   \name{falseUnion} \<(f,g) \<x = f\<x \tor g\<x
+%%   %% \hspace{13em} \textsf{INVALID CODE}
+%% \end{code}
 
 
 %\section{Pointed sets and relevance}
