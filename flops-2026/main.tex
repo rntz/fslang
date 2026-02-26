@@ -1181,8 +1181,7 @@ Let's move on to considering what we can express with the function $\name{exists
 \end{code}
 
 \noindent
-More generally, functions of the shape $(A \fto P) \lto P$ for some specific $P$ represent \emph{aggregations.}
-\TODO{clarify connection: aggregations into $P$ are commutative monoid on $P$ that have $\nil_P$ as their identity, right? is this tight in both directions? surely not; surely there are functions $(A \fto P) \lto P$ that aren't commutative monoids? yes, for instance testing set equality, e.g.\ a function $(A \fto \bool) \lto \bool$ that tests equality with the set $\{x,y\}$.}
+Functions of the shape $(A \fto P) \lto P$ represent \emph{aggregations} into $P$.
 For instance, $\name{sum} : (A \fto \natz) \lto \natz$ lets us count the number of films someone has starred in:
 
 \begin{code}
@@ -1193,12 +1192,32 @@ For instance, $\name{sum} : (A \fto \natz) \lto \natz$ lets us count the number 
 \end{code}
 
 \noindent
-It also lets us express matrix multiplication over sparse matrices of arbitrary rank:
+In general, for any commutative monoid of the form $(P, {\oplus}, \nil_P)$, since $\nil \oplus \nil = \nil$ we have $\oplus : P \with P \lto P$.
+This extends to an aggregation $\bigoplus_P : (A \fto P) \lto P$ that takes a finite map $f : A \fto P$ to the monoid sum $\bigoplus_{x \in \support f} f(x)$.
+For instance, the aggregation of the monoid $(\bool, \kword{or}, \false)$ is \name{exists}, while the aggregation of $(\natz, +, 0)$ is \name{sum}.
+
+Just as \name{exists} combined with $\name{and} : \bool \ox \bool \lto \bool$ gave us relational composition in \name{costars}, summation combined with $\times : \natz \ox \natz \lto \natz$ (which holds since $0 \times y = x \times 0 = 0 = \nil_{\natz}$) gives us matrix multiplication:
+
 \begin{code}
-  \name{matrixMul} : (A \times B \fto \nat_0) \lto
+  \name{matMul} : (A \times B \fto \nat_0) \lto
   (B \times C \fto \nat_0) \lto
   A \times C \fto \nat_0\\
-  \name{matrixMul} \<M \<N \<i \<k = \name{sum} \<(\fn j M\,i\,j \times N\,j\,k)
+  \name{matMul} \<m \<n \<i \<k = \name{sum} \<(\fn j m\,i\,j \times n\,j\,k)
+\end{code}
+
+\noindent
+We have observed the functoriality of $A \fto P$ over pointed sets $P$; how about over $A$?
+As it turns out, this is a functor if $P$ is a commutative monoid, and we can define the corresponding \name{map} operation if we have the aggregation operator for $P$:
+
+\begin{code}
+  \name{map} : (A \to B) \to (A \fto \nat_0) \lto (B \fto \nat_0)\\
+  \name{map} \<f \<\name{count} \<b =
+    %\name{sum} \<(\fn{a} \twhen{\teq{f\<a}{b}}{\name{count} \<a} )
+    \name{sum} \<(\fn{a}
+      %% \leteq{n}{\name{count}\<a}
+      %% \twhen{\teq{f\<a}{b}}{n}
+      \name{count}\<a \when \teq{f\<a}{b}
+    )
 \end{code}
 
 \noindent
@@ -1213,20 +1232,6 @@ We might even dare to consider defining finitely supported predicates recursivel
 \noindent
 Unfortunately we will not be able to give typing rules or semantics for this kind of recursion here.
 Ensuring the existence of a fixed point would seem to require some sort of monotonicity \`a la Datafun~\cite{datafun} or $\lambda_\vee$~\cite{DBLP:journals/pacmpl/RiouxZ25}, and ensuring it remains finite will be even more difficult; we leave this to future work.
-
-We have observed the functoriality of $A \fto P$ over pointed sets $P$; how about over $A$?
-As it turns out, this is a functor if $P$ is a commutative monoid, and we can define the corresponding \name{map} operation if we have an aggregation operator for $P$:
-
-\begin{code}
-  \name{map} : (A \to B) \to (A \fto \nat_0) \lto (B \fto \nat_0)\\
-  \name{map} \<f \<\name{count} \<b =
-    %\name{sum} \<(\fn{a} \twhen{\teq{f\<a}{b}}{\name{count} \<a} )
-    \name{sum} \<(\fn{a}
-      %% \leteq{n}{\name{count}\<a}
-      %% \twhen{\teq{f\<a}{b}}{n}
-      \name{count}\<a \when \teq{f\<a}{b}
-    )
-\end{code}
 
 %% \noindent\TODO{maybe don't bother with joinWith? unless it's a particularly compelling example of higher-order generality.}
 
