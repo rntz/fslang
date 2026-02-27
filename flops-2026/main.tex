@@ -146,7 +146,7 @@
 \renewcommand\todolater[1]{\todo{\color{RoyalBlue}#1}}
 \newcommand\draft[1]{{\color{RoyalBlue}#1}}
 
-%\renewcommand\todo[1]{\ignorespaces}
+\renewcommand\todo[1]{\ignorespaces}
 
 \newcommand\fslang{\ensuremath{\lambda_{\mathrm{FS}}}}
 \newcommand\catname[1]{\ensuremath{\mathrm{#1}}}
@@ -423,9 +423,11 @@ We give a simple type system to check finite support, using graded effects to ch
 %%   %% \todo{do I actually do this? $\rightarrow$}
 %%   %% I sketch future work on semantics and implementation strategies, particularly for recursion.
 
-\keywords{Logic programming \and Functional programming
-  %\and Categorical semantics
-  \and Linear types \and Relevance types %\and Coeffects
+\keywords{Logic programming
+  \and Functional programming
+  \and Categorical semantics
+  \and Linear types
+  \and Relevance types
   \and Graded effects}
 \end{abstract}
 
@@ -547,7 +549,7 @@ To embed this functionally, we could assume a function $\name{exists} : \fa{\alp
 \end{code}
 
 \noindent
-Yet how can we implement $\name{exists} \<f$ for an arbitrary type $\alpha$ and an arbitrary function $f : \alpha \to \bool$?
+But how can we implement \name{exists} for an arbitrary type $\alpha$ and function $f : \alpha \to \bool$?
 We are stymied by unidirectionality: all we can do with $f$ is give it inputs; since the input type is arbitrary, we cannot generate any.%
 \footnote{%
   Of course, one can define \name{exists} for any finite type $\alpha$ by enumeration, and
@@ -570,8 +572,9 @@ This suggests we can make the direct functional translation of logic programs be
 their support.
 %
 %% "To simplify the problem" isn't enough motivation for finiteness!
-Inspired by databases and bottom-up logic programming languages such as Datalog, we focus on {finite} support.
-Since functions with finite support can be represented as key-value tables, we will also call them \emph{finite maps.}
+Inspired by %databases and %bottom-up logic programming languages such as
+Datalog, we focus on {finite} support.
+Since finitely supported functions can be represented as key-value tables, we also call them \emph{finite maps.}
 \todolater{maybe I should discuss the `goal' here: a language with procedural higher order functions, but also finite maps which are guaranteed finitely supported, represented as tables, and computed like database queries. should this go after or before contribution list? I guess it's a nice pr\'ecis of \fslang.}
 %We will suggestively call functions with finite support \emph{finite maps,} as they can be represented by a key-value table rather.
 %Observe that a function with finite support can be represented as a key-value table; we will suggestively refer to functions with finite support as \emph{finite maps.}
@@ -602,7 +605,7 @@ We make the following contributions:
 
   \item observes that pointed sets are the minimum structure necessary to define support, and that they allow expressing aggregations and weighted logic programming. (Previous approaches have used semilattices or semirings or specific weights such as probabilities.)
 
-  \item when finite support is desired, draws a connection between variable grounding and moding on the one hand, and graded coeffects over relevance types on the other
+  \item when finite support is desired, draws a connection between variable grounding and moding on the one hand, and graded effects over relevance types on the other
   \end{enumerate}
 }
 
@@ -620,7 +623,7 @@ Along the way we will observe other curious connections:
   %% https://link.springer.com/content/pdf/10.1007/3-540-16492-8_95.pdf
   %%
   %% Mercury had an in/out mode system; cited in Contrastin's paper.
-\item Checking a rule is well moded corresponds to a coeffect system for the graded comonad of finite maps.
+\item Checking a rule is well moded corresponds to an effect system for the graded monad of finite maps.
 \end{enumerate}
 
 %% min / goth / maru
@@ -782,7 +785,7 @@ The category \Point\ has pointed sets $P,Q$ as objects and point preserving maps
 If finitely supported maps are this work's \emph{raison d'\^etre,} point preserving maps are how we will manipulate and combine them.
 
 
-%% %% ---------- CUT FOR TIME ----------
+%% %% ---------- CUT FOR SPACE ----------
 %% \subsection{Why not just...?}
 
 %% \newcommand\Maybe{\typename{Maybe}}
@@ -1436,7 +1439,7 @@ Alas, these are not yet the typing rules we are looking for.
 A scant two contexts will not suffice; we have \emph{three} kinds of function we'd like to introduce---ordinary $A \to B$, point preserving $P \lto Q$, and finitely supported $A \fto P$---and therefore three kinds of variable, needing three separate contexts.
 Besides $\G$ and $\D$ we need a context $\O$ of finitely supported variables $\hyp x A, \hyp y B, ...$, and our typing judgement takes the form $\J t P \G \D \O$.
 %
-To understand how we should treat this $\O$ context,
+To understand how $\O$ behaves,
 let's revisit the examples that opened the previous section:
 \nopagebreak[2]
 
@@ -1477,11 +1480,11 @@ let's revisit the examples that opened the previous section:
 Oh no!
 What went wrong?
 Well, constant functions like \name{three} are not finite because their support is their entire possibly infinite domain ($\fn{x} \nil$ is the only exception).
-Similarly, the support of \name{id}, $\name{dup}_{\ox}$, and $\name{dup}_{\with}$ is their entire domain, minus \nil; we cannot generally use a finite map's argument directly in its output.\footnotemark{}
+Similarly, the support of \name{id}, $\name{dup}_{\ox}$, and $\name{dup}_{\with}$ is the entire domain minus \nil; we cannot generally use a finite map's input directly in its output.\footnotemark{}
 
 \footnotetext{We could in principle make a carve-out %in our type system
   for maps with finite domains.
-  As we intend to represent finite maps by tables, however, this poses a usability hazard: enumerating all 64-bit integers just because a programmer wrote $\fn{x} \true$ is not desirable.
+  As we intend to represent finite maps by tables, however, this poses a usability hazard: enumerating all 64-bit integers just because a programmer wrote $\fn{x} x$ is not desirable.
   %% However, since we intend to represent finite maps by tables, we probably do not want to allow these examples if the type is finite but large:
   %% enumerating all 64-bit integers just because the programmer wrote $\fn{x} \true$ would be a usability hazard!
   %% %% We could restrict our carve-out to \emph{small} finite types, for some value of `small', but this seems rather niche.
@@ -1526,19 +1529,22 @@ This, then, will serve both as our elimination rule for finite maps and our usag
 \end{mathpar}
 
 \noindent
-These rules structuralize the isomorphism $A \times B \fto P \cong A \fto B \fto P$ (which is more obvious after judicious renaming: $\O \times A \fto P \cong \O \fto A \fto P$).
-Combined with the isomorphism $(1 \fto P) \cong P$, this shows that finitely supported maps form not just a functor but a \emph{graded comonad} on \Point.
+These rules structuralize the isomorphism $A \fto B \fto P \cong A \times B \fto P$ (which is more obvious after renaming: $\O \fto A \fto P \cong \O \times A \fto P$).
+Combined with the isomorphism $P \cong (1 \fto P)$, this shows that finitely supported maps form not just a functor but a \emph{graded monad} on \Point.
 
 \todolater{I'd really like to do this connection more justice. also, find better citations.}
 %
-A (nongraded) comonad is an endofunctor $F$ with natural transformations $\name{dup}_\alpha : F\alpha \to FF\alpha$ and $\name{extract}_\alpha : F\alpha \to \alpha$, satisfying certain laws which we omit for brevity.
-For our purposes, a \emph{graded comonad}~\cite{DBLP:conf/icalp/PetricekOM13} is a family of functors $F_m$ where $m \in M$ is drawn from some monoid of grades $(M, {\cdot}, 1)$, equipped with analogues of \name{dup} and \name{join} which interact with these gradings in the following way: $\name{dup}_\alpha : F_{mn}\alpha \to F_m F_n \alpha$ and $\name{extract}_\alpha : F_1 \alpha \to \alpha$, again satisfying certain omitted laws.
+A (non-graded) monad is an endofunctor $F$ with natural transformations $\name{pure}_\alpha : \alpha \to F\alpha$ and $\name{join}_\alpha : FF\alpha \to F\alpha$, satisfying certain laws which we omit for brevity.
+For our purposes, a \emph{graded monad}~\cite{10.1145/3547654} is a family of functors $F_m$ where $m \in M$ is drawn from some monoid of grades $(M, {\cdot}, 1)$, equipped with analogues of \name{pure} and \name{join} which interact with these gradings in the following way: $\name{pure}_\alpha : \alpha \to F_1 \alpha$ and $\name{join}_\alpha : F_m F_n \alpha \to F_{mn}\alpha$, again satisfying certain omitted laws.
 
-In our case, the graded comonad is $F_A P = A \fto P$, and the monoid of grades is sets under cross product.\footnotemark{}
-This makes $\name{dup}_P : (A \times B \fto P) \lto (A \fto B \fto P)$ and $\name{extract}_P : (1 \fto P) \lto P$ merely the forward legs of our two isomorphisms.
-The laws we have omitted all hold trivially because these maps are isomorphisms---indeed, the reverse legs of these isomorphisms also make $F_A$ is a graded \emph{monad.}
+\TODO{CONVERTING comonad $\to$ monad}
+
+In our case, the graded monad is $F_A P = A \fto P$, and the monoid of grades is sets under cross product.\footnotemark{}
+This makes $\name{pure}_P : P \lto (1 \fto P)$ and $\name{join}_P : (A \fto B \fto P) \lto (A \times B \fto P)$ merely the forward legs of our two isomorphisms.
+The laws we omitted hold trivially because these maps are isomorphisms---indeed, the reverse legs of these isomorphisms also make $F_A$ is a graded \emph{comonad}~\cite{DBLP:conf/icfp/PetricekOM14}.
 %
-Although almost trivial, this graded comonad is of practical interest because type systems for graded comonads (coeffect systems) have been extensively studied~\cite{DBLP:conf/icfp/PetricekOM14,DBLP:conf/esop/BrunelGMZ14,DBLP:phd/ethos/Orchard14,coeffects-thesis}.
+Although almost trivial, this graded (co)monad is of practical interest because type systems for graded monads (effect systems) have been extensively \todo{FIX CITATIONS!} studied~\cite{DBLP:conf/icfp/PetricekOM14,DBLP:conf/esop/BrunelGMZ14,DBLP:phd/ethos/Orchard14,coeffects-thesis}.
+\todo{mention ours is a bit weird in that the effect is a context. which makes you think it might be a coeffect system, but it's not, because ... WHY?}
 \todo{THIS IS ALL WRONG ACTUALLY IT'S A GRADED EFFECT SYSTEM WHERE THE GRADING IS A CONTEXT, I THINK.}
 
 \footnotetext{Technically this is not a monoid, since $(A \times B) \times C$ is only isomorphic, not equal, to $A \times (B \times C)$. This technicality is not worth getting hung up on; it can be fixed in any number of ways, for instance, by taking grades to be contexts of types $\O$ under concatenation rather than sets themselves.}
@@ -2019,13 +2025,15 @@ To make it clear that terms are finitely supported with respect to the context $
 %% $\fslang$ also deliberately separates 
 
 There are many ways to combine logic and functional programming.
-Mercury~\cite{DBLP:journals/jlp/SomogyiHC96} integrates pure higher order functional programming into a top-down logical programming language.
-Functional IncA~\cite{DBLP:conf/ecoop/PacakE22} embeds functional programming into Datalog using a demand transform.
-Flix~\cite{10.1145/3428193} combines two sublanguages, one logical, one functional, which can each invoke the other.
+Mercury~\cite{DBLP:journals/jlp/SomogyiHC96} integrates
+%pure higher order
+functional programming into top-down logic programming.
+Functional IncA~\cite{DBLP:conf/ecoop/PacakE22} embeds functional programming into Datalog via a demand transform.
+Flix~\cite{10.1145/3428193} has two sublanguages, logical and functional, which can each invoke the other.
 
-\fslang, however, belongs to the subfamily of languages integrating logical features into a functional substrate.
+\fslang, however, belongs to the subfamily of languages that integrate logical features into a functional substrate.
 %
-Perhaps the most well known examples are `functional logic programming' languages like Curry~\cite{curry} and Verse~\cite{DBLP:journals/pacmpl/AugustssonBCJJSSS23}, %add existentials, unification, and disjunction as ambient effects to a functional language.
+Perhaps its best known exemplars are `functional logic programming' languages like Curry~\cite{curry} and Verse~\cite{DBLP:journals/pacmpl/AugustssonBCJJSSS23}, %add existentials, unification, and disjunction as ambient effects to a functional language.
 where relations $A \times B \to \bool$ become `functions' $A \to B$ that may yield many $B$s for a given $A$.
 %
 We find this undesirable because it (a) makes multiple returns and unification into pervasive ambient effects and (b) hides the boolean-ness, losing the opportunity to generalize from \bool\ to other types.
@@ -2065,7 +2073,7 @@ Indeed, \fslang\ is inspired by and indebted to databases research on $K$-relati
 Other Datalog-inspired languages like Datafun, Flix, and $\lambda_\vee$ generalize to semilattices.
 However, so far as we know only \fslang\ uses {pointed sets}---the minimal, most general structure required to define a function's support.
 Semirings then emerge as a natural structure over pointed sets:
-we can generalize \name{or} and \name{exists} to an `additive' commutative monoid $(P, \oplus : P \with P \lto P, \nil_P)$ and its aggregation operator $\bigoplus : (A \fto P) \lto P$, and similarly \name{and} generalizes to a `multiplicative' monoid $(P, {\oast} : P \otimes P \lto P, \boldsymbol 1)$ distributing over $\oplus$.
+we can generalize \name{or} and \name{exists} to an `additive' commutative monoid $(P, {\oplus} : P \with P \lto P, \nil_P)$ and its aggregation operator $\bigoplus : (A \fto P) \lto P$, and similarly \name{and} generalizes to a `multiplicative' monoid $(P, {\oast} : P \otimes P \lto P, \boldsymbol 1)$ distributing over $\oplus$.
 
 \todolater{Discuss input/output modes.
   Cite Mercury, Mistral Contrastin~\cite{DBLP:conf/ppdp/ContrastinOR18}, and Ariadne Si Suo's paper with Neel K (unpublished!).
@@ -2090,7 +2098,9 @@ we can generalize \name{or} and \name{exists} to an `additive' commutative monoi
 \item How can \fslang\ be implemented? Our finite map operations have a strong connection to tensor algebra; perhaps indexed streams~\cite{10.1145/3591268} may provide a strategy for implementing them.
 
   \todo{\item commutative monoids
-  \item incrementality}
+  \item incrementality
+  \item really nail down the connection with graded monads \& effect/coeffect systems. is our work a special case of theirs? what about the funky asymmetric $\ox$ rule?
+  }
 \end{itemize}
 
 
