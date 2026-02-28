@@ -47,6 +47,7 @@
 \usepackage{pifont}             % \ding{55}
 \usepackage{placeins}           % \FloatBarrier
 \usepackage{changepage}         % \begin{adjustwidth}
+\usepackage{etoolbox}           % \newtoggle etc
 
 %\usepackage{minted}
 \usepackage{listings}           % lstlisting
@@ -146,7 +147,7 @@
 \renewcommand\todolater[1]{\todo{\color{RoyalBlue}#1}}
 \newcommand\draft[1]{{\color{RoyalBlue}#1}}
 
-\renewcommand\todo[1]{\ignorespaces}
+%\renewcommand\todo[1]{\ignorespaces}
 
 \newcommand\fslang{\ensuremath{\lambda_{\mathrm{FS}}}}
 \newcommand\catname[1]{\ensuremath{\mathrm{#1}}}
@@ -259,7 +260,12 @@
 \newcommand\natz{\ensuremath{\nat_0}}
 
 
+\newtoggle{charter}
+\togglefalse{charter}
+
+
 %% TEMPORARY: different fonts because I hate reading computer modern
+\toggletrue{charter}
 
 %% WHERE IS SANS-SERIF USED? ANYWHERE? BUELLER? %%
 \usepackage[scaled=0.965, scaled=0.98, proportional,semibold]{sourcesanspro}
@@ -932,7 +938,8 @@ Thus:
 It will be useful to generalize `and' to type $\bool \otimes P \lto P$, along with its mirror image `\whenkword' of type $P \otimes \bool \lto P$, defined:\footnotemark{}
 \nopagebreak[2]
 
-\[\setlength\arraycolsep{2pt}\begin{array}{rclcl}
+\[%\setlength\arraycolsep{2.5pt}
+\begin{array}{rclcl}
   \true \tand x
   &=& x \when \true
   &=& x
@@ -966,7 +973,11 @@ curried maps $f : P \lto Q \lto R$ must preserve \nil\ in each argument separate
 \begin{align*}
   (f \<\nil_P) \<q &= \nil_{Q \lto R} \<q = \nil_R
   && \text{since $f : P \lto (Q \lto R)$ preserves \nil}\\
-  (f \<p) \<\nil_Q &= \nil_R
+  (f \<p) \<\nil_Q
+  %\phantom{= \nil_{Q \lto R}\<q}\negphantom{\nil_P}\phantom{\nil_Q}
+  &=
+  %\phantom{\nil_{Q \lto R} \<q = {}}
+  \nil_R
   && \text{since $f\<p : Q \lto R$ preserves \nil}
 \end{align*}
 
@@ -1096,9 +1107,11 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
     \bnfor \tjust e \bnfor \letjust x t u
   \end{array}
   \]
+  \vspace{-.5\baselineskip}
   \caption{Syntax of \fslang}
   %\caption{\fslang\ as she is wrote}
   \label{fig:syntax}
+  \vspace{.5\baselineskip}      %more space betwen this & following figure
 \end{figure}
 
 \begin{figure}[t]
@@ -1219,19 +1232,53 @@ Just as \name{exists} combined with $\name{and} : \bool \ox \bool \lto \bool$ ga
 \end{code}
 
 \noindent
-We have observed the functoriality of $A \fto P$ over pointed sets $P$; how about over $A$?
-As it turns out, this is a functor if $P$ is a commutative monoid, and we can define the corresponding \name{map} operation if we have the aggregation operator for $P$:
+We have already seen that $A \fto P$ is functorial in $P$.
+Given a commutative monoid aggregation over $P$, it is also functorial in the key space $A$, by aggregating the values of keys that collide under some map $f : A \to B$. For \natz\ under \name{sum} this is:
 
 \begin{code}
   \name{map} : (A \to B) \to (A \fto \nat_0) \lto (B \fto \nat_0)\\
   \name{map} \<f \<\name{count} \<b =
     %\name{sum} \<(\fn{a} \twhen{\teq{f\<a}{b}}{\name{count} \<a} )
-    \name{sum} \<(\fn{a}
+    \name{sum}
+    \<(\fn{a}
       %% \leteq{n}{\name{count}\<a}
       %% \twhen{\teq{f\<a}{b}}{n}
       \name{count}\<a \when \teq{f\<a}{b}
     )
 \end{code}
+
+\noindent
+Of course, finite sets $A \fto \bool$ and bags $A \fto \natz$ are not only functors but monads.
+If besides an aggregation \name{exists}/\name{sum} we have a monoid $(P, {\oast} : P \otimes P \lto P, \boldsymbol 1)$---for \bool\ this is conjunction $(\bool, \name{and}, \true)$, for \natz\ it is multiplication $(\natz, \times, 1)$---then we can define monadic return and join:
+\todo{presumably this is a lawful monad if this forms a semiring?}
+
+%% \begin{code}
+%%   \name{return} : A \to (A \fto \natz)\\
+%%   \name{return} \<x \<a = 1 \when x = a\\
+%%   \name{join} : ((A \fto \natz) \fto \natz) \lto (A \fto \natz)\\
+%%   \name{join} \<\name{nested} \<a =
+%%   \name{sum} \<(\fn t \name{nested} \<t \times t\<a)
+%% \end{code}
+
+\begin{fleqn}[\codeoffset]
+  \newlength\juryrigged
+   \iftoggle{charter}
+            {\setlength\juryrigged{7.1em}}
+            {\setlength\juryrigged{6.25em}}
+  \begin{flalign*}
+    \setlength\arraycolsep{0pt} % necessary for flush left alignment.
+    \begin{array}{l@{\hskip \juryrigged}l} % MANUAL ADJUSTMENT!
+      \name{return} : A \to (A \fto \natz)
+      &
+      \name{join} : ((A \fto \natz) \fto \natz) \lto (A \fto \natz)
+      \\
+      \name{return} \<x \<a = 1 \when x = a
+      &
+      \name{join} \<\name{nested} \<a =
+      \name{sum} \<(\fn t \name{nested} \<t \times t\<a)
+    \end{array}
+\end{flalign*}
+\end{fleqn}
 
 \noindent
 We might even dare to consider defining finitely supported predicates recursively:
