@@ -1249,36 +1249,49 @@ Given a commutative monoid aggregation over $P$, it is also functorial in the ke
 
 \noindent
 Of course, finite sets $A \fto \bool$ and bags $A \fto \natz$ are not only functors but monads.
-If besides an aggregation \name{exists}/\name{sum} we have a monoid $(P, {\oast} : P \otimes P \lto P, \boldsymbol 1)$---for \bool\ this is conjunction $(\bool, \name{and}, \true)$, for \natz\ it is multiplication $(\natz, \times, 1)$---then we can define monadic return and join:
+If besides an aggregation \name{exists}/\name{sum} we have a monoid $(P, {\oast} : P \otimes P \lto P, \boldsymbol 1)$---for \bool\ this is conjunction $(\bool, \name{and}, \true)$, for \natz\ it is multiplication $(\natz, \times, 1)$---then we can define monadic pure and join:
 \todo{presumably this is a lawful monad if this forms a semiring?}
 
+\begin{flalign*}
+  &
+  \name{pure} : A \to (A \fto \natz)
+  &&
+  \name{join} : ((A \fto \natz) \fto \natz) \lto (A \fto \natz)
+  \\[-3pt]
+  &
+  \name{pure} \<x \<a = 1 \when x = a
+  &&
+  \name{join} \<\name{nested} \<a =
+  \name{sum} \<(\fn t \name{nested} \<t \times t\<a)
+\end{flalign*}
+
 %% \begin{code}
-%%   \name{return} : A \to (A \fto \natz)\\
-%%   \name{return} \<x \<a = 1 \when x = a\\
+%%   \name{pure} : A \to (A \fto \natz)\\
+%%   \name{pure} \<x \<a = 1 \when x = a\\
 %%   \name{join} : ((A \fto \natz) \fto \natz) \lto (A \fto \natz)\\
 %%   \name{join} \<\name{nested} \<a =
 %%   \name{sum} \<(\fn t \name{nested} \<t \times t\<a)
 %% \end{code}
 
-\begin{fleqn}[\codeoffset]
-  \newlength\juryrigged
-   \iftoggle{charter}
-            {\setlength\juryrigged{7.1em}}
-            {\setlength\juryrigged{6.25em}}
-  \begin{flalign*}
-    \setlength\arraycolsep{0pt} % necessary for flush left alignment.
-    \begin{array}{l@{\hskip \juryrigged}l} % MANUAL ADJUSTMENT!
-      \name{return} : A \to (A \fto \natz)
-      &
-      \name{join} : ((A \fto \natz) \fto \natz) \lto (A \fto \natz)
-      \\
-      \name{return} \<x \<a = 1 \when x = a
-      &
-      \name{join} \<\name{nested} \<a =
-      \name{sum} \<(\fn t \name{nested} \<t \times t\<a)
-    \end{array}
-\end{flalign*}
-\end{fleqn}
+%% \begin{fleqn}[\codeoffset]
+%%   \newlength\juryrigged
+%%    \iftoggle{charter}
+%%             %% {\setlength\juryrigged{7.1em}}{\setlength\juryrigged{6.25em}} % return
+%%             {\setlength\juryrigged{5.5em}}{\setlength\juryrigged{5.5em}}
+%%   \begin{flalign*}
+%%     \setlength\arraycolsep{0pt} % necessary for flush left alignment.
+%%     \begin{array}{l@{\hskip \juryrigged}l} % MANUAL ADJUSTMENT!
+%%       \name{pure} : A \to (A \fto \natz)
+%%       &
+%%       \name{join} : ((A \fto \natz) \fto \natz) \lto (A \fto \natz)
+%%       \\
+%%       \name{pure} \<x \<a = 1 \when x = a
+%%       &
+%%       \name{join} \<\name{nested} \<a =
+%%       \name{sum} \<(\fn t \name{nested} \<t \times t\<a)
+%%     \end{array}
+%% \end{flalign*}
+%% \end{fleqn}
 
 \noindent
 We might even dare to consider defining finitely supported predicates recursively:
@@ -1357,13 +1370,13 @@ To gain some intuition, let's look at a few simple examples and whether they pre
 \end{align*}
 
 \noindent
-Plainly the identity function preserves \nil.
-Just as plainly, constant functions do not (except for $\fn x \nil$).
-This suggests a linear type system, which ensures each variable is used exactly once; constant functions, which ignore their argument, are thus prohibited.
+Plainly the identity function preserves \nil, but constant functions do not (except for $\fn x \nil$).
+This suggests a linear type system, which ensures each variable is used exactly once;
+constant functions do not use their argument and so are prohibited.
 However, duplication does preserve \nil, whether into $\ox$ or $\with$ pairs: $(\nil, \nil) = \nil$ and $\withpair{nil,nil} = \nil$.
-Or, consider the intersection $(\fn{x} f\<x \tand g\<x)$ of two maps $f,g : P \lto \bool$, which uses its argument twice yet still preserves \nil.
+Or, consider the intersection $(\fn x f\<x \tand g\<x)$ of two maps $f,g : P \lto \bool$, which uses $x$ twice yet still preserves \nil.
 %
-Thus the appropriate approach is a \emph{relevant} type system, which ensures variables are used \emph{at least once}---although as we'll see presently, what counts as `used' can be a bit subtle.
+Thus the appropriate approach is a \emph{relevant} type system, which ensures variables are used \emph{at least once}---although as we'll see presently, what counts as `used' can be subtle.
 
 So far our examples fail to distinguish the behavior of $\ox$ from $\with$; let's fix that:
 \nopagebreak[2]
@@ -1416,14 +1429,13 @@ So far our examples fail to distinguish the behavior of $\ox$ from $\with$; let'
 \end{align*}
 
 \noindent
-\todolater{Is there a shorter or more intuitive way to explain this?}
 One can verify these examples mechanically using the definitions of $\ox$ and $\with$, but some intuition may be helpful.
-From a `usage' standpoint, to consume an $\ox$ pair $(x,y)$, we must consume \emph{both} of its arguments, to guarantee that if either one is $\nil$ we will propagate it.
+To use an $\ox$ pair $(x,y)$ we must use both $x$ and $y$, to guarantee that if either is $\nil$ we will propagate it.
 By contrast, if a $\with$ pair is $\nil$ then both of its components are, so we are free to use only one.
 This is why $\name{fst}_{\ox}$ is invalid but $\name{fst}_{\with}$ is correct---and also why we use destructuring to eliminate $\ox$, but projection for $\with$.
 %
-Conversely, constructing an $\ox$ pair $(t,u)$ `uses' all variables used by either $t$ or $u$, since if either $t$ or $u$ is $\nil$ the whole pair is.
-However, constructing a $\with$ pair `uses' only variables used by both $t$ and $u$, since only these variables will force both components of $\withpair{t,u}$ to be $\nil$.
+Conversely, constructing an $\ox$ pair $(t,u)$ uses anything used by either $t$ or $u$, since if either $t$ or $u$ is $\nil$ the whole pair is,
+but constructing a $\with$ pair $\withpair{t,u}$ uses only what both $t$ and $u$ use, since only these will force both $t$ and $u$ to be \nil.
 This is why $\name{pair}_{\ox}$ and $\name{and3}_{\ox}$ are correct but $\name{pair}_{\with}$ and $\name{and3}_{\with}$ are invalid.
 
 %% \TODO{describe our `fake' typing judgment, its interpretation, lead in to rules:}
@@ -1431,7 +1443,7 @@ This is why $\name{pair}_{\ox}$ and $\name{and3}_{\ox}$ are correct but $\name{p
 Since we need to mix a cartesian, structural type system for sets $A,B$ and functions $A \to B$ with a substructural, relevant type system for pointed sets $P,Q$ and point preserving maps $P \lto Q$, we adapt the rules of Benton and Wadler's mixed linear/nonlinear logic LNL~\cite{DBLP:conf/lics/BentonW96,DBLP:conf/csl/Benton94} to relevance rather than linearity.
 %
 We use two contexts, $\G$ containing ordinary variables $\hyp x A$ and $\D$ containing pointed set variables $\hyp x P$; two syntactic classes of terms, ordinary $e$ and point preserving $t$; and two typing judgments, $\G \entails e : A$ for functions and $\G \cxsep \D \entails t : P$ for point preserving maps.
-A few example rules: \todolater{again, don't like this paragraph}
+A few example rules:
 %
 \begin{mathpar}
   \infer{
@@ -1457,7 +1469,7 @@ A few example rules: \todolater{again, don't like this paragraph}
 
 \noindent
 Observe that in the rule for $\with$ pairs $\withpair{t,u}$ each component is checked in the same relevant context $\D$, and therefore must use the same variables; but in $\ox$ pairs $(t,u)$, we give them different contexts $\D_1, \D_2$ which must \emph{union} to produce the context of the whole pair.
-This union is a key difference from standard linear logic, which would split the contexts disjointly; it allows a variable to be used in both branches---but, unlike the $\with$ rule, does not \emph{require} it. \todolater{again hate this para}
+This union is a key difference from standard linear logic, which would split the contexts disjointly; it allows a variable to be used in both branches---but, unlike the $\with$ rule, does not \emph{require} it.
 
 %% These rules are essentially those of Benton and Wadler's mixed linear/nonlinear logic LNL~\cite{DBLP:conf/lics/BentonW96,DBLP:conf/csl/Benton94}, adapted for relevance rather than linearity.
 %% The semantics of LNL are given by an adjunction between a cartesian closed category $\mathcal{C}$ and a symmetric monoidal closed category $\mathcal{L}$.
@@ -1567,12 +1579,10 @@ This, then, will serve both as our elimination rule for finite maps and our usag
 These rules structuralize the isomorphism $A \fto B \fto P \cong A \times B \fto P$ (which is more obvious after renaming: $\O \fto A \fto P \cong \O \times A \fto P$).
 Combined with the isomorphism $P \cong (1 \fto P)$, this shows that finitely supported maps form not just a functor but a \emph{graded monad} on \Point.
 
-\todolater{I'd really like to do this connection more justice. also, find better citations.}
+\todolater{I'd really like to do this connection more justice.}
 %
 A (non-graded) monad is an endofunctor $F$ with natural transformations $\name{pure}_\alpha : \alpha \to F\alpha$ and $\name{join}_\alpha : FF\alpha \to F\alpha$, satisfying certain laws which we omit for brevity.
 For our purposes, a \emph{graded monad}~\cite{10.1145/3547654} is a family of functors $F_m$ where $m \in M$ is drawn from some monoid of grades $(M, {\cdot}, 1)$, equipped with analogues of \name{pure} and \name{join} which interact with these gradings in the following way: $\name{pure}_\alpha : \alpha \to F_1 \alpha$ and $\name{join}_\alpha : F_m F_n \alpha \to F_{mn}\alpha$, again satisfying certain omitted laws.
-
-\TODO{CONVERTING comonad $\to$ monad}
 
 In our case, the graded monad is $F_A P = A \fto P$, and the monoid of grades is sets under cross product.\footnotemark{}
 This makes $\name{pure}_P : P \lto (1 \fto P)$ and $\name{join}_P : (A \fto B \fto P) \lto (A \times B \fto P)$ merely the forward legs of our two isomorphisms.
@@ -1580,7 +1590,6 @@ The laws we omitted hold trivially because these maps are isomorphisms---indeed,
 %
 Although almost trivial, this graded (co)monad is of practical interest because type systems for graded monads (effect systems) have been extensively \todo{FIX CITATIONS!} studied~\cite{DBLP:conf/icfp/PetricekOM14,DBLP:conf/esop/BrunelGMZ14,DBLP:phd/ethos/Orchard14,coeffects-thesis}.
 \todo{mention ours is a bit weird in that the effect is a context. which makes you think it might be a coeffect system, but it's not, because ... WHY?}
-\todo{THIS IS ALL WRONG ACTUALLY IT'S A GRADED EFFECT SYSTEM WHERE THE GRADING IS A CONTEXT, I THINK.}
 
 \footnotetext{Technically this is not a monoid, since $(A \times B) \times C$ is only isomorphic, not equal, to $A \times (B \times C)$. This technicality is not worth getting hung up on; it can be fixed in any number of ways, for instance, by taking grades to be contexts of types $\O$ under concatenation rather than sets themselves.}
 
@@ -2015,7 +2024,7 @@ This is because a variable finitely supported by both $t$ and $u$ can simply be 
 
 We give the typing rules of \fslang\ in \cref{fig:typing-rules}.
 \todolater{The attentive reader will find few surprises. INSERT THIS ONCE IT'S TRUE.}
-As mentioned in \cref{sec:relevance}, our rules borrow from adjoint calculi such as Benton-Wadler's LNL~\cite{DBLP:conf/lics/BentonW96,DBLP:conf/csl/Benton94} to handle the interaction between ordinary functions and point preserving functions.
+As mentioned in \cref{sec:relevance}, our rules borrow from adjoint calculi such as LNL~\cite{DBLP:conf/lics/BentonW96,DBLP:conf/csl/Benton94} to handle the interaction between ordinary functions and point preserving functions.
 This corresponds semantically to an adjunction between the cartesian closed category $\Set$ (LNL's $\mathcal{C}$) and the symmetric monoidal closed category $\Point$ (LNL's $\mathcal{L}$).
 Additionally, \Point\ possesses a natural family of diagonal maps $\fn{x} (x,x) : P \lto P \ox P$, making it a relevant monoidal category~\cite{DBLP:journals/sLogica/Petric02,relevant-categories-and-partial-functions}.
 %
