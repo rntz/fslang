@@ -1716,7 +1716,7 @@ To ensure our last rule generalizes the two prior ones, we must be able to weake
 %That is, whenever $\J u P \G \D {\O_1, \O_2}$ then also $\J u P {\G, \O_1} \D {\O_2}$.
 Then a variable finitely supported by both $t$ and $u$ can simply be placed into $\O_1$ in \rulename{$\ox$\,i}.
 Unfortunately this doesn't yet hold: \rulename{$\fto$\,e} lets us apply finite maps $A \fto P$ to variables in $\O$ but not in $\G$!
-We need to be able to look up the value of an unrestricted variable $x$, or more generally an expression $e$, in a finite map:
+We need an additional rule that lets us apply a finite map to an unrestricted variable $x$, or more generally an expression $e$:
 
 \TODO{PUT THIS INTO THE TYPING RULES FIGURE!}
 
@@ -2181,7 +2181,8 @@ we can generalize \name{or} and \name{exists} to an `additive' commutative monoi
 
 \fslang\ has many limitations which we would like to lift in future work:
 \begin{itemize}
-\item It lacks recursion, which requires more complex semantics to handle---perhaps domain theory as in $\lambda_\vee$---but seems operationally straightforward: as in Datalog, we iterate until fixed point starting from the empty finite map.
+\item It lacks semantics for recursion, perhaps requiring domain theory, although it seems operationally straightforward: as in Datalog, we iterate until fixed point starting from the empty finite map.
+  \todo{it's not that simple; need to reconcile bottom-up recursion for defining finite maps with top-down for defining ordinary functions. $\lambda_\vee$ shows how to do this by making everything streaming. not sure we can do that, though; need some form of continuity which we may well violate!}
 
 \item We did not show how to implement our type system, although we have built \href{https://github.com/rntz/fslang/blob/b2730369f68f1cdb4fd69b4a8d997b167d29b7a0/fslang.rkt}{a prototype}
   using bidirectional type inference, which we lack space to discuss here; it can be found at \url{https://github.com/rntz/fslang/blob/main/fslang.rkt}.
