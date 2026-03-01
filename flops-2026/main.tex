@@ -147,8 +147,7 @@
 \renewcommand\todolater[1]{\todo{\color{RoyalBlue}#1}}
 \newcommand\draft[1]{{\color{RoyalBlue}#1}}
 
-%\renewcommand\todo[1]{\ignorespaces}
-%\renewcommand\xxx{\text{\color{IndianRed}\strong{XXX}}}
+%\renewcommand\todo[1]{\ignorespaces}\renewcommand\xxx{\text{\color{IndianRed}\strong{XXX}}}
 
 \newcommand\fslang{\ensuremath{\lambda_{\mathrm{FS}}}}
 \newcommand\catname[1]{\ensuremath{\mathrm{#1}}}
@@ -1100,7 +1099,7 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
     \text{pointed terms} & t,u &\bnfeq&
     \nil
     \bnfor x \bnfor \fn{x} t \bnfor t\<u
-    \bnfor t\<x
+    \bnfor t\<x \bnfor t\<e
     \bnfor \withpair{t, u} \bnfor \pi_i \<t
     \\
     &&& (t,u) \bnfor \letpair x y t u
@@ -1563,13 +1562,13 @@ In each case, we use the finitely supported variable $x$ by applying a finite ma
 This, then, will serve both as our elimination rule for finite maps and our usage rule for finitely supported variables:
 %
 \begin{mathpar}
-  \infer*[right=$\fto$\,I]{
+  \infer*[right=$\fto$\,i]{
     \J t P \G \D {\O, \hyp x A}
   }{
     \J {\fn x t} {A \fto P} \G \D \O
   }
   
-  \infer*[right=$\fto$\,E]{
+  \infer*[right=$\fto$\,e]{
     \J t {A \fto P} \G \D \O
   }{
     \J {t\<x} P \G \D {\O, \hyp x A}
@@ -1713,18 +1712,33 @@ However, if we allow each branch to ground variables used in the other, then $(x
 
 \newcommand\rulename\textsc
 
-Is our last rule more general than the two prior ones?
-Yes, \emph{if} \xxx
+To ensure our last rule generalizes the two prior ones, we must be able to weaken a finitely supported hypothesis $\hyp x A \in \O$ to an unrestricted one $\hyp x A \in \G$.
+%That is, whenever $\J u P \G \D {\O_1, \O_2}$ then also $\J u P {\G, \O_1} \D {\O_2}$.
+Then a variable finitely supported by both $t$ and $u$ can simply be placed into $\O_1$ in \rulename{$\ox$\,i}.
+Unfortunately this doesn't yet hold: \rulename{$\fto$\,e} lets us apply finite maps $A \fto P$ to variables in $\O$ but not in $\G$!
+We need to be able to look up the value of an unrestricted variable $x$, or more generally an expression $e$, in a finite map:
 
-Despite combining $\O_1,\O_2$ disjointly rather than by union, this rule is strictly more general then the previous two.
-\todo{THIS IS WRONG: I don't allow finite maps to be applied to variables that aren't in $\O$! FIX THIS.}
-This is because a variable finitely supported by both $t$ and $u$ can simply be placed into $\O_1$: having an unrestricted variable in $u$ is strictly more general than having a finitely supported variable.
-\todo{
-  EXPLAIN THIS ASYMMETRY BETTER.
-  connect it to input/output modes!
-  discuss how it's not symmetric, but this is an arbitrary choice!
-  \todolater{discuss how the three different typing rules corresponds to three different implementation strategies: cross products, inner joins, and subqueries!}
+\TODO{PUT THIS INTO THE TYPING RULES FIGURE!}
+
+\[
+\infer*[right=${\fto}\,\textsc{e}_2$]{
+  \J t {A \fto P} \G \D \O\\
+  \cJ e {A} \G
+}{
+  \J {t\<e} P \G \D \O
 }
+\]
+
+%% Despite combining $\O_1,\O_2$ disjointly rather than by union, this rule is strictly more general then the previous two.
+%% \todo{THIS IS WRONG: I don't allow finite maps to be applied to variables that aren't in $\O$! FIX THIS.}
+%% This is because a variable finitely supported by both $t$ and $u$ can simply be placed into $\O_1$: having an unrestricted variable in $u$ is strictly more general than having a finitely supported variable.
+%% \todo{
+%%   EXPLAIN THIS ASYMMETRY BETTER.
+%%   connect it to input/output modes!
+%%   discuss how it's not symmetric, but this is an arbitrary choice!
+%% }
+
+\todolater{discuss how the three different typing rules corresponds to three different implementation strategies: cross products, inner joins, and subqueries!}
 
 
 %% ---- TYPES & SEMANTICS FIGURES ----
@@ -1869,6 +1883,13 @@ This is because a variable finitely supported by both $t$ and $u$ can simply be 
     %%   \J {\leteq x t u} Q \G {\D_1 \cup \D_2} {\O_1,\O_2}
     %% }
 
+    \infer*[right=${\fto}\,\textsc{e}_2$]{
+      \J t {A \fto P} \G \D \O\\
+      \cJ e {A} \G
+    }{
+      \J {t\<e} P \G \D \O
+    }
+
     %% MAYBE
     \infer*[right=maybe i]{     %right=just or right=maybe i
       \cJ e A \G
@@ -1896,18 +1917,25 @@ This is because a variable finitely supported by both $t$ and $u$ can simply be 
 \begin{figure*}
   \textsc{semantics of $\cJ e A \G$:}
   \begin{align*}
-    \den{t} \<\g &= \den{t} \<\g \<() \<()\\
-    \den{x} \<\g &= \pi_x \g\\
-    \den{()} \<\g &= ()\\
-    \den{\fn x e} \<\g &= \fn x \den{e} \<(\g,x)\\
-    \den{e_1 \<e_2} \<\g &= \den{e_1} \<\g \<(\den{e_2} \<\g)\\
-    \den{(e_1, e_2)} \<\g &= (\den{e_1} \<\g, \den{e_2} \<\g)\\
-    \den{\pi_i\<e} \<\g &= \pi_i (\den e \<\g)\\
-    \den{\ifjust{e_1} x {e_2} {e_3}} &= 
+    \den{t} \<\g &= \den{t} \<\g \<() \<()
+    &
+    \den{x} \<\g &= \pi_x \g
+    &
+    \den{()} \<\g &= ()
+    \\
+    \den{\fn x e} \<\g &= \fn x \den{e} \<(\g,x)
+    &
+    \den{e_1 \<e_2} \<\g &= \den{e_1} \<\g \<(\den{e_2} \<\g)
+    \\
+    \den{(e_1, e_2)} \<\g &= (\den{e_1} \<\g, \den{e_2} \<\g)
+    &
+    \den{\pi_i\<e} \<\g &= \pi_i (\den e \<\g)
+    \\
+    \den{\ifjust{e_1} x {e_2} {e_3}} &\omit\rlap{\({}=
     \begin{cases}
       \den{e_2} \<(\g,x) & \text{if}~ \den{e_1} \<\g = \cjust~x\\
       \den{e_3} \<\g & \text{otherwise}
-    \end{cases}
+    \end{cases}\)}
   \end{align*}
 
   \textsc{semantics of $\J t P \G \D \O$:}
@@ -1947,17 +1975,33 @@ This is because a variable finitely supported by both $t$ and $u$ can simply be 
     \o_2 \mapsto y \in \den u \<(\g, \o_1) \<(\pi_{\D_2} \d)
     \}
     \\
-    %% 
+    %% \fto ELIM - FINITE MAP APPLICATION
     \Den{\infer{
       \J t {A \fto P} \G {\D} {\O}
     }{
       \J {t\<x} P \G {\D} {\O \todo{{}\cup{}} x : A}
     }} \<\g \<\d &=
+    \begin{cases}
     \{ (\o, x) \mapsto y :
     \o \mapsto f \in \den{t} \<\g \<\d,
     x \mapsto y \in f
     \}
-    \text{ \sffamily\TODO{need case for if $x \in \O$?}}
+    & \text{if $x \notin\O$}
+    \\
+    \{ \o \mapsto f(\pi_x\o) :
+    \o \mapsto f \in \den{t} \<\g \<\d
+    \}
+    & \text{if $x \in \O$}
+    \end{cases}
+    \\
+    %% \fto ELIM 2 - FINITE MAP APPLICATION (LOOKUP)
+    \Den{\infer{
+      \J t {A \fto P} \G {\D} {\O}\\
+      \cJ e A \G
+    }{
+      \J {t\<e} P \G {\D} {\O}
+    }} \<\g \<\d &=
+    \{ \omega \mapsto f(\den{e}\<\g) : \omega \mapsto f \in \den{t}\<\g\<\d \}
     \\
     \Den{\infer{
       \J t P \G \D \O
@@ -1969,7 +2013,8 @@ This is because a variable finitely supported by both $t$ and $u$ can simply be 
     \{ \o \mapsto \withpair{x,y} :
     \o \mapsto x \in \den{t} \<\g \<\d,
     \o \mapsto y \in \den{u} \<\g \<\d
-    \} \text{ \sffamily\todo{looks like intersection; should be a union!}}
+    \}
+    %\text{ \sffamily\todolater{looks like intersection; should be a union!}}
     \\
     \Den{\infer{
       \J t P \G {\D_1} {\O_1}
