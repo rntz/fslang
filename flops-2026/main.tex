@@ -1488,7 +1488,7 @@ Combined with the isomorphism $P \cong (1 \fto P)$, this shows that finitely sup
 \todolater{I'd really like to do this connection more justice.}
 %
 A (non-graded) monad is an endofunctor $F$ with natural transformations $\name{pure}_\alpha : \alpha \to F\alpha$ and $\name{join}_\alpha : FF\alpha \to F\alpha$, satisfying certain laws which we omit for brevity.
-For our purposes, a \emph{graded monad}~\cite{10.1145/3547654} is a family of functors $F_m$ where $m \in M$ is drawn from some monoid of grades $(M, {\cdot}, 1)$, equipped with analogues of \name{pure} and \name{join} which interact with these gradings in the following way: $\name{pure}_\alpha : \alpha \to F_1 \alpha$ and $\name{join}_\alpha : F_m F_n \alpha \to F_{mn}\alpha$, again satisfying certain omitted laws.
+For our purposes, a \emph{graded monad}~\cite{Smirnov08,10.1145/2535838.2535846} is a family of functors $F_m$ where $m \in M$ is drawn from some monoid of grades $(M, {\cdot}, 1)$, equipped with analogues of \name{pure} and \name{join} which interact with these gradings in the following way: $\name{pure}_\alpha : \alpha \to F_1 \alpha$ and $\name{join}_\alpha : F_m F_n \alpha \to F_{mn}\alpha$, again satisfying certain omitted laws.
 
 In our case, the graded monad is $F_A P = A \fto P$, and the monoid of grades is sets under cross product.\footnotemark{}
 This makes $\name{pure}_P : P \lto (1 \fto P)$ and $\name{join}_P : (A \fto B \fto P) \lto (A \times B \fto P)$ merely the forward legs of our two isomorphisms.
