@@ -1630,8 +1630,8 @@ Both are informative: the former because it is straightforward, the latter becau
 \end{mathpar}
 
 \noindent
-The support of $\withpair{t,u}$ is the union of the supports of $t$ and $u$, since $\withpair{t,u}$ is non-\nil\ if either $t$ or $u$ is.
-\todolater{Do I need the previous sentence? Its purpose is unclear. It mirrors the investigation of support for $\ox$ pairs below, but maybe I don't need it here.}
+%The support of $\withpair{t,u}$ is the union of the supports of $t$ and $u$, since $\withpair{t,u}$ is non-\nil\ if either $t$ or $u$ is.
+%\todolater{Do I need the previous sentence? Its purpose is unclear. It mirrors the investigation of support for $\ox$ pairs below, but maybe I don't need it here.}
 %
 Now let's
 %assume $f,g : \natz \fto \bool$ are finite sets of naturals and
@@ -2094,7 +2094,7 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
 \label{sec:typing-rules}
 
 We give the typing rules of \fslang\ in \cref{fig:typing-rules}.
-\todolater{The attentive reader will find few surprises. INSERT THIS ONCE IT'S TRUE.}
+The attentive reader will find few surprises.
 As mentioned in \cref{sec:relevance}, our rules borrow from adjoint calculi such as LNL~\cite{DBLP:conf/lics/BentonW96,DBLP:conf/csl/Benton94} to handle the interaction between ordinary functions and point preserving functions.
 This corresponds semantically to an adjunction between the cartesian closed category $\Set$ (LNL's $\mathcal{C}$) and the symmetric monoidal closed category $\Point$ (LNL's $\mathcal{L}$).
 Additionally, \Point\ possesses a natural family of diagonal maps $\fn{x} (x,x) : P \lto P \ox P$, making it a relevant monoidal category~\cite{DBLP:journals/sLogica/Petric02,relevant-categories-and-partial-functions}.
@@ -2213,7 +2213,9 @@ we can generalize \name{or} and \name{exists} to an `additive' commutative monoi
 
 \item How can \fslang\ be implemented? Our finite map operations have a strong connection to tensor algebra; perhaps indexed streams~\cite{10.1145/3591268} may provide a strategy for implementing them.
 
-\todo{\item Metatheory! Our denotational semantics is a sketch, we have not proven finite support or point preserving-ness. We haven't even shown weakening or substitution.}
+\todo{\item Metatheory! Our denotational semantics is a sketch, we have not proven finite support or point preserving-ness. We haven't even shown weakening or substitution; the necessity of ${\fto}\,\textsc{e}_2$ should make it clear this is surprisingly subtle!}
+
+\todo{\item Explicitly investigate the connection to graded effect systems. Define the actual grading structure. Show exactly whether and where we need stuff beyond what is standard.}
 
 \todo{\item commutative monoids
 \item incrementality
