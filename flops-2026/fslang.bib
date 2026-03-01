@@ -563,3 +563,40 @@ keywords = {contractions, functional programming, operational semantics, streams
   numpages = {13},
   keywords = {algebrac operation, computational effect, effect system, lax monoidal functor, monad, parametric effect monad}
 }
+
+@inproceedings{10.1145/2951913.2951939,
+author = {Gaboardi, Marco and Katsumata, Shin-ya and Orchard, Dominic and Breuvart, Flavien and Uustalu, Tarmo},
+title = {Combining effects and coeffects via grading},
+year = {2016},
+isbn = {9781450342193},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/2951913.2951939},
+doi = {10.1145/2951913.2951939},
+abstract = {Effects and coeffects are two general, complementary aspects of program behaviour. They roughly correspond to computations which change the execution context (effects) versus computations which make demands on the context (coeffects). Effectful features include partiality, non-determinism, input-output, state, and exceptions. Coeffectful features include resource demands, variable access, notions of linearity, and data input requirements. The effectful or coeffectful behaviour of a program can be captured and described via type-based analyses, with fine grained information provided by monoidal effect annotations and semiring coeffects. Various recent work has proposed models for such typed calculi in terms of graded (strong) monads for effects and graded (monoidal) comonads for coeffects. Effects and coeffects have been studied separately so far, but in practice many computations are both effectful and coeffectful, e.g., possibly throwing exceptions but with resource requirements. To remedy this, we introduce a new general calculus with a combined effect-coeffect system. This can describe both the changes and requirements that a program has on its context, as well as interactions between these effectful and coeffectful features of computation. The effect-coeffect system has a denotational model in terms of effect-graded monads and coeffect-graded comonads where interaction is expressed via the novel concept of graded distributive laws. This graded semantics unifies the syntactic type theory with the denotational model. We show that our calculus can be instantiated to describe in a natural way various different kinds of interaction between a program and its evaluation context.},
+booktitle = {Proceedings of the 21st ACM SIGPLAN International Conference on Functional Programming},
+pages = {476–489},
+numpages = {14},
+keywords = {types, monads, grading, effects, distributive laws, comonads, coeffects, categorical semantics},
+location = {Nara, Japan},
+series = {ICFP 2016}
+}
+
+@article{10.1145/3022670.2951939,
+  author = {Gaboardi, Marco and Katsumata, Shin-ya and Orchard, Dominic and Breuvart, Flavien and Uustalu, Tarmo},
+  title = {Combining effects and coeffects via grading},
+  year = {2016},
+  issue_date = {September 2016},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  volume = {51},
+  number = {9},
+  issn = {0362-1340},
+  doi = {10.1145/3022670.2951939},
+  abstract = {Effects and coeffects are two general, complementary aspects of program behaviour. They roughly correspond to computations which change the execution context (effects) versus computations which make demands on the context (coeffects). Effectful features include partiality, non-determinism, input-output, state, and exceptions. Coeffectful features include resource demands, variable access, notions of linearity, and data input requirements. The effectful or coeffectful behaviour of a program can be captured and described via type-based analyses, with fine grained information provided by monoidal effect annotations and semiring coeffects. Various recent work has proposed models for such typed calculi in terms of graded (strong) monads for effects and graded (monoidal) comonads for coeffects. Effects and coeffects have been studied separately so far, but in practice many computations are both effectful and coeffectful, e.g., possibly throwing exceptions but with resource requirements. To remedy this, we introduce a new general calculus with a combined effect-coeffect system. This can describe both the changes and requirements that a program has on its context, as well as interactions between these effectful and coeffectful features of computation. The effect-coeffect system has a denotational model in terms of effect-graded monads and coeffect-graded comonads where interaction is expressed via the novel concept of graded distributive laws. This graded semantics unifies the syntactic type theory with the denotational model. We show that our calculus can be instantiated to describe in a natural way various different kinds of interaction between a program and its evaluation context.},
+  journal = {SIGPLAN Not.},
+  month = sep,
+  pages = {476–489},
+  numpages = {14},
+  keywords = {types, monads, grading, effects, distributive laws, comonads, coeffects, categorical semantics}
+}

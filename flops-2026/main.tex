@@ -201,6 +201,7 @@
 \newcommand\J[5]{{#3} \cxsep {#4} \cxsep {#5} \entails {#1} : {#2}}
 %\newcommand\pJ[5]{{#3} \cxsep {#4} \cxsep {#1} : {#2} \entails {#5}}
 \newcommand\lJ[4]{{#3} \cxsep {#4} \entails {#1} : {#2}}
+\newcommand\rulename\textsc
 
 \newcommand\kword[1]{\ensuremath{\textrm{#1}}}
 \newcommand\const\name
@@ -1494,8 +1495,9 @@ In our case, the graded monad is $F_A P = A \fto P$, and the monoid of grades is
 This makes $\name{pure}_P : P \lto (1 \fto P)$ and $\name{join}_P : (A \fto B \fto P) \lto (A \times B \fto P)$ merely the forward legs of our two isomorphisms.
 The laws we omitted hold trivially because these maps are isomorphisms---indeed, the reverse legs of these isomorphisms also make $F_A$ is a graded \emph{comonad}~\cite{DBLP:conf/icfp/PetricekOM14}.
 %
-Although almost trivial, this graded (co)monad is of practical interest because type systems for graded monads (effect systems) have been extensively \todo{FIX CITATIONS!} studied~\cite{DBLP:conf/icfp/PetricekOM14,DBLP:conf/esop/BrunelGMZ14,DBLP:phd/ethos/Orchard14,coeffects-thesis}.
-\todo{mention ours is a bit weird in that the effect is a context. which makes you think it might be a coeffect system, but it's not, because ... WHY?}
+Although almost trivial, this graded (co)monad is of practical interest because type systems for graded monads (effect systems) have been extensively studied~\cite{10.1145/3022670.2951939}.
+%coeffects-thesis,DBLP:conf/icfp/PetricekOM14,DBLP:conf/esop/BrunelGMZ14,DBLP:phd/ethos/Orchard14,coeffects-thesis
+\todolater{mention ours is a bit weird in that the effect is a context. which makes you think it might be a coeffect system, but it's not, because ... WHY?}
 
 \footnotetext{Technically this is not a monoid, since $(A \times B) \times C$ is only isomorphic, not equal, to $A \times (B \times C)$. This technicality is not worth getting hung up on; it can be fixed in any number of ways, for instance, by taking grades to be contexts of types $\O$ under concatenation rather than sets themselves.}
 
@@ -1616,7 +1618,7 @@ This choice is arbitrary---right to left is just as sound---but the symmetric va
 For instance, there may be infinitely many $x,y$ such that $x = y$, but for fixed $x$ there is exactly one such $y$; this is why we give equality the type $A \to A \fto \bool$.
 However, if we allow each branch to ground variables used in the other, then $(x = y \tand y = x)$, though semantically identical to $x = y$, would incorrectly appear to finitely support both $x$ and $y$: in the left branch, $x$ is used to ground $y$, and vice-versa.
 
-\newcommand\rulename\textsc
+\todolater{discuss how the three different typing rules corresponds to three different implementation strategies: cross products, inner joins, and subqueries!}
 
 To ensure our last rule generalizes the two prior ones, we must be able to weaken a finitely supported hypothesis $\hyp x A \in \O$ to an unrestricted one $\hyp x A \in \G$.
 %That is, whenever $\J u P \G \D {\O_1, \O_2}$ then also $\J u P {\G, \O_1} \D {\O_2}$.
@@ -1643,8 +1645,6 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
 %%   connect it to input/output modes!
 %%   discuss how it's not symmetric, but this is an arbitrary choice!
 %% }
-
-\todolater{discuss how the three different typing rules corresponds to three different implementation strategies: cross products, inner joins, and subqueries!}
 
 
 %% ---- TYPES & SEMANTICS FIGURES ----
