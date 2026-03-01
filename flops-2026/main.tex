@@ -148,6 +148,7 @@
 \newcommand\draft[1]{{\color{RoyalBlue}#1}}
 
 %\renewcommand\todo[1]{\ignorespaces}
+%\renewcommand\xxx{\text{\color{IndianRed}\strong{XXX}}}
 
 \newcommand\fslang{\ensuremath{\lambda_{\mathrm{FS}}}}
 \newcommand\catname[1]{\ensuremath{\mathrm{#1}}}
@@ -1622,7 +1623,7 @@ The support of $\withpair{t,u}$ is the union of the supports of $t$ and $u$, sin
 %
 Now let's
 %assume $f,g : \natz \fto \bool$ are finite sets of naturals and
-consider what rules we would need to type the following examples involving $\otimes$ (by way of $\kword{and} : \bool \ox \bool \lto \bool$):
+consider what rules we would need to type the following examples involving $\otimes$ (by way of $\name{and} : \bool \ox \bool \lto \bool$):
 %
 \begin{align*}
   {\hyp f {A \fto \bool}, \hyp g {A \fto \bool}} \cxsep
@@ -1668,7 +1669,7 @@ We have used each variable $x,y$ in our finite support context $\O$ exactly once
 \]
 
 \noindent
-This rule does not suffice for our second example $f\<x \tand g\<x$, which uses the same finitely supported variable $x$ twice.
+This rule does not suffice for our second example, $f\<x \tand g\<x$, which uses the same finitely supported variable $x$ twice.
 Nonetheless this has finite support, namely, the intersection of $f$'s and $g$'s supports.
 So we can relax our rules to union contexts, much like the rules for the relevant context $\D$:
 \nopagebreak[2]
@@ -1705,6 +1706,16 @@ into the unrestricted context for $u$:
 \]
 
 \noindent
+This rule is asymmetric: it `grounds' variables from left to right.
+This choice is arbitrary---right to left is just as sound---but the symmetric variant, which allows variables finitely supported by either $t$ or $u$ to be used unrestricted in the other, allows circular dataflow and is unsound.
+For instance, there may be infinitely many $x,y$ such that $x = y$, but for fixed $x$ there is exactly one such $y$; this is why we give equality the type $A \to A \fto \bool$.
+However, if we allow each branch to ground variables used in the other, then $(x = y \tand y = x)$, though semantically identical to $x = y$, would incorrectly appear to finitely support both $x$ and $y$: in the left branch, $x$ is used to ground $y$, and vice-versa.
+
+\newcommand\rulename\textsc
+
+Is our last rule more general than the two prior ones?
+Yes, \emph{if} \xxx
+
 Despite combining $\O_1,\O_2$ disjointly rather than by union, this rule is strictly more general then the previous two.
 \todo{THIS IS WRONG: I don't allow finite maps to be applied to variables that aren't in $\O$! FIX THIS.}
 This is because a variable finitely supported by both $t$ and $u$ can simply be placed into $\O_1$: having an unrestricted variable in $u$ is strictly more general than having a finitely supported variable.
@@ -2019,8 +2030,6 @@ This is because a variable finitely supported by both $t$ and $u$ can simply be 
 %% \section{Programming with pointed sets}
 \section{Types and semantics for \fslang}
 \label{sec:typing-rules}
-
-\newcommand\rulename\textsc
 
 We give the typing rules of \fslang\ in \cref{fig:typing-rules}.
 \todolater{The attentive reader will find few surprises. INSERT THIS ONCE IT'S TRUE.}
