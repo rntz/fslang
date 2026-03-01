@@ -1007,6 +1007,8 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
   \label{fig:syntax}
 \end{figure}
 
+\newcommand\mult\times
+
 \begin{figure}[t]
   \newcommand\desugar{\longrightarrow}
   \begin{align*}
@@ -1027,7 +1029,7 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
     &
     \name{sum} &: (A \fto \natz) \lto \natz
     \\
-    (\times) &: \natz \ox \natz \lto \natz &
+    (\mult) &: \natz \ox \natz \lto \natz &
     ({=}) &: A \to A \fto \bool
   \end{align*}
   \caption{Syntax sugar and primitive functions in \fslang}
@@ -1116,13 +1118,13 @@ In general, for any commutative monoid of the form $(P, {\oplus}, \nil_P)$, sinc
 This extends to an aggregation $\bigoplus_P : (A \fto P) \lto P$ that takes a finite map $f : A \fto P$ to the monoid sum $\bigoplus_{x \in \support f} f(x)$.
 For instance, the aggregation of the monoid $(\bool, \name{or}, \false)$ is \name{exists}, while the aggregation of $(\natz, +, 0)$ is \name{sum}.
 
-Just as \name{exists} combined with $\name{and} : \bool \ox \bool \lto \bool$ gave us relational composition in \name{costars}, summation combined with $\times : \natz \ox \natz \lto \natz$ (which holds since $0 \times y = x \times 0 = 0 = \nil_{\natz}$) gives us matrix multiplication:
+Just as \name{exists} combined with $\name{and} : \bool \ox \bool \lto \bool$ gave us relational composition in \name{costars}, summation combined with $\mult : \natz \ox \natz \lto \natz$ (which holds since $0 \mult y = x \mult 0 = 0 = \nil_{\natz}$) gives us matrix multiplication:
 
 \begin{code}
   \name{matMul} : (A \times B \fto \nat_0) \lto
   (B \times C \fto \nat_0) \lto
   A \times C \fto \nat_0\\
-  \name{matMul} \<m \<n \<i \<k = \name{sum} \<(\fn j m\,i\,j \times n\,j\,k)
+  \name{matMul} \<m \<n \<i \<k = \name{sum} \<(\fn j m\,i\,j \mult n\,j\,k)
 \end{code}
 
 \noindent
@@ -1143,7 +1145,7 @@ Given a commutative monoid aggregation over $P$, it is also functorial in the ke
 
 \noindent
 Of course, finite sets $A \fto \bool$ and bags $A \fto \natz$ are not only functors but monads.
-If besides an aggregation \name{exists}/\name{sum} we have a monoid $(P, {\oast} : P \otimes P \lto P, \boldsymbol 1)$---for \bool\ this is conjunction $(\bool, \name{and}, \true)$, for \natz\ it is multiplication $(\natz, \times, 1)$---then we can define monadic pure and join:
+If besides an aggregation \name{exists}/\name{sum} we have a monoid $(P, {\oast} : P \otimes P \lto P, \boldsymbol 1)$---for \bool\ this is conjunction $(\bool, \name{and}, \true)$, for \natz\ it is multiplication $(\natz, \mult, 1)$---then we can define monadic pure and join:
 \todo{presumably this is a lawful monad if this forms a semiring?}
 
 \begin{align*}
@@ -1156,7 +1158,7 @@ If besides an aggregation \name{exists}/\name{sum} we have a monoid $(P, {\oast}
   \name{pure} \<x \<a = 1 \when x = a
   &&
   \name{join} \<\name{nested} \<a =
-  \name{sum} \<(\fn t \name{nested} \<t \times t\<a)
+  \name{sum} \<(\fn t \name{nested} \<t \mult t\<a)
 \end{align*}
 
 %% \begin{fleqn}[\codeoffset]
@@ -1174,7 +1176,7 @@ If besides an aggregation \name{exists}/\name{sum} we have a monoid $(P, {\oast}
 %%       \name{pure} \<x \<a = 1 \when x = a
 %%       &
 %%       \name{join} \<\name{nested} \<a =
-%%       \name{sum} \<(\fn t \name{nested} \<t \times t\<a)
+%%       \name{sum} \<(\fn t \name{nested} \<t \mult t\<a)
 %%     \end{array}
 %% \end{flalign*}
 %% \end{fleqn}
@@ -1189,7 +1191,7 @@ If besides an aggregation \name{exists}/\name{sum} we have a monoid $(P, {\oast}
 %%   \name{pure} \<x \<a = 1 \when x = a
 %%   &&
 %%   \name{join} \<\name{nested} \<a =
-%%   \name{sum} \<(\fn t \name{nested} \<t \times t\<a)
+%%   \name{sum} \<(\fn t \name{nested} \<t \mult t\<a)
 %% \end{flalign*}
 
 %% \begin{code}
@@ -1197,7 +1199,7 @@ If besides an aggregation \name{exists}/\name{sum} we have a monoid $(P, {\oast}
 %%   \name{pure} \<x \<a = 1 \when x = a\\
 %%   \name{join} : ((A \fto \natz) \fto \natz) \lto (A \fto \natz)\\
 %%   \name{join} \<\name{nested} \<a =
-%%   \name{sum} \<(\fn t \name{nested} \<t \times t\<a)
+%%   \name{sum} \<(\fn t \name{nested} \<t \mult t\<a)
 %% \end{code}
 
 \noindent
