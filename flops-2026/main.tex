@@ -1679,9 +1679,7 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
   \begin{mathpar}
     \boxed{\cJ e A \G}\hfill\\  % SET RULES
 
-    \infer*[right=include]{\J t P \G \emptycx \emptycx}{\cJ t P \G}
-
-    \text{\TODO{need elim rule that \textsc{include} is intro for}}
+    \infer*[right=ui]{\J t P \G \emptycx \emptycx}{\cJ t P \G}
 
     \infer*[right=evar]{\hyp x A \in \G}{\cJ x A \G}
 
@@ -1717,6 +1715,8 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
     \vspace{1em}
     \\
     \boxed{\J t P \G \D \O}\hfill\\ % POINTED SET RULES
+
+    \infer*[right=ue]{\cJ e P \G}{\J e P \G \emptycx \emptycx}
 
     \infer*[right=var]{~}{\J x P \G {\hyp x P} {\emptycx}}
 
@@ -1810,7 +1810,7 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
       \J {\letjust x t u} P \G {\D_1 \cup \D_2} {\O_1, \O_2}
     }
   \end{mathpar}
-  \caption{Typing rules for \fslang}
+  \caption{\fslang\ typing rules}
   \label{fig:typing-rules}
 \end{figure}
 
@@ -1976,7 +1976,7 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
     \o_2 \mapsto y \in \den{u} \<(\g,\o_1,x) \<(\pi_{\D_2} \d)
     \}
   \end{align*}
-  \caption{Semantics of \fslang}
+  \caption{\fslang\ semantics}
   \label{fig:semantics}
 \end{figure*}
 
