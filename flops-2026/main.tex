@@ -1252,7 +1252,7 @@ Of course, finite sets $A \fto \bool$ and bags $A \fto \natz$ are not only funct
 If besides an aggregation \name{exists}/\name{sum} we have a monoid $(P, {\oast} : P \otimes P \lto P, \boldsymbol 1)$---for \bool\ this is conjunction $(\bool, \name{and}, \true)$, for \natz\ it is multiplication $(\natz, \times, 1)$---then we can define monadic pure and join:
 \todo{presumably this is a lawful monad if this forms a semiring?}
 
-\begin{flalign*}
+\begin{align*}
   &
   \name{pure} : A \to (A \fto \natz)
   &&
@@ -1263,7 +1263,20 @@ If besides an aggregation \name{exists}/\name{sum} we have a monoid $(P, {\oast}
   &&
   \name{join} \<\name{nested} \<a =
   \name{sum} \<(\fn t \name{nested} \<t \times t\<a)
-\end{flalign*}
+\end{align*}
+
+%% \begin{flalign*}
+%%   &
+%%   \name{pure} : A \to (A \fto \natz)
+%%   &&
+%%   \name{join} : ((A \fto \natz) \fto \natz) \lto (A \fto \natz)
+%%   \\[-3pt]
+%%   &
+%%   \name{pure} \<x \<a = 1 \when x = a
+%%   &&
+%%   \name{join} \<\name{nested} \<a =
+%%   \name{sum} \<(\fn t \name{nested} \<t \times t\<a)
+%% \end{flalign*}
 
 %% \begin{code}
 %%   \name{pure} : A \to (A \fto \natz)\\
