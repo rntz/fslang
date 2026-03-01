@@ -494,7 +494,6 @@ Following this intuition, we can translate this logic program directly into a fu
 \noindent
 However, functions in functional and imperative languages are unidirectional: they take inputs to outputs.
 Evaluating $\name{mutuals} \<x \<y$ will test whether fixed users $x, y$ are mutuals---but unlike in logic programming, we cannot use it to enumerate mutual follows, for instance, to find the mutuals $y$ of a fixed user $x$.%
-%% \footnotemark{}
 
 %% \footnotetext{%
 %%   There is also the matter of efficiency.
@@ -571,13 +570,11 @@ much as a function is a set of input-output tuples, a predicate can enumerate it
 %
 We call these inputs the \emph{support} of a predicate.
 %
-%Calculating $\name{exists}\<f$ means determining whether $f$'s support is non-empty.
 If we know $f$'s support, calculating $\name{exists}\<f$ is simple: is the support nonempty?
 
 This suggests we can make the direct functional translation of logic programs behave correctly if we equip functions with %some representation of
 their support.
 %
-%% "To simplify the problem" isn't enough motivation for finiteness!
 Inspired by %databases and %bottom-up logic programming languages such as
 Datalog, we focus on {finite} support.
 Since finitely supported functions can be represented as key-value tables, we also call them \emph{finite maps.}
@@ -594,26 +591,21 @@ We make the following contributions:
 
 \item We show finite maps form a graded monad/comonad on \Point.
 
-%% \item We observe that in \Point, maps out of the tensor smash product $A \otimes B$ correspond to database {inner joins}, while maps out of the cartesian direct product $A \with B$ correspond to {outer joins}.
-
-\item We %use these insights to
-  construct a simply typed language \fslang\ that can express relational algebra and some forms of aggregation, whose type system guarantees finite support.
+\item We construct a simply typed language \fslang\ that can express relational algebra and some forms of aggregation, whose type system guarantees finite support.
   \todolater{but we still support nonfinite possibly higher order functions! so we handle the \emph{interaction} between finite \& nonfinite things.}
-
-%% \item We use these insights to construct a type system whose well typed terms have finite support, and which is expressive enough to capture relational algebra augmented with some forms of aggregation.
 
 \item We give a denotational semantics of \fslang\ in \Point. \TODO{cut semantics figure and rephrase as ``\emph{sketch} a denotational semantics of \fslang\ in \Point.''?}
 \end{enumerate}
 
-\todolater{NOVEL CONTRIBUTIONS from thinking about paper conclusion / related work:
-  \begin{enumerate}
-  \item show one can take seriously the idea that predicates are functions into booleans, if one represents these functions' support.
+%% \todolater{NOVEL CONTRIBUTIONS from thinking about paper conclusion / related work:
+%%   \begin{enumerate}
+%%   \item show one can take seriously the idea that predicates are functions into booleans, if one represents these functions' support.
 
-  \item observes that pointed sets are the minimum structure necessary to define support, and that they allow expressing aggregations and weighted logic programming. (Previous approaches have used semilattices or semirings or specific weights such as probabilities.)
+%%   \item observes that pointed sets are the minimum structure necessary to define support, and that they allow expressing aggregations and weighted logic programming. (Previous approaches have used semilattices or semirings or specific weights such as probabilities.)
 
-  \item when finite support is desired, draws a connection between variable grounding and moding on the one hand, and graded effects over relevance types on the other
-  \end{enumerate}
-}
+%%   \item when finite support is desired, draws a connection between variable grounding and moding on the one hand, and graded effects over relevance types on the other
+%%   \end{enumerate}
+%% }
 
 \noindent
 Along the way we will observe other curious connections:
@@ -647,27 +639,6 @@ Let's get started!
 %Shall we begin?
 \end{center}
 
-\noindent
-\todolater{TODO: connect contributions to paper structure (section references).\\
-  TODO: any other contributions? something about tensor algebra / weighted logic programming?}
-
-%% \footnotetext{
-%%   \emph{Productive} meaning that each enumeration step terminates; in particular we must be able to decide whether the support is empty.
-%% }
-
-%% Additionally, the functional style makes it natural to add two powerful features: (1) higher order computation, by allowing both finitely supported functions (represented as \emph{data,} e.g.\ a table) and arbitrary, possibly higher order functions (represented as \emph{code}); and (2) finitely supported functions need not be boolean; finite support is definable for any \emph{pointed} type, that is, a type with a designated `zero' value \todo{TODO finish}
-
-%% \noindent
-%% \todo{TODO: point out that this is similar to matrix multiplication}
-%% \[
-%% (A \cdot B)_{ik} = \sum_j A_{ij} \cdot B_{jk}
-%% \]
-
-%% \begin{lstlisting}
-%% reach(start).
-%% reach(Y) :- reach(X), edge(X,Y).
-%% \end{lstlisting}
-
 
 %\section{Support and pointed sets}
 %\section{What is the point of support?}
@@ -677,8 +648,6 @@ Let's get started!
 \label{sec:support}
 
 The support of a boolean function $f$ is the set $\{ x \in A : f(x) \ne \false \}$.
-%
-%Such functions suffice to express logical predicates, but it will be useful to generalize further:
 It will be useful to generalize beyond booleans,
 firstly to expose compositional structure, for instance, to define the support of a curried function $f : A \to B \to \bool$;
 and secondly to generalize from boolean logic and existential quantification (or relational algebra and projection, respectively) to weighted logic programming and aggregation (or tensor algebra and contraction).
@@ -690,80 +659,6 @@ We define the support of a function $f : A \to P$ into a pointed set to be $\sup
 %
 If one regards $\nil_P$ as an uninteresting, default value, a function's support contains those inputs with interesting, nondefault outputs.
 
-%% ---------- OLD VERSION ----------
-
-%% We've seen that the support of a boolean function $f$ is the set $\{ x \in A : f(x) \ne \false \}$.
-%% %
-%% Generalizing this, we write $P,Q$ for sets with a designated element (`pointed sets') and $\nil_P \in P$ for the designated element (the `point').
-%% For instance, we regard $\bool$ as pointed with $\nil_\bool = \false$.
-%% We define the support of a function $f : A \to P$ into a pointed set to be $\support f = \{ x \in A : f(x) \ne \nil_P \}$.
-%% %
-%% If one considers $\nil_P$ as an uninteresting, default value, the support of a function consists of those inputs with interesting, nondefault outputs.
-
-%% It may seem hasty to immediately generalize from booleans to pointed sets.
-%% %
-%% After all, boolean functions suffice to express logical predicates.
-%% %
-%% For this we beg the reader's patience; it will become clear as the paper progresses what this generality buys us.
-
-%% ---------- EXPLAINING WHAT GENERALIZATION BUYS US WITH EXAMPLES ----------
-%% It may seem hasty to immediately generalize from booleans to pointed sets.
-%% %
-%% After all, boolean functions suffice to express logical predicates.
-%% %
-%% So let's explore a few examples of what this generality buys us:
-
-%% \paragraph{Curried functions}
-%% It is clear what the support of a binary predicate $f : A \times B \to \bool$ is.
-%% But what is the support of its currying, $g : A \to B \to \bool$?
-%% Well, the codomain of $g$ is $B \to \bool$.
-%% Functions into a pointed set $B \to P$ naturally form a pointed set with $\nil_{B \to P} = \name{const} \<\nil_P$, the constantly \nil\ function. Therefore $\support g = \{ a \in A : (\fn b f(x,y)) \ne \name{const}\< \false \} = \{ a \in A : \ex{b} f(x,y) \ne \false \}$.
-%% Thus generalizing to pointed sets lets us cleanly articulate the support of a curried predicate, and therefore what it means for one to be finitely supported.
-%% \todo{also show that currying/uncurrying preserve finite support!}
-
-%% \noindent\todo{
-%%   1. tensor algebra. maybe matrix multiplication? $\support \{ (i,k) \mapsto \sum_j f(i,j) \cdot g(j,k) \} = \{\}$.
-%%   \\
-%%   2. support of a curried function.
-%%   \\
-%%   3. a point preserving map contracts support and therefore preserves finite support. introduce category \Point.e/
-%%   \\
-%%   4. what about mapping a multiargument function?
-%%   }
-
-%% ---------- OLD VERSION OF INTRO ----------
-%% We have seen that the support of a boolean function $f : A \to \bool$ is the set $\{ x \in A : f(x) \ne \false \}$.
-%% %
-%% Boolean functions suffice to express predicates or relations; however, it behooves us to generalize beyond them, for two reasons:
-%% %
-%% \begin{enumerate}
-
-%% \item To expose compositional structure.
-%%   For instance, it will let us describe:
-%%   (a) the support of a curried function $f : A \to B \to \bool$;
-%%   (b) when a transformation on a function's outputs will preserve finite support;
-%%   and
-%%   (c) distinct types for boolean \emph{and/or} that reflect their distinct effects on a function's support.
-
-%% \item To generalize from relational algebra (in which tuples are present or absent) to tensor algebra (in which a tuple is mapped to a value, such as a real number); equivalently, from logic programming to weighted logic programming.
-%% \end{enumerate}
-
-%% %% To generalize,
-%% %% For this we must choose an element of the codomain to play the role of \false.\footnotemark{}
-
-%% \noindent
-%% %Consider some existing mathematical notions of support:
-%% To this end, we must choose an element of the codomain to play the role of \false.
-%% %
-%% In analysis, for example, a real-valued function has support $\{ x \in A : f(x) \ne 0 \}$.
-%% %
-%% In algebra, a map into a monoid $M$ with identity element $\varepsilon$ has support $\{ x \in A : f(x) \ne \varepsilon \}$.
-%% %
-%% In general, we write $P,Q$ for sets with a designated element (`pointed sets') and $\nil_P \in P$ for this element (the `point' of $P$).
-%% The support of a function $f : A \to P$ is the set $\support f = \{ x \in A : f(x) \ne \nil_P \}$.
-
-%% \footnotetext{\todo{explain why we pick \false\ not \true: because the support is the range of `interesting' outputs.}}
-
 We write $A \fto P = \{ f \in A \to P : \support f ~\text{is finite} \}$ for the finitely supported functions from $A$ to $P$.
 This is a pointed set with $\nil_{A \fto P} = \fn{x} \nil_P$;
 the boring, default finite map is the one with empty support.
@@ -771,7 +666,6 @@ What can we do with finite maps?
 We can of course apply them---this is lookup in a key-value table.
 We can also curry and uncurry them: $A \times B \fto P \cong A \fto (B \fto P)$.
 This converts between a single flat table $A \times B \fto P$ and a trie-like nesting of tables $A \fto B \fto P$.
-%\todo{this corresponds to moving between a flat representation and a nested trie-like one; should I mention this?}
 
 But how can we manipulate the output $P$ of a finite map $A \fto P$?
 Can we, for instance, compose finite maps?
@@ -1176,7 +1070,6 @@ This intersects two finite sets, but we can also more generally `intersect' (i.e
 
 \noindent
 We can also define the intersection of two arbitrary functions $f,g : A \to \bool$, but this will only yield another function, not a finite map.
-\todolater{MENTION INPUT/OUTPUT MODING OR GROUNDING HERE.}
 
 Let's move on to considering what we can express with the function $\name{exists} : (A \fto \bool) \lto \bool$, now justified by the finite support of its argument:
 
