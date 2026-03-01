@@ -1729,14 +1729,12 @@ To ensure our last rule generalizes the two prior ones, we must be able to weake
 %That is, whenever $\J u P \G \D {\O_1, \O_2}$ then also $\J u P {\G, \O_1} \D {\O_2}$.
 Then a variable finitely supported by both $t$ and $u$ can simply be placed into $\O_1$ in \rulename{$\ox$\,i}.
 Unfortunately this doesn't yet hold: \rulename{$\fto$\,e} lets us apply finite maps $A \fto P$ to variables in $\O$ but not in $\G$!
-We need an additional rule that lets us apply a finite map to an unrestricted variable $x$, or more generally an expression $e$:
-
-\TODO{PUT THIS INTO THE TYPING RULES FIGURE!}
+We need an additional rule that lets us apply a finite map to an unrestricted variable $x$, or more generally an expression $e$ which (as usual) may use unrestrictedly any variables finitely supported by $t$:
 
 \[
 \infer*[right=${\fto}\,\textsc{e}_2$]{
   \J t {A \fto P} \G \D \O\\
-  \cJ e {A} \G
+  \cJ e {A} {\G,\O}
 }{
   \J {t\<e} P \G \D \O
 }
@@ -1854,7 +1852,7 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
     \infer*[right=$\fto$\,e]{
       \J t {A \fto P} \G {\D} {\O}
     }{
-      \J {t\<x} P \G {\D} {\O \cup x : A}
+      \J {t\<x} P \G {\D} {\O, x : A}
     }
 
     \infer*[right=$\with$\,i]{
@@ -1898,7 +1896,7 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
 
     \infer*[right=${\fto}\,\textsc{e}_2$]{
       \J t {A \fto P} \G \D \O\\
-      \cJ e {A} \G
+      \cJ e {A} {\G,\O}
     }{
       \J {t\<e} P \G \D \O
     }
@@ -1992,29 +1990,33 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
     \Den{\infer{
       \J t {A \fto P} \G {\D} {\O}
     }{
-      \J {t\<x} P \G {\D} {\O \todo{{}\cup{}} x : A}
+      \J {t\<x} P \G {\D} {\O, x : A}
     }} \<\g \<\d &=
-    \begin{cases}
     \{ (\o, x) \mapsto y :
     \o \mapsto f \in \den{t} \<\g \<\d,
     x \mapsto y \in f
     \}
-    & \text{if $x \notin\O$}
-    \\
-    \{ \o \mapsto f(\pi_x\o) :
-    \o \mapsto f \in \den{t} \<\g \<\d
-    \}
-    & \text{if $x \in \O$}
-    \end{cases}
+    %% \begin{cases}
+    %% \{ (\o, x) \mapsto y :
+    %% \o \mapsto f \in \den{t} \<\g \<\d,
+    %% x \mapsto y \in f
+    %% \}
+    %% & \text{if $x \notin\O$}
+    %% \\
+    %% \{ \o \mapsto f(\pi_x\o) :
+    %% \o \mapsto f \in \den{t} \<\g \<\d
+    %% \}
+    %% & \text{if $x \in \O$}
+    %% \end{cases}
     \\
     %% \fto ELIM 2 - FINITE MAP APPLICATION (LOOKUP)
     \Den{\infer{
       \J t {A \fto P} \G {\D} {\O}\\
-      \cJ e A \G
+      \cJ e A {\G,\O}
     }{
       \J {t\<e} P \G {\D} {\O}
     }} \<\g \<\d &=
-    \{ \omega \mapsto f(\den{e}\<\g) : \omega \mapsto f \in \den{t}\<\g\<\d \}
+    \{ \omega \mapsto f(\den{e}\<(\g,\o)) : \omega \mapsto f \in \den{t}\<\g\<\d \}
     \\
     \Den{\infer{
       \J t P \G \D \O
