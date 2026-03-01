@@ -1647,34 +1647,6 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
 
 
 %% ---- TYPES & SEMANTICS FIGURES ----
-\begin{figure}[t]
-  \begin{align*}
-    \den{1} &= 1 & \den{A \times B} &= \den{A} \times \den{B} & \den{A \to B} &= \den{A} \to \den{B}
-    &
-    \den{P} &= U \den{P}
-  \end{align*}
-
-  \begin{align*}
-    \den{P \with Q} &= \den{P} \with \den{Q} &
-    \den{P \ox Q} &= \den{P} \ox \den{Q} &
-    \den{P \lto Q} &= \den{P} \lto \den{Q}\\
-    \den{A \fto P} &= \den{A} \fto \den{P} &
-    \den{\maybeof A} &= \maybeof{\den{A}} &
-    \den{\natz} &= \natz
-  \end{align*}
-
-  \begin{align*}
-    \den{\G} &= \prod_{\hyp x A \in \G} \den{A}
-    &
-    \den{\D} &= \bigotimes_{\hyp x P \in \D} \den{P}
-    &
-    \den{\O} &= \prod_{\hyp x A \in \G} \den{A}
-  \end{align*}
-
-  \caption{Semantics of types and contexts in \fslang}
-  \label{fig:type-context-semantics}
-\end{figure}
-
 \begin{figure}
   \begin{mathpar}
     \boxed{\cJ e A \G}\hfill\\  % SET RULES
@@ -1814,12 +1786,40 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
   \label{fig:typing-rules}
 \end{figure}
 
+\begin{figure}[p]
+  \begin{align*}
+    \den{1} &= 1 & \den{A \times B} &= \den{A} \times \den{B} & \den{A \to B} &= \den{A} \to \den{B}
+    &
+    \den{P} &= U \den{P}
+  \end{align*}
+
+  \begin{align*}
+    \den{P \with Q} &= \den{P} \with \den{Q} &
+    \den{P \ox Q} &= \den{P} \ox \den{Q} &
+    \den{P \lto Q} &= \den{P} \lto \den{Q}\\
+    \den{A \fto P} &= \den{A} \fto \den{P} &
+    \den{\maybeof A} &= \maybeof{\den{A}} &
+    \den{\natz} &= \natz
+  \end{align*}
+
+  \begin{align*}
+    \den{\G} &= \prod_{\hyp x A \in \G} \den{A}
+    &
+    \den{\D} &= \bigotimes_{\hyp x P \in \D} \den{P}
+    &
+    \den{\O} &= \prod_{\hyp x A \in \G} \den{A}
+  \end{align*}
+
+  \caption{Semantics of types and contexts in \fslang}
+  \label{fig:type-context-semantics}
+\end{figure}
+
 \newcommand\g\gamma
 \renewcommand\d\delta
 \renewcommand\o\omega
 \newcommand\Den[1]{\left\llbracket{#1}\right\rrbracket}
 
-\begin{figure*}
+\begin{figure*}[p]
   \textsc{semantics of $\cJ e A \G$}
   \begin{align*}
     \den{t} \<\g &= \den{t} \<\g \<() \<()
@@ -2006,7 +2006,7 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
     \o_2 \mapsto y \in \den{u} \<(\g,\o_1,x) \<(\pi_{\D_2} \d)
     \}
   \end{align*}
-  \caption{\fslang\ semantics}
+  \caption{Semantics of expressions and terms in \fslang}
   \label{fig:semantics}
 \end{figure*}
 
