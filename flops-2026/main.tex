@@ -1265,6 +1265,26 @@ If besides an aggregation \name{exists}/\name{sum} we have a monoid $(P, {\oast}
   \name{sum} \<(\fn t \name{nested} \<t \times t\<a)
 \end{align*}
 
+%% \begin{fleqn}[\codeoffset]
+%%   \newlength\juryrigged
+%%    \iftoggle{charter}
+%%             %% {\setlength\juryrigged{7.1em}}{\setlength\juryrigged{6.25em}} % return
+%%             {\setlength\juryrigged{3em}}{\setlength\juryrigged{3em}}
+%%   \begin{flalign*}
+%%     \setlength\arraycolsep{0pt} % necessary for flush left alignment.
+%%     \begin{array}{l@{\hskip \juryrigged}l} % MANUAL ADJUSTMENT!
+%%       \name{pure} : A \to (A \fto \natz)
+%%       &
+%%       \name{join} : ((A \fto \natz) \fto \natz) \lto (A \fto \natz)
+%%       \\
+%%       \name{pure} \<x \<a = 1 \when x = a
+%%       &
+%%       \name{join} \<\name{nested} \<a =
+%%       \name{sum} \<(\fn t \name{nested} \<t \times t\<a)
+%%     \end{array}
+%% \end{flalign*}
+%% \end{fleqn}
+
 %% \begin{flalign*}
 %%   &
 %%   \name{pure} : A \to (A \fto \natz)
@@ -1285,26 +1305,6 @@ If besides an aggregation \name{exists}/\name{sum} we have a monoid $(P, {\oast}
 %%   \name{join} \<\name{nested} \<a =
 %%   \name{sum} \<(\fn t \name{nested} \<t \times t\<a)
 %% \end{code}
-
-%% \begin{fleqn}[\codeoffset]
-%%   \newlength\juryrigged
-%%    \iftoggle{charter}
-%%             %% {\setlength\juryrigged{7.1em}}{\setlength\juryrigged{6.25em}} % return
-%%             {\setlength\juryrigged{5.5em}}{\setlength\juryrigged{5.5em}}
-%%   \begin{flalign*}
-%%     \setlength\arraycolsep{0pt} % necessary for flush left alignment.
-%%     \begin{array}{l@{\hskip \juryrigged}l} % MANUAL ADJUSTMENT!
-%%       \name{pure} : A \to (A \fto \natz)
-%%       &
-%%       \name{join} : ((A \fto \natz) \fto \natz) \lto (A \fto \natz)
-%%       \\
-%%       \name{pure} \<x \<a = 1 \when x = a
-%%       &
-%%       \name{join} \<\name{nested} \<a =
-%%       \name{sum} \<(\fn t \name{nested} \<t \times t\<a)
-%%     \end{array}
-%% \end{flalign*}
-%% \end{fleqn}
 
 \noindent
 We might even dare to consider defining finitely supported predicates recursively:
