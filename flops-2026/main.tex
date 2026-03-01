@@ -40,7 +40,7 @@
 \usepackage{amsmath}
 %\usepackage{latexsym}
 \usepackage{stmaryrd}           % \shortrightarrow
-\usepackage{mathtools}          % \dblcolon, \Coloneqq
+\usepackage{mathtools}          % \dblcolon, \Coloneqq, \intertext
 \usepackage{mathpartir}         % \begin{mathpar}, \infer
 \usepackage{nccmath}            % fleqn (for code environment)
 \usepackage{booktabs}           % \midrule
@@ -147,7 +147,7 @@
 \renewcommand\todolater[1]{\todo{\color{RoyalBlue}#1}}
 \newcommand\draft[1]{{\color{RoyalBlue}#1}}
 
-%\renewcommand\todo[1]{\ignorespaces}\renewcommand\xxx{\text{\color{IndianRed}\strong{XXX}}}
+\renewcommand\todo[1]{\ignorespaces}\renewcommand\xxx{\text{\color{IndianRed}\strong{XXX}}}
 
 \newcommand\fslang{\ensuremath{\lambda_{\mathrm{FS}}}}
 \newcommand\catname[1]{\ensuremath{\mathrm{#1}}}
@@ -1820,20 +1820,20 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
 \newcommand\Den[1]{\left\llbracket{#1}\right\rrbracket}
 
 \begin{figure*}
-  \textsc{semantics of $\cJ e A \G$:}
+  \textsc{semantics of $\cJ e A \G$}
   \begin{align*}
     \den{t} \<\g &= \den{t} \<\g \<() \<()
-    &
+    \\
     \den{x} \<\g &= \pi_x \g
-    &
+    \\
     \den{()} \<\g &= ()
     \\
     \den{\fn x e} \<\g &= \fn x \den{e} \<(\g,x)
-    &
+    \\
     \den{e_1 \<e_2} \<\g &= \den{e_1} \<\g \<(\den{e_2} \<\g)
     \\
     \den{(e_1, e_2)} \<\g &= (\den{e_1} \<\g, \den{e_2} \<\g)
-    &
+    \\
     \den{\pi_i\<e} \<\g &= \pi_i (\den e \<\g)
     \\
     \den{\ifjust{e_1} x {e_2} {e_3}} &\omit\rlap{\({}=
@@ -1841,51 +1841,67 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
       \den{e_2} \<(\g,x) & \text{if}~ \den{e_1} \<\g = \cjust~x\\
       \den{e_3} \<\g & \text{otherwise}
     \end{cases}\)}
-  \end{align*}
-
-  \textsc{semantics of $\J t P \G \D \O$:}
-  \begin{align*}
+    \intertext{\textsc{semantics of $\J t P \G \D \O$}}
+  %% \end{align*}
+  %% \textsc{semantics of $\J t P \G \D \O$:}
+  %% \begin{align*}
+    %% \Den{
+    %%   \infer{\cJ e P \G}
+    %%         {\J e P \G \emptycx \emptycx}
+    %% }
+    \den{{\J e P \G \emptycx \emptycx}}
+    \<\g \<\d &=
+    \{() \mapsto \den{e} \<\g : \d \ne \nil \}
+    \\
     \den{\J \nil P \G \D \O} \<\g \<\d &= \{\} % NIL
     \\
     %% VAR
     \den{\J x P \G {\hyp x P} \emptycx} \<\g \<x &= \{ () \mapsto x \}
     \\
     %% \lto INTRO - POINTED LAMBDA
-    \Den{\infer{
-        \J t Q \G {\D, \hyp x P} {\emptycx}
-      }{
-        \J {\fn x t} {P \lto Q} \G \D {\emptycx}
-    }} \<\g \<\d &=
+    %% \Den{\infer{
+    %%     \J t Q \G {\D, \hyp x P} {\emptycx}
+    %%   }{
+    %%     \J {\fn x t} {P \lto Q} \G \D {\emptycx}
+    %% }}
+    \den{\J {\fn x t} {P \lto Q} \G \D {\emptycx}}
+    \<\g \<\d &=
     \{ () \mapsto \fn{x} \den{t} \<\g \<(\d,x) \}
     \\
     %% \fto INTRO - FINITE MAP LAMBDA
-    \Den{\infer{
-        \J t P \G \D {\O, \hyp x A}
-      }{
-        \J {\fn x t} {A \fto P} \G \D \O
-    }} \<\g \<\d &=
+    %% \Den{\infer{
+    %%     \J t P \G \D {\O, \hyp x A}
+    %%   }{
+    %%     \J {\fn x t} {A \fto P} \G \D \O
+    %% }}
+    \den{\J {\fn x t} {A \fto P} \G \D \O}
+    \<\g \<\d &=
     \{ \o \mapsto \{ x \mapsto y : (\o, x) \mapsto y \in \den{t} \<\g \<\d \}
     : \ex{x,y} (\o,x) \mapsto y \in \den{t} \<\g \<\d \}
     \\
     %% \lto ELIM - POINTED FUNCTION APPLICATION
-    \Den{\infer{
-        \J t {P \lto Q} \G {\D_1} {\O_1}
-        \\\\
-        \J u {P} {\G,\O_1} {\D_2} {\O_2}
-      }{
-        \J{t\<u}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
-    }} \<\g \<\d
+    %% \Den{\infer{
+    %%     \J t {P \lto Q} \G {\D_1} {\O_1}
+    %%     \\\\
+    %%     \J u {P} {\G,\O_1} {\D_2} {\O_2}
+    %%   }{
+    %%     \J{t\<u}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
+    %%   }}
+    \den{\J{t\<u}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}}
+    \<\g \<\d
     &= \{ (\o_1, \o_2) \mapsto x\<y :
     \o_1 \mapsto x \in \den t \<\g \<(\pi_{\D_1} \d),
     \o_2 \mapsto y \in \den u \<(\g, \o_1) \<(\pi_{\D_2} \d)
     \}
     \\
     %% \fto ELIM - FINITE MAP APPLICATION
-    \Den{\infer{
-      \J t {A \fto P} \G {\D} {\O}
-    }{
-      \J {t\<x} P \G {\D} {\O, x : A}
-    }} \<\g \<\d &=
+    %% \Den{\infer{
+    %%   \J t {A \fto P} \G {\D} {\O}
+    %% }{
+    %%   \J {t\<x} P \G {\D} {\O, x : A}
+    %% }}
+    \den{\J {t\<x} P \G {\D} {\O, x : A}}
+    \<\g \<\d &=
     \{ (\o, x) \mapsto y :
     \o \mapsto f \in \den{t} \<\g \<\d,
     x \mapsto y \in f
@@ -1904,73 +1920,87 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
     %% \end{cases}
     \\
     %% \fto ELIM 2 - FINITE MAP APPLICATION (LOOKUP)
-    \Den{\infer{
-      \J t {A \fto P} \G {\D} {\O}\\
-      \cJ e A {\G,\O}
-    }{
-      \J {t\<e} P \G {\D} {\O}
-    }} \<\g \<\d &=
+    %% \Den{\infer{
+    %%   \J t {A \fto P} \G {\D} {\O}\\
+    %%   \cJ e A {\G,\O}
+    %% }{
+    %%   \J {t\<e} P \G {\D} {\O}
+    %% }}
+    \den{\J {t\<e} P \G {\D} {\O}}
+    \<\g \<\d &=
     \{ \omega \mapsto f(\den{e}\<(\g,\o)) : \omega \mapsto f \in \den{t}\<\g\<\d \}
     \\
-    \Den{\infer{
-      \J t P \G \D \O
-      \\\\
-      \J u Q \G \D \O
-    }{
-      \J {\withpair{t,u}} {P \with Q} \G \D \O
-    }} \<\g \<\d &=
+    %% \Den{\infer{
+    %%   \J t P \G \D \O
+    %%   \\\\
+    %%   \J u Q \G \D \O
+    %% }{
+    %%   \J {\withpair{t,u}} {P \with Q} \G \D \O
+    %% }}
+    \den{\J {\withpair{t,u}} {P \with Q} \G \D \O}
+    \<\g \<\d &=
     \{ \o \mapsto \withpair{x,y} :
     \o \mapsto x \in \den{t} \<\g \<\d,
     \o \mapsto y \in \den{u} \<\g \<\d
     \}
     %\text{ \sffamily\todolater{looks like intersection; should be a union!}}
     \\
-    \Den{\infer{
-      \J t P \G {\D_1} {\O_1}
-      \\\\
-      \J u Q {\G, \O_1} {\D_2} {\O_2}
-    }{
-      \J{(t, u)}{P \ox Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
-    }} \<\g \<\d &=
+    %% \Den{\infer{
+    %%   \J t P \G {\D_1} {\O_1}
+    %%   \\\\
+    %%   \J u Q {\G, \O_1} {\D_2} {\O_2}
+    %% }{
+    %%   \J{(t, u)}{P \ox Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
+    %% }}
+    \den{\J{(t, u)}{P \ox Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}}
+    \<\g \<\d &=
     \{ (\o_1, \o_2) \mapsto (x,y) :
     \o_1 \mapsto x \in \den{t} \<\g \<(\pi_{\D_1} \d),
     \o_2 \mapsto y \in \den{u} \<(\g,\o_1) \<(\pi_{\D_2} \d)
     \}
     \\
-    \Den{\infer{
-      \J t {P_1 \with P_2} \G \D \O
-    }{
-      \J {\pi_i\<t} {P_i} \G \D \O
-    }} \<\g \<\d &=
+    %% \Den{\infer{
+    %%   \J t {P_1 \with P_2} \G \D \O
+    %% }{
+    %%   \J {\pi_i\<t} {P_i} \G \D \O
+    %% }}
+    \den{\J {\pi_i\<t} {P_i} \G \D \O}
+    \<\g \<\d &=
     \{ \o \mapsto \pi_i\, x : \o \mapsto x \in \den{t} \<\g \<\d \}
     \\
-    \Den{\infer{
-      \J t {P \ox Q} \G {\D_1} {\O_1}
-      \\\\
-      \J u Q {\G, \O_1} {\D_2, \hyp{x}{P}, \hyp{y}{Q}} {\O_2}
-    }{
-      \J{\letpair{x}{y} t u}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
-    }} \<\g \<\d &=
+    %% \Den{\infer{
+    %%   \J t {P \ox Q} \G {\D_1} {\O_1}
+    %%   \\\\
+    %%   \J u Q {\G, \O_1} {\D_2, \hyp{x}{P}, \hyp{y}{Q}} {\O_2}
+    %% }{
+    %%   \J{\letpair{x}{y} t u}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
+    %% }}
+    \den{\J{\letpair{x}{y} t u}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}}
+    \<\g \<\d &=
     \{ (\o_1,\o_2) \mapsto z :
     \o_1 \mapsto (x,y) \in \den{t} \<\g \<(\pi_{\D_1} \d),
     \o_2 \mapsto z \in \den{u} \<(\g, \o_1) \<(\pi_{\D_2} \d, x, y)
     \}
     \\
     %% MAYBE
-    \Den{\infer{     %right=just or right=maybe i
-      \cJ e A \G
-    }{
-      \J {\tjust e} {\maybeof A} \G \emptycx \emptycx
-    }} \<\g \<\d &=
+    %% \Den{\infer{     %right=just or right=maybe i
+    %%   \cJ e A \G
+    %% }{
+    %%   \J {\tjust e} {\maybeof A} \G \emptycx \emptycx
+    %% }}
+    \den{\J {\tjust e} {\maybeof A} \G \emptycx \emptycx}
+    \<\g \<\d &=
     \{ () \mapsto \cjust \<(\den{e} \<\g) : \d \ne \nil \}
     \\
-    \Den{\infer{     %right=let just or right=maybe e
-      \J t {\maybeof A} \G {\D_1} {\O_1}
-      \\\\
-      \J u P {\G, \O_1, x : A} {\D_2} {\O_2}
-    }{
-      \J {\letjust x t u} P \G {\D_1 \cup \D_2} {\O_1, \O_2}
-    }} \<\g \<\d &=
+    %% \Den{\infer{     %right=let just or right=maybe e
+    %%   \J t {\maybeof A} \G {\D_1} {\O_1}
+    %%   \\\\
+    %%   \J u P {\G, \O_1, x : A} {\D_2} {\O_2}
+    %% }{
+    %%   \J {\letjust x t u} P \G {\D_1 \cup \D_2} {\O_1, \O_2}
+    %% }}
+    \den{\J {\letjust x t u} P \G {\D_1 \cup \D_2} {\O_1, \O_2}}
+    \<\g \<\d &=
     \{ (\o_1, \o_2) \mapsto y :
     \o_1 \mapsto \cjust~x \in \den{t} \<\g \<(\pi_{\D_1} \d),
     \o_2 \mapsto y \in \den{u} \<(\g,\o_1,x) \<(\pi_{\D_2} \d)
