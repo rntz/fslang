@@ -265,50 +265,50 @@
 \togglefalse{charter}
 
 
-%% TEMPORARY: different fonts because I hate reading computer modern
-\toggletrue{charter}
+%% %% TEMPORARY: different fonts because I hate reading computer modern
+%% \toggletrue{charter}
 
-%% WHERE IS SANS-SERIF USED? ANYWHERE? BUELLER? %%
-\usepackage[scaled=0.965, scaled=0.98, proportional,semibold]{sourcesanspro}
-%\usepackage[scaled=1.0333, scaled=1.04, ]{AlegreyaSans} % osf? scaled=1.03-1.067
-%\usepackage[scaled=1.03,]{biolinum} %scaled=1.08 too heavy/contrasty
-%\renewcommand\fslang{\ensuremath{\lambda_{\mathsf{FS}}}}
+%% %% WHERE IS SANS-SERIF USED? ANYWHERE? BUELLER? %%
+%% \usepackage[scaled=0.965, scaled=0.98, proportional,semibold]{sourcesanspro}
+%% %\usepackage[scaled=1.0333, scaled=1.04, ]{AlegreyaSans} % osf? scaled=1.03-1.067
+%% %\usepackage[scaled=1.03,]{biolinum} %scaled=1.08 too heavy/contrasty
+%% %\renewcommand\fslang{\ensuremath{\lambda_{\mathsf{FS}}}}
 
-%% Inconsolata's capitals are taller and match Charter better than Source Code
-%% Pro's, eg in \texttt{Map (A,B) C}. The weight matches better, too.
-\usepackage[scaled=1.021,var0,varl,]{inconsolata}
-%\usepackage[scaled=0.94]{sourcecodepro} % 0.91-0.94
+%% %% Inconsolata's capitals are taller and match Charter better than Source Code
+%% %% Pro's, eg in \texttt{Map (A,B) C}. The weight matches better, too.
+%% \usepackage[scaled=1.021,var0,varl,]{inconsolata}
+%% %\usepackage[scaled=0.94]{sourcecodepro} % 0.91-0.94
 
-\usepackage[scaled=0.97]{XCharter}\linespread{1.0333}
-\usepackage[xcharter, alty, scaled=1.0556, % scaling makes \Rightarrow too bold :(
-  %scaled=1.0424,
-]{newtxmath}
-%\usepackage{eulervm}
+%% \usepackage[scaled=0.97]{XCharter}\linespread{1.0333}
+%% \usepackage[xcharter, alty, scaled=1.0556, % scaling makes \Rightarrow too bold :(
+%%   %scaled=1.0424,
+%% ]{newtxmath}
+%% %\usepackage{eulervm}
 
-%% \usepackage[llscale=1.0424,p,mono=false]{libertine}
-%% \linespread{1.0387}
-%% \usepackage[scaled=1.0424,libertine]{newtxmath}
+%% %% \usepackage[llscale=1.0424,p,mono=false]{libertine}
+%% %% \linespread{1.0387}
+%% %% \usepackage[scaled=1.0424,libertine]{newtxmath}
 
-\setlength\tabcolsep{3pt}
-\setlength\arraycolsep{3pt}
+%% \setlength\tabcolsep{3pt}
+%% \setlength\arraycolsep{3pt}
 
-\renewcommand\G\Gamma
-\renewcommand\D\Delta
-\renewcommand\O\Omega
+%% \renewcommand\G\Gamma
+%% \renewcommand\D\Delta
+%% \renewcommand\O\Omega
 
-%% \usepackage[asterisk,noequal,nolessnomore,eulergreek,
-%%   %% frenchmath,                   % lowercase italic, uppercase upright
-%% ]{mathastext}
-%% \renewcommand\<\;
-%% %% everything upright; comment out for frenchmath.
-%% \renewcommand\name[1]{\ensuremath{\mathrm{#1}}}
-%% \renewcommand\typename\text
-%% %\renewcommand\kword[1]{\textit{#1}}
-%% \renewcommand\tand{\mathrel{\textit{and}}}
-%% \renewcommand\tor{\mathrel{\textit{or}}}
-%% \renewcommand\when{\mathrel{\textit{when}}}
+%% %% \usepackage[asterisk,noequal,nolessnomore,eulergreek,
+%% %%   %% frenchmath,                   % lowercase italic, uppercase upright
+%% %% ]{mathastext}
+%% %% \renewcommand\<\;
+%% %% %% everything upright; comment out for frenchmath.
+%% %% \renewcommand\name[1]{\ensuremath{\mathrm{#1}}}
+%% %% \renewcommand\typename\text
+%% %% %\renewcommand\kword[1]{\textit{#1}}
+%% %% \renewcommand\tand{\mathrel{\textit{and}}}
+%% %% \renewcommand\tor{\mathrel{\textit{or}}}
+%% %% \renewcommand\when{\mathrel{\textit{when}}}
 
-\raggedbottom                   %% makes things look better in the worst case
+%% \raggedbottom                   %% makes things look better in the worst case
 
 
 %% %% XELATEX to use Fern. problems:
@@ -507,7 +507,9 @@ Evaluating $\name{mutuals} \<x \<y$ will test whether fixed users $x, y$ are mut
 For the same reason, our functional translation cannot handle existential quantifiers (also called `projection' in databases). Consider this logic program to find actors who have appeared in the same film:
 
 \begin{lstlisting}
-costars(Actor1, Actor2) :- stars(Film, Actor1), stars(Film, Actor2).
+costars(Actor1, Actor2) :-
+  stars(Film, Actor1),
+  stars(Film, Actor2).
 \end{lstlisting}
 
 %% \begin{code}
@@ -1030,7 +1032,7 @@ But there is no corresponding way to curry maps $P \with Q \lto R$ (like `or') t
     \name{sum} &: (A \fto \natz) \lto \natz
     \\
     (\mult) &: \natz \ox \natz \lto \natz &
-    ({=}) &: A \to A \fto \bool
+    ({=}) &: A \to (A \fto \bool)
   \end{align*}
   \caption{Syntax sugar and primitive functions in \fslang}
   %\caption{\fslang\ as she is spoke}
@@ -1614,7 +1616,7 @@ into the unrestricted context for $u$:
 \noindent
 This rule is asymmetric: it `grounds' variables from left to right.
 This choice is arbitrary---right to left is just as sound---but the symmetric variant, which allows variables finitely supported by either $t$ or $u$ to be used unrestricted in the other, allows circular dataflow and is unsound.
-For instance, there may be infinitely many $x,y$ such that $x = y$, but for fixed $x$ there is exactly one such $y$; this is why we give equality the type $A \to A \fto \bool$.
+For instance, there may be infinitely many $x,y$ such that $x = y$, but for fixed $x$ there is exactly one such $y$; this is why we give equality the type $A \to (A \fto \bool)$.
 However, if we allow each branch to ground variables used in the other, then $(x = y \tand y = x)$, though semantically identical to $x = y$, would incorrectly appear to finitely support both $x$ and $y$: in the left branch, $x$ is used to ground $y$, and vice-versa.
 
 \todolater{discuss how the three different typing rules corresponds to three different implementation strategies: cross products, inner joins, and subqueries!}
@@ -2124,26 +2126,39 @@ we can generalize \name{or} and \name{exists} to an `additive' commutative monoi
 
 \fslang\ has many limitations which we would like to lift in future work:
 \begin{itemize}
-\item It lacks semantics for recursion, perhaps requiring domain theory, although it seems operationally straightforward: as in Datalog, we iterate until fixed point starting from the empty finite map.
-  \todo{it's not that simple; need to reconcile bottom-up recursion for defining finite maps with top-down for defining ordinary functions. $\lambda_\vee$ shows how to do this by making everything streaming. not sure we can do that, though; need some form of continuity which we may well violate!}
+\item It lacks recursion.
+  There are two kinds of recursion we might want: lazy functional recursion (as in recursively defined functions or codata) and bottom-up iteration until reaching a fixed point (as in Datalog's recursively defined relations).
+  It's not obvious how these should interact semantically. $\lambda_\vee$~\cite{DBLP:journals/pacmpl/RiouxZ25} shows how to unify them, but requires a lot of structure (semilattices, dcpos, and continuity); moreover, it seemingly cannot do stratified computation, where we compute a fixed point and then use its results in a non-monotone way.
 
-\item We did not show how to implement our type system, although we have built \href{https://github.com/rntz/fslang/blob/b2730369f68f1cdb4fd69b4a8d997b167d29b7a0/fslang.rkt}{a prototype}
-  using bidirectional type inference, which we lack space to discuss here; it can be found at \url{https://github.com/rntz/fslang/blob/main/fslang.rkt}.
+%% \item It lacks semantics for recursion, perhaps requiring domain theory, although it seems operationally straightforward: as in Datalog, we iterate until fixed point starting from the empty finite map.
+%%   \todo{it's not that simple; need to reconcile bottom-up recursion for defining finite maps with top-down for defining ordinary functions. $\lambda_\vee$ shows how to do this by making everything streaming. not sure we can do that, though; need some form of continuity which we may well violate!}
+
+\item We did not show how to implement either our type system or our semantics.
+  We have built \href{https://github.com/rntz/fslang/blob/b2730369f68f1cdb4fd69b4a8d997b167d29b7a0/fslang.rkt}{a prototype}, which we lack space to discuss here; it can be found at \url{https://github.com/rntz/fslang/blob/main/fslang.rkt}.
+  As our finite map operations are closely connected to tensor algebra, perhaps indexed streams~\cite{10.1145/3591268} could provide an efficient implementation technique.
 
 \item Our contexts have a fixed order, $\G \cxsep \D \cxsep \O \vdash P$, glossed as $\G \to \D \lto \O \fto P$.
   This is not fully general: because $P \lto A \fto Q \ncong A \fto P \lto Q$, to write programs of the latter type naturally we would need an additional context $\G \cxsep \D_1 \cxsep \O \cxsep \D_2 \vdash P$.
   In general, any number of interleavings of point preserving $\D$ and finitely supported $\O$ contexts may be necessary.
+  The best way forward may be to investigate the connection to graded effect systems:
+  is there a grading structure that gives rise to (a generalization of) our typing rules?
+
+%% \todo{\item Explicitly investigate the connection to graded effect systems. Define the actual grading structure. Show exactly whether and where we need stuff beyond what is standard.}
 
 \item Destructuring of $\with$ pairs would be convenient for writing outer joins, but standard linear/relevance typing rules do not permit this.
   We suspect it may be possible by stealing rules from the logic of bunched implications~\cite{DBLP:journals/bsl/OHearnP99}.
 
-\item How can \fslang\ be implemented? Our finite map operations have a strong connection to tensor algebra; perhaps indexed streams~\cite{10.1145/3591268} may provide a strategy for implementing them.
+\item We can apply a finite map to a finitely supported variable to ground it, $t\<x$, or to an expression to look up its value, $t\<e$.
+  We would like to extend this to application to \emph{patterns,} which may mix variables to ground with expressions to look up.
+  For instance, we would like to have $\J{f\<(x,x)} P \G {\hyp f {A \times A \fto P}} {\hyp x A}$.
+  Indeed, it's not obvious whether \fslang\ can express a program equivalent to this or not.
 
-\todo{\item Metatheory! Our denotational semantics is a sketch, we have not proven finite support or point preserving-ness. We haven't even shown weakening or substitution; the necessity of ${\fto}\,\textsc{e}_2$ should make it clear this is surprisingly subtle!}
+\item \fslang\ lacks metatheory.
+  Our semantics is a sketch; we have not proven finite support or point preservation, nor have we shown syntactic weakening or substitution.
+  The need for ${\fto}\,\textsc{e}_2$ should show this is surprisingly subtle.
 
-\todo{\item Explicitly investigate the connection to graded effect systems. Define the actual grading structure. Show exactly whether and where we need stuff beyond what is standard.}
+\todo{\item commutative monoids, how do you declare them?
 
-\todo{\item commutative monoids
 \item incrementality
 \item really nail down the connection with graded monads \& effect/coeffect systems. is our work a special case of theirs? what about the funky asymmetric $\ox$ rule?
   }
