@@ -1832,7 +1832,7 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
     \\
     \den{e_1 \<e_2} \<\g &= \den{e_1} \<\g \<(\den{e_2} \<\g)
     \\
-    \den{(e_1, e_2)} \<\g &= (\den{e_1} \<\g, \den{e_2} \<\g)
+    \den{(e_1, e_2)} \<\g &= (\den{e_1} \<\g,\, \den{e_2} \<\g)
     \\
     \den{\pi_i\<e} \<\g &= \pi_i (\den e \<\g)
     \\
@@ -1890,7 +1890,7 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
     \den{\J{t\<u}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}}
     \<\g \<\d
     &= \{ (\o_1, \o_2) \mapsto x\<y :
-    \o_1 \mapsto x \in \den t \<\g \<(\pi_{\D_1} \d),
+    \o_1 \mapsto x \in \den t \<\g \<(\pi_{\D_1} \d),\,
     \o_2 \mapsto y \in \den u \<(\g, \o_1) \<(\pi_{\D_2} \d)
     \}
     \\
@@ -1903,7 +1903,7 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
     \den{\J {t\<x} P \G {\D} {\O, x : A}}
     \<\g \<\d &=
     \{ (\o, x) \mapsto y :
-    \o \mapsto f \in \den{t} \<\g \<\d,
+    \o \mapsto f \in \den{t} \<\g \<\d,\,
     x \mapsto y \in f
     \}
     %% \begin{cases}
@@ -1940,7 +1940,7 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
     \den{\J {\withpair{t,u}} {P \with Q} \G \D \O}
     \<\g \<\d &=
     \{ \o \mapsto \withpair{x,y} :
-    \o \mapsto x \in \den{t} \<\g \<\d,
+    \o \mapsto x \in \den{t} \<\g \<\d,\,
     \o \mapsto y \in \den{u} \<\g \<\d
     \}
     %\text{ \sffamily\todolater{looks like intersection; should be a union!}}
@@ -1955,7 +1955,7 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
     \den{\J{(t, u)}{P \ox Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}}
     \<\g \<\d &=
     \{ (\o_1, \o_2) \mapsto (x,y) :
-    \o_1 \mapsto x \in \den{t} \<\g \<(\pi_{\D_1} \d),
+    \o_1 \mapsto x \in \den{t} \<\g \<(\pi_{\D_1} \d),\,
     \o_2 \mapsto y \in \den{u} \<(\g,\o_1) \<(\pi_{\D_2} \d)
     \}
     \\
@@ -1978,7 +1978,7 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
     \den{\J{\letpair{x}{y} t u}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}}
     \<\g \<\d &=
     \{ (\o_1,\o_2) \mapsto z :
-    \o_1 \mapsto (x,y) \in \den{t} \<\g \<(\pi_{\D_1} \d),
+    \o_1 \mapsto (x,y) \in \den{t} \<\g \<(\pi_{\D_1} \d),\,
     \o_2 \mapsto z \in \den{u} \<(\g, \o_1) \<(\pi_{\D_2} \d, x, y)
     \}
     \\
@@ -2002,7 +2002,7 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
     \den{\J {\letjust x t u} P \G {\D_1 \cup \D_2} {\O_1, \O_2}}
     \<\g \<\d &=
     \{ (\o_1, \o_2) \mapsto y :
-    \o_1 \mapsto \cjust~x \in \den{t} \<\g \<(\pi_{\D_1} \d),
+    \o_1 \mapsto \cjust~x \in \den{t} \<\g \<(\pi_{\D_1} \d),\,
     \o_2 \mapsto y \in \den{u} \<(\g,\o_1,x) \<(\pi_{\D_2} \d)
     \}
   \end{align*}
