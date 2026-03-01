@@ -1836,11 +1836,11 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
     \\
     \den{\pi_i\<e} \<\g &= \pi_i (\den e \<\g)
     \\
-    \den{\ifjust{e_1} x {e_2} {e_3}} &\omit\rlap{\({}=
+    \den{\ifjust{e_1} x {e_2} {e_3}} &=
     \begin{cases}
       \den{e_2} \<(\g,x) & \text{if}~ \den{e_1} \<\g = \cjust~x\\
       \den{e_3} \<\g & \text{otherwise}
-    \end{cases}\)}
+    \end{cases}
     \intertext{\textsc{semantics of $\J t P \G \D \O$}}
   %% \end{align*}
   %% \textsc{semantics of $\J t P \G \D \O$:}
@@ -2041,7 +2041,9 @@ The explicit addition of $\nil$ means that the nullary smash product, $\bigotime
 \end{align*}
 
 \noindent
-We give semantics to terms in \cref{fig:semantics}.
+We give semantics to expressions $e$ and terms $t$ in \cref{fig:semantics}.
+The term semantics often depend on the splitting of the $\D$ and $\O$ contexts, so we include the conclusion of the typing judgment in the semantic brackets.
+For space reasons we could not include the premises, so cross-referencing with \cref{fig:typing-rules} is suggested.
 To make it clear that terms are finitely supported with respect to the context $\O$, we construct all finite maps explicitly using set comprehensions as sets of input-output pairs, $x \mapsto y$. \todolater{this section is underbaked}
 
 
