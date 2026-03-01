@@ -1220,7 +1220,7 @@ For instance, $\name{sum} : (A \fto \natz) \lto \natz$ lets us count the number 
 \noindent
 In general, for any commutative monoid of the form $(P, {\oplus}, \nil_P)$, since $\nil \oplus \nil = \nil$ we have $\oplus : P \with P \lto P$.
 This extends to an aggregation $\bigoplus_P : (A \fto P) \lto P$ that takes a finite map $f : A \fto P$ to the monoid sum $\bigoplus_{x \in \support f} f(x)$.
-For instance, the aggregation of the monoid $(\bool, \kword{or}, \false)$ is \name{exists}, while the aggregation of $(\natz, +, 0)$ is \name{sum}.
+For instance, the aggregation of the monoid $(\bool, \name{or}, \false)$ is \name{exists}, while the aggregation of $(\natz, +, 0)$ is \name{sum}.
 
 Just as \name{exists} combined with $\name{and} : \bool \ox \bool \lto \bool$ gave us relational composition in \name{costars}, summation combined with $\times : \natz \ox \natz \lto \natz$ (which holds since $0 \times y = x \times 0 = 0 = \nil_{\natz}$) gives us matrix multiplication:
 
@@ -1729,7 +1729,7 @@ To ensure our last rule generalizes the two prior ones, we must be able to weake
 %That is, whenever $\J u P \G \D {\O_1, \O_2}$ then also $\J u P {\G, \O_1} \D {\O_2}$.
 Then a variable finitely supported by both $t$ and $u$ can simply be placed into $\O_1$ in \rulename{$\ox$\,i}.
 Unfortunately this doesn't yet hold: \rulename{$\fto$\,e} lets us apply finite maps $A \fto P$ to variables in $\O$ but not in $\G$!
-We need an additional rule that lets us apply a finite map to an unrestricted variable $x$, or more generally an expression $e$ which (as usual) may use unrestrictedly any variables finitely supported by $t$:
+We need an additional rule that lets us apply a finite map to an unrestricted variable $x$, or more generally an expression $e$ which (as usual) may use unrestrictedly any variables finitely supported by $t$:\footnotemark{}
 
 \[
 \infer*[right=${\fto}\,\textsc{e}_2$]{
@@ -1739,6 +1739,8 @@ We need an additional rule that lets us apply a finite map to an unrestricted va
   \J {t\<e} P \G \D \O
 }
 \]
+
+\footnotetext{Adding $\O$ to $e$'s context is also needed to allow multiple uses of a finitely supported variable among the arguments to a nested finite map, e.g.\ $\J{f\<x\<x}{P}{\emptycx}{\hyp f {A \fto A \fto P}}{\hyp x A}$.}
 
 %% Despite combining $\O_1,\O_2$ disjointly rather than by union, this rule is strictly more general then the previous two.
 %% \todo{THIS IS WRONG: I don't allow finite maps to be applied to variables that aren't in $\O$! FIX THIS.}
