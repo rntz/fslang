@@ -1288,7 +1288,6 @@ Or, consider the intersection $(\fn x f\<x \tand g\<x)$ of two maps $f,g : P \lt
 Thus the appropriate approach is a \emph{relevant} type system, which ensures variables are used \emph{at least once}---although as we'll see presently, what counts as `used' can be subtle.
 
 So far our examples fail to distinguish the behavior of $\ox$ from $\with$; let's fix that:
-\nopagebreak[2]
 
 \begin{align*}
   \color{invalid}
@@ -1397,7 +1396,6 @@ Besides $\G$ and $\D$ we need a context $\O$ of finitely supported variables $\h
 %
 To understand how $\O$ behaves,
 let's revisit the examples that opened the previous section:
-\nopagebreak[2]
 
 \begin{align*}
   \color{invalid}
@@ -1565,7 +1563,6 @@ The support of $f\<x \tand g\<y$ is the cross product of the supports of $f : A 
 Fortunately, the cross product of finite sets is finite.
 So what typing rule does this example need?
 We have used each variable $x,y$ in our finite support context $\O$ exactly once, so it suffices to be able to split this context between the (implicit) $\ox$ pair of arguments to `and':
-\nopagebreak[2]
 
 \[
   \infer*{
@@ -1581,7 +1578,6 @@ We have used each variable $x,y$ in our finite support context $\O$ exactly once
 This rule does not suffice for our second example, $f\<x \tand g\<x$, which uses the same finitely supported variable $x$ twice.
 Nonetheless this has finite support, namely, the intersection of $f$'s and $g$'s supports.
 So we can relax our rules to union contexts, much like the rules for the relevant context $\D$:
-\nopagebreak[2]
 
 \[
   \infer*{
@@ -1602,7 +1598,6 @@ any variable finitely supported by $t$ may be used unrestricted in $u$, so the f
 across the railway tracks
 %the rails
 into the unrestricted context for $u$:
-\nopagebreak[2]
 
 \[
   \infer*[right=$\ox$\,i]{
