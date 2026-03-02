@@ -2137,11 +2137,11 @@ we can generalize \name{or} and \name{exists} to an `additive' commutative monoi
   We have built \href{https://github.com/rntz/fslang/blob/b2730369f68f1cdb4fd69b4a8d997b167d29b7a0/fslang.rkt}{a prototype}, which we lack space to discuss here; it can be found at \url{https://github.com/rntz/fslang/blob/main/fslang.rkt}.
   As our finite map operations are closely connected to tensor algebra, perhaps indexed streams~\cite{10.1145/3591268} could provide an efficient implementation technique.
 
-\item Our contexts have a fixed order, $\G \cxsep \D \cxsep \O \vdash P$, glossed as $\G \to \D \lto \O \fto P$.
-  This is not fully general: because $P \lto A \fto Q \ncong A \fto P \lto Q$, to write programs of the latter type naturally we would need an additional context $\G \cxsep \D_1 \cxsep \O \cxsep \D_2 \vdash P$.
+\item Our contexts have a fixed order, $\G \cxsep \D \cxsep \O \entails P$, glossed as $\G \to \D \lto \O \fto P$.
+  This is not fully general: because $P \lto (A \fto Q) \ncong A \fto (P \lto Q)$, to write programs of the latter type naturally we would need an additional context $\G \cxsep \D_1 \cxsep \O \cxsep \D_2 \entails P$.
   In general, any number of interleavings of point preserving $\D$ and finitely supported $\O$ contexts may be necessary.
   The best way forward may be to investigate the connection to graded effect systems:
-  is there a grading structure that gives rise to (a generalization of) our typing rules?
+  is there a grading structure that yields a (generalization of) our typing rules?
 
 %% \todo{\item Explicitly investigate the connection to graded effect systems. Define the actual grading structure. Show exactly whether and where we need stuff beyond what is standard.}
 
