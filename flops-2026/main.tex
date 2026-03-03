@@ -1255,9 +1255,9 @@ To explain this, we must understand the variable usage discipline that ensures f
 \section{The relevance of being relevant} % explains how relevance typing works
 \label{sec:relevance}
 
-We've seen that point preserving maps are important because they can be safely applied to the outputs of finitely supported maps while preserving finite support, and allow us to combine multiple maps either via inner joins (maps out of $\otimes$ pairs) or outer joins (maps out of $\with$ pairs).
-How can we statically check that maps preserve \nil?
-To gain some intuition, let's look at a few simple examples and whether they preserve \nil:
+We've seen that point preserving maps can be applied to the outputs of finitely supported maps while preserving finite support, and allow us to combine multiple maps via inner joins (maps out of $\otimes$ pairs) and outer joins (maps out of $\with$ pairs).
+How can we check that maps preserve \nil?
+To gain intuition, let's look at a few simple examples:
 
 \begin{align*}
   \name{id} &= \fn{x} x
@@ -1289,7 +1289,7 @@ constant functions do not use their argument and so are prohibited.
 However, duplication does preserve \nil, whether into $\ox$ or $\with$ pairs: $(\nil, \nil) = \nil$ and $\withpair{nil,nil} = \nil$.
 Or, consider the intersection $(\fn x f\<x \tand g\<x)$ of two maps $f,g : P \lto \bool$, which uses $x$ twice yet still preserves \nil.
 %
-Thus the appropriate approach is a \emph{relevant} type system, which ensures variables are used \emph{at least once}---although as we'll see presently, what counts as `used' can be subtle.
+What we need is a \emph{relevant} type system, which ensures variables are used \emph{at least} once---although as we'll see presently, what counts as `used' can be subtle.
 
 So far our examples fail to distinguish the behavior of $\ox$ from $\with$; let's fix that:
 
@@ -1490,22 +1490,23 @@ This, then, will serve both as our elimination rule for finite maps and our usag
 
 \noindent
 These rules structuralize the isomorphism $A \fto B \fto P \cong A \times B \fto P$ (which is more obvious after renaming: $\O \fto A \fto P \cong \O \times A \fto P$).
-Combined with the isomorphism $P \cong (1 \fto P)$, this shows that finitely supported maps form not just a functor but a \emph{graded monad} on \Point.
+Along with the isomorphism $P \cong (1 \fto P)$, this shows that finitely supported maps form not just a functor but a \emph{graded monad} on \Point.
 
 \todolater{I'd really like to do this connection more justice.}
 %
-A (non-graded) monad is an endofunctor $F$ with natural transformations $\name{pure}_\alpha : \alpha \to F\alpha$ and $\name{join}_\alpha : FF\alpha \to F\alpha$, satisfying certain laws which we omit for brevity.
-For our purposes, a \emph{graded monad}~\cite{Smirnov08,10.1145/2535838.2535846} is a family of functors $F_m$ where $m \in M$ is drawn from some monoid of grades $(M, {\cdot}, 1)$, equipped with analogues of \name{pure} and \name{join} which interact with these gradings in the following way: $\name{pure}_\alpha : \alpha \to F_1 \alpha$ and $\name{join}_\alpha : F_m F_n \alpha \to F_{mn}\alpha$, again satisfying certain omitted laws.
+A (non-graded) monad is an endofunctor $F$ with natural transformations $\name{pure}_\alpha : \alpha \to F\alpha$ and $\name{join}_\alpha : FF\alpha \to F\alpha$, satisfying laws which we omit for brevity.
+For our purposes, a graded monad~\cite{Smirnov08,10.1145/2535838.2535846} is a family of functors $F_m$ where $m \in M$ is drawn from some monoid of grades $(M, {\cdot}, 1)$, with analogues of \name{pure} and \name{join} that interact with the grading monoid: $\name{pure}_\alpha : \alpha \to F_1 \alpha$ and $\name{join}_\alpha : F_m F_n \alpha \to F_{mn}\alpha$, again satisfying certain omitted laws.
 
 In our case, the graded monad is $F_A P = A \fto P$, and the monoid of grades is sets under cross product.\footnotemark{}
 This makes $\name{pure}_P : P \lto (1 \fto P)$ and $\name{join}_P : (A \fto B \fto P) \lto (A \times B \fto P)$ merely the forward legs of our two isomorphisms.
-The laws we omitted hold trivially because these maps are isomorphisms---indeed, the reverse legs of these isomorphisms also make $F_A$ is a graded \emph{comonad}~\cite{DBLP:conf/icfp/PetricekOM14}.
+The laws we omitted hold trivially because these maps are isomorphisms---indeed, the isomorphisms' reverse legs also make $F_A$ a graded comonad~\cite{DBLP:conf/icfp/PetricekOM14}.
 %
 Although almost trivial, this graded (co)monad is of practical interest because type systems for graded monads (effect systems) have been extensively studied~\cite{10.1145/3022670.2951939}.
 %coeffects-thesis,DBLP:conf/icfp/PetricekOM14,DBLP:conf/esop/BrunelGMZ14,DBLP:phd/ethos/Orchard14,coeffects-thesis
 \todolater{mention ours is a bit weird in that the effect is a context. which makes you think it might be a coeffect system, but it's not, because ... WHY?}
 
-\footnotetext{Technically this is not a monoid, since $(A \times B) \times C$ is only isomorphic, not equal, to $A \times (B \times C)$. This technicality is not worth getting hung up on; it can be fixed in any number of ways, for instance, by taking grades to be contexts of types $\O$ under concatenation rather than sets themselves.}
+\footnotetext{Technically this is not a monoid, since $(A \times B) \times C$ and $A \times (B \times C)$ are only isomorphic, not equal.
+  This technicality is not worth getting hung up on; it can be defeated, for instance, by taking grades to be contexts $\O$ under concatenation rather than sets.}
 
 %% \noindent
 %% \TODO{connection to the graded co/monad on pointed sets here! also should we give the semantics, or at least the argument for finite support?}
