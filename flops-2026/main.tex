@@ -2176,21 +2176,22 @@ we can generalize \name{or} and \name{exists} to an `additive' commutative monoi
 
   \footnotetext{
     Without patterns, for example, it is inconvenient and nonobvious how to curry and uncurry finite maps.
-    The reader is encouraged to take this as a moderately challenging brainteaser (make sure your solution has a typing derivation!); our solution is upside-down, below:
+    The confident reader is encouraged to take this as a brainteaser (make sure your solution has a typing derivation!); our solution is upside-down, below:
 
+    \vspace{2pt}
+    \noindent
     \rotatebox[origin=c]{180}{
-      \parbox{\dimexpr\textwidth - 22pt\relax}{
-        The secret is to use the left-to-right grounding of \rulename{$\ox$\,i}, here implicit in the syntax sugar for let-binding, combined with finite $\lambda$:
+      \parbox{\dimexpr\textwidth - 12pt\relax}{
+        The secret is to combine left-to-right grounding with an immediately-applied finite $\lambda$:
         \begin{code}
     \name{curry} : (A \times B \fto P) \lto (A \fto B \fto P)\\
     \name{curry} \<f \<a \<b =
-      \letin{\name{table} = (\fn x f\<x \when \teq{\pi_1\<x}{a} \tand \teq{\pi_2\<x}{b})}
-      \name{table}\<(a,b)
+      (\fn x f\<x \when \teq{\pi_1\<x}{a} \tand \teq{\pi_2\<x}{b}) \<(a,b)
       \\
     \name{uncurry} : (A \fto B \fto P) \lto (A \times B \fto P)\\
     \name{uncurry} \<f \<\name{ab} =
-    \letin{\name{table} = (\fn a \fn b f\<a\<b \when \teq{(a,b)}{ab})}
-    \name{table}\<(a,b)
+    (\fn a \fn b f\<a\<b \when \teq{(a,b)}{\name{ab}})
+    \<(\pi_1\<\name{ab}) \<(\pi_2\<\name{ab})
   \end{code}
       }
     }
@@ -2200,6 +2201,7 @@ we can generalize \name{or} and \name{exists} to an `additive' commutative monoi
   \fslang\ lacks metatheory.
   Our semantics is a sketch; we have not proven finite support or point preservation, nor have we shown syntactic weakening or substitution.
   The need for ${\fto}\,\textsc{e}_2$ should show this is surprisingly subtle.
+  Moreover, substitution seems to fail for finitely supported variables: for instance, $(\fn x t) \< u$ may have a typing derivation when $t \{x \mapsto u\}$ does not (see previous footnote's solution for an example).
 
 \todo{\item commutative monoids, how do you declare them?
 
