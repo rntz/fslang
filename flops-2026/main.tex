@@ -48,6 +48,7 @@
 \usepackage{placeins}           % \FloatBarrier
 \usepackage{changepage}         % \begin{adjustwidth}
 \usepackage{etoolbox}           % \newtoggle etc
+\usepackage{graphicx}           % \rotatebox
 
 %\usepackage{minted}
 \usepackage{listings}           % lstlisting
@@ -2164,11 +2165,36 @@ we can generalize \name{or} and \name{exists} to an `additive' commutative monoi
   We suspect it may be possible by stealing rules from the logic of bunched implications~\cite{DBLP:journals/bsl/OHearnP99}.
 
 \item[Patterns and finite maps]
-  We can apply a finite map to a finitely supported variable to ground it, $t\<x$, or to an expression to look up its value, $t\<e$.
-  We would like to extend this to application to \emph{patterns,} which may mix variables to ground with expressions to look up.
-  For instance, we would like to have $\J{f\<(x,x)} P \G {\hyp f {A \times A \fto P}} {\hyp x A}$.
-  Indeed, it's not obvious whether \fslang\ can express a program equivalent to this or not.
-  \todo{it can! it can express curry/uncurry. but it's awkward.}
+  %It is well known how to extend functional programming languages with pattern matching, and not too difficult to extend this to linear- or relevance-typed settings. It is less obvious how to do this for finitely supported maps, since they do not follow typical 
+  %We introduce finite maps by abstraction over finitely supported variables, $\fn x t$, and eliminate them by by application to finitely supported variables, $t\<x$ (`grounding' the variable $x$).
+  We would like to extend finite map introduction and application to patterns such as tuples: $\fn{(x,y)} t$ and $t\<(x,y)$.
+  %
+  %Moreover, besides applying a finite map to a finitely supported variable to ground it, $t\<x$, we can also apply them to expressions to look up their value, $t\<e$.
+  Moreover, ideally application patterns could mix 
+  finitely supported variables to ground (as in \rulename{$\fto$\,e}) with expressions to look up (as in ${\fto}\,\textsc{e}_2$), e.g.\ $\J{f\<(x,y)} P {\hyp x A} {\hyp f {A \times A \fto P}} {\hyp y A}$.
+  However, our unusual typing discipline for finite support contexts $\O$ make it nonobvious how to specify and implement finite support patterns.\footnotemark{}
+
+  \footnotetext{
+    Without patterns, for example, it is inconvenient and nonobvious how to curry and uncurry finite maps.
+    The reader is encouraged to take this as a moderately challenging brainteaser (make sure your solution has a typing derivation!); our solution is upside-down, below:
+
+    \rotatebox[origin=c]{180}{
+      \parbox{\dimexpr\textwidth - 22pt\relax}{
+        The secret is to use the left-to-right grounding of \rulename{$\ox$\,i}, here implicit in the syntax sugar for let-binding, combined with finite $\lambda$:
+        \begin{code}
+    \name{curry} : (A \times B \fto P) \lto (A \fto B \fto P)\\
+    \name{curry} \<f \<a \<b =
+      \letin{\name{table} = (\fn x f\<x \when \teq{\pi_1\<x}{a} \tand \teq{\pi_2\<x}{b})}
+      \name{table}\<(a,b)
+      \\
+    \name{uncurry} : (A \fto B \fto P) \lto (A \times B \fto P)\\
+    \name{uncurry} \<f \<\name{ab} =
+    \letin{\name{table} = (\fn a \fn b f\<a\<b \when \teq{(a,b)}{ab})}
+    \name{table}\<(a,b)
+  \end{code}
+      }
+    }
+  }
 
 \item[Metatheory]
   \fslang\ lacks metatheory.
