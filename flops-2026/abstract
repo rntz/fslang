@@ -1,3 +1,12 @@
+We unify functional and logic programming by treating predicates as functions equipped with their support: the set of inputs whose output is nonzero.
+Datalog, for instance, is a language of finitely supported boolean functions.
+Finite support allows representing functions as input-output tables.
+Generalizing from boolean functions to other pointed sets neatly handles aggregation and weighted logic programming.
+We refer to the combination of finitely supported functions, represented as data, with higher order functions, represented as code, as finite functional programming.
+We give a simple type system to check finite support, using graded effects to check variable grounding and relevance types to model pointed sets.
+
+
+# OLDER
 We propose unifying functional and logic/relational programming by treating predicates/relations as functions equipped with their support---the set of inputs whose output is non-false. For instance, the logic programming language Datalog, in which all relations are finite, is a language of finitely supported boolean functions. Finite support allows representing the function, not as code, but as data---as a table of input-output pairs---making bulk operations more efficient. Extensions such as aggregation and weighted logic programming are naturally handled by generalizing the definition of support from booleans to other pointed sets. We refer to the combination of finitely supported functions, represented as data, with higher order functions, represented as code, as \emph{finite functional programming.} To this end, we demonstrate a simple type system to check finite support, using a combination of graded coeffects to check variable grounding and relevance types to model pointed sets.
 
 
