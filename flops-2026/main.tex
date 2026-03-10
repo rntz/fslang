@@ -2061,13 +2061,31 @@ To make it clear that terms are finitely supported with respect to the context $
 %\section{Curing $\maybe$ addiction with class}
 
 
-\section{Looking back and forward}
+%% ---------- REMOVED FROM "Looking back and forward" ----------
+%% \todo{
+%%   Key insight is to treat relations as supported functions.
+%%   TAKEAWAYS: relations are supported functions.
+%%   This has two main design benefits: (a) it puts focus on support and how you ascertain it; (b) makes return type explicit so that we can do weighted programming \& aggregation.
+%%   IF YOU WANT SUPPORT TO BE FINITE:
+%%   variable grounding is an effect graded by the context of variables it grounds. relevance or linear types interact with this grading so we track inner vs outer joins and their effect on grounding properly.
+%%   Our type system for checking finite support draws a connection between variable grounding and moding on the one hand, and graded coeffects over relevance types on the other, which we have not seen noticed before (except maybe in that Neel K / Ariadne Si Suo paper! it uses linear types!).
+%% }
+
+%% \todo{TWO BENEFITS: (1) makes explicit the role of support so you can control it. (2) makes explicit role of return type so you can think about that.
+%% %
+%%   (1) is a NON-GOAL for functional logic programming languages like Curry, Verse, where we want existential variables to be ambient and pervasive rather than tightly controlled; there, \emph{every function is a relation} and there is no point distinguishing them. But it is very much a goal if for efficiency we want to limit or avoid the use of logic variables and unification, as in Mercury or Datalog-inspired languages like Flix and Datafun.
+%% %
+%%   (2) is not new, but we think we are the first to observe that pointed sets are the minimum necessary structure but also seem to be sufficient for doing aggregations and weighted logic programming.
+%% }
 
 %% There are many other functional logic programming languages, such as Curry~\cite{curry}, Verse~\cite{DBLP:journals/pacmpl/AugustssonBCJJSSS23} and Mercury~\cite{DBLP:journals/jlp/SomogyiHC96}.
 %% Some, like Flix~\cite{flix}, Datafun~\cite{datafun}, and $\lambda_\vee$~\cite{DBLP:journals/pacmpl/RiouxZ25}, resemble $\fslang$ even more closely in being inspired by Datalog-style bottom-up logic programming rather than Prolog-style top-down logic programming.
 %% Unlike most of these systems, $\fslang$ generalizes from implicitly boolean predicates to \emph{supported functions} with explicit return types.
 %% Flix and $\lambda_\vee$ do generalize to other semilattices, \xxx
 %% $\fslang$ also deliberately separates 
+
+
+\section{Looking back and forward}
 
 There are many ways to combine logic and functional programming.
 Mercury~\cite{DBLP:journals/jlp/SomogyiHC96} integrates
@@ -2095,24 +2113,6 @@ Rel also supports arithmetic operators and aggregations, as if relations had ret
 However, Rel implements this by desugaring to a Datalog-like core where the `value' of a Rel expression is just the relation's final column.
 \fslang\ reimagines this syntactic sugar semantically.
 
-
-%% \todo{
-%%   Key insight is to treat relations as supported functions.
-%%   TAKEAWAYS: relations are supported functions.
-%%   This has two main design benefits: (a) it puts focus on support and how you ascertain it; (b) makes return type explicit so that we can do weighted programming \& aggregation.
-%%   IF YOU WANT SUPPORT TO BE FINITE:
-%%   variable grounding is an effect graded by the context of variables it grounds. relevance or linear types interact with this grading so we track inner vs outer joins and their effect on grounding properly.
-%%   Our type system for checking finite support draws a connection between variable grounding and moding on the one hand, and graded coeffects over relevance types on the other, which we have not seen noticed before (except maybe in that Neel K / Ariadne Si Suo paper! it uses linear types!).
-%% }
-
-%% \todo{TWO BENEFITS: (1) makes explicit the role of support so you can control it. (2) makes explicit role of return type so you can think about that.
-%% %
-%%   (1) is a NON-GOAL for functional logic programming languages like Curry, Verse, where we want existential variables to be ambient and pervasive rather than tightly controlled; there, \emph{every function is a relation} and there is no point distinguishing them. But it is very much a goal if for efficiency we want to limit or avoid the use of logic variables and unification, as in Mercury or Datalog-inspired languages like Flix and Datafun.
-%% %
-%%   (2) is not new, but we think we are the first to observe that pointed sets are the minimum necessary structure but also seem to be sufficient for doing aggregations and weighted logic programming.
-%% }
-
-
 By generalizing beyond booleans, \fslang\ moves closer to weighted logic programming languages like Dyna~\cite{filardo:dyna2,matthewfl:thesis}, ProbLog~\cite{DBLP:conf/ijcai/RaedtKT07}, or Datalog\textdegree~\cite{DBLP:journals/jacm/KhamisNPSW24}.
 Indeed, \fslang\ is inspired by and indebted to databases research on $K$-relations~\cite{DBLP:conf/pods/GreenKT07}, generalizing Datalog semantics from booleans to semirings, which has in turn inspired functional query languages~\cite{DBLP:journals/corr/abs-2207-00850,DBLP:journals/pacmpl/ShaikhhaHSO22}.
 Other Datalog-inspired languages like Datafun, Flix, and $\lambda_\vee$ generalize to semilattices.
@@ -2120,26 +2120,36 @@ However, so far as we know only \fslang\ uses {pointed sets}---the minimal, most
 Semirings then emerge as a natural structure over pointed sets:
 we can generalize \name{or} and \name{exists} to an `additive' commutative monoid $(P, {\oplus} : P \with P \lto P, \nil_P)$ and its aggregation operator $\bigoplus : (A \fto P) \lto P$, and similarly \name{and} generalizes to a `multiplicative' monoid $(P, {\oast} : P \otimes P \lto P, \boldsymbol 1)$ distributing over $\oplus$.
 
+\TODO{discuss connection between my work and Morel's ``predicate inversion''?}
+
 \todolater{Discuss input/output modes.
   Cite Mercury, Mistral Contrastin~\cite{DBLP:conf/ppdp/ContrastinOR18}, and Ariadne Si Suo's paper with Neel K (unpublished!).
   This idea is latent in languages like Datafun, Flix, and $\lambda_\vee$ that separate procedural functions from logical predicates.
   But, although we have barely discussed it in this paper, our observation that grounding corresponds to a effect graded by the set of grounded variables seems novel (so far as we know).
 }
 
+
+%% ---------- FUTURE WORK ----------
+
 \fslang\ has many limitations which we would like to lift in future work:
-\begin{itemize}
-\item It lacks recursion.
-  There are two kinds of recursion we might want: lazy functional recursion (as in recursively defined functions or codata) and bottom-up iteration until reaching a fixed point (as in Datalog's recursively defined relations).
+
+\begin{description}
+\item[Recursion]
+  %\fslang\ lacks recursion.
+  There are two kinds of recursion we might want in \fslang:
+  lazy functional recursion (as in recursively defined functions or codata) and bottom-up iteration until reaching a fixed point (as in Datalog's recursively defined relations).
   It's not obvious how these should interact semantically. $\lambda_\vee$~\cite{DBLP:journals/pacmpl/RiouxZ25} shows how to unify them, but requires a lot of structure (semilattices, dcpos, and continuity); moreover, it seemingly cannot do stratified computation, where we compute a fixed point and then use its results in a non-monotone way.
 
 %% \item It lacks semantics for recursion, perhaps requiring domain theory, although it seems operationally straightforward: as in Datalog, we iterate until fixed point starting from the empty finite map.
 %%   \todo{it's not that simple; need to reconcile bottom-up recursion for defining finite maps with top-down for defining ordinary functions. $\lambda_\vee$ shows how to do this by making everything streaming. not sure we can do that, though; need some form of continuity which we may well violate!}
 
-\item We did not show how to implement either our type system or our semantics.
+\item[Implementation]
+  We did not show how to implement either our type system or our semantics.
   We have built \href{https://github.com/rntz/fslang/blob/b2730369f68f1cdb4fd69b4a8d997b167d29b7a0/fslang.rkt}{a prototype}, which we lack space to discuss here; it can be found at \url{https://github.com/rntz/fslang/blob/main/fslang.rkt}.
   As our finite map operations are closely connected to tensor algebra, perhaps indexed streams~\cite{10.1145/3591268} could provide an efficient implementation technique.
 
-\item Our contexts have a fixed order, $\G \cxsep \D \cxsep \O \entails P$, glossed as $\G \to \D \lto \O \fto P$.
+\item[Interleaving $\boldsymbol\D/\boldsymbol\O$ contexts]
+  Our contexts have a fixed order, $\G \cxsep \D \cxsep \O \entails P$, glossed as $\G \to \D \lto \O \fto P$.
   This is not fully general: because $P \lto (A \fto Q) \ncong A \fto (P \lto Q)$, to write programs of the latter type naturally we would need an additional context $\G \cxsep \D_1 \cxsep \O \cxsep \D_2 \entails P$.
   In general, any number of interleavings of point preserving $\D$ and finitely supported $\O$ contexts may be necessary.
   The best way forward may be to investigate the connection to graded effect systems:
@@ -2147,15 +2157,21 @@ we can generalize \name{or} and \name{exists} to an `additive' commutative monoi
 
 %% \todo{\item Explicitly investigate the connection to graded effect systems. Define the actual grading structure. Show exactly whether and where we need stuff beyond what is standard.}
 
-\item Destructuring of $\with$ pairs would be convenient for writing outer joins, but standard linear/relevance typing rules do not permit this.
+\item[Destructuring $\boldsymbol\with$ pairs]
+  Outer joins like \name{union} are most naturally expressed as destructuring their $\with$ pair argument,
+  %Destructuring of $\with$ pairs would be convenient for writing outer joins,
+  but standard linear/relevance typing rules do not allow this.
   We suspect it may be possible by stealing rules from the logic of bunched implications~\cite{DBLP:journals/bsl/OHearnP99}.
 
-\item We can apply a finite map to a finitely supported variable to ground it, $t\<x$, or to an expression to look up its value, $t\<e$.
+\item[Patterns and finite maps]
+  We can apply a finite map to a finitely supported variable to ground it, $t\<x$, or to an expression to look up its value, $t\<e$.
   We would like to extend this to application to \emph{patterns,} which may mix variables to ground with expressions to look up.
   For instance, we would like to have $\J{f\<(x,x)} P \G {\hyp f {A \times A \fto P}} {\hyp x A}$.
   Indeed, it's not obvious whether \fslang\ can express a program equivalent to this or not.
+  \todo{it can! it can express curry/uncurry. but it's awkward.}
 
-\item \fslang\ lacks metatheory.
+\item[Metatheory]
+  \fslang\ lacks metatheory.
   Our semantics is a sketch; we have not proven finite support or point preservation, nor have we shown syntactic weakening or substitution.
   The need for ${\fto}\,\textsc{e}_2$ should show this is surprisingly subtle.
 
@@ -2164,7 +2180,7 @@ we can generalize \name{or} and \name{exists} to an `additive' commutative monoi
 \item incrementality
 \item really nail down the connection with graded monads \& effect/coeffect systems. is our work a special case of theirs? what about the funky asymmetric $\ox$ rule?
   }
-\end{itemize}
+\end{description}
 
 
 %% %% END MATTER
