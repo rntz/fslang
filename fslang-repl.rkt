@@ -260,6 +260,23 @@
                      #:when (hash-has-key? table key))
             (values row (hash-ref table key)))]))))
 
+  ;; AGGREGATION: handles operators of type ((=> A P) -> P).
+  ;; `name` is the operator name (for error messages); `P` is the codomain type;
+  ;; `combine` reduces a list of values to one.
+  (define (elab-aggregation name P combine tp a)
+    (unless (or (type? tp) (not tp))
+      (error 'elab "~a type annotation is not a valid type: ~a" name tp))
+    (define-values (a-type a-uses a-deno)
+      (elab a (and tp `(=> ,tp ,P)) cx))
+    (match a-type
+      [`(=> ,_ ,(== P)) (void)]         ;TODO: a subtype check here?
+      [_ (error 'elab "~a requires argument of type (=> _ ~a), got: ~a" name P a-type)])
+    (values (inferred P)
+            a-uses
+            (λ (env)
+              (for/hash ([(row table) (a-deno env)])
+                (values row (combine (hash-values table)))))))
+
   (match term
     [`(as ,hideaki ,t)                     ; TYPE ANNOTATION
      (unless (type? hideaki)
@@ -272,6 +289,11 @@
     [(? boolean? x)
      (if (not x) (elab 'nil 'bool cx)
          (values 'bool (set) (λ (_) (hash (hash) #t))))]
+
+    [(? exact-nonnegative-integer? n)
+     (unless (member want '(nat natz natinf))
+       (error 'elab "number literal needs type nat, natz, or natinf; got: ~a" want))
+     (values want (set) (λ (_) (hash (hash) n)))]
 
     ['nil                               ; NIL
      (define point-fs-vars
@@ -423,6 +445,12 @@
                            #:when a-val
                            [(b-row b-val) (b-deno (hash-union env a-row))])
                  (values (hash-union a-row b-row) b-val))))]
+
+    [`(exists ,tp ,a)
+     (elab-aggregation 'exists 'bool (λ (xs) (for/or ([x xs]) x)) tp a)]
+
+    [`(sum ,tp ,a)
+     (elab-aggregation 'sum 'natz (curry apply +) tp a)]
 
     [`(app ,fun ,arg)                       ; FUNCTION APPLICATION
      (define-values (fun-type fun-uses fun-deno) (elab fun #f cx))
@@ -868,22 +896,38 @@
    #:to (for/hash ([(x actors) costars])
           (values x (for/hash ([y actors]) (values y #t)))))
 
+  ;; test the built-in polymorphic exists
+  (test-elab
+   '(exists _ (λ (film) (and (stars film x) (stars film y))))
+   'bool
+   '([x      fs     person]
+     [y      fs     person]
+     [and    set    (-o bool (-o bool bool))]
+     [stars  point  (=> _ (=> person bool))])
+   #:eval (hash-set stdlib 'stars film-stars-trie)
+   #:to-map (for*/hash ([(x actors) costars] [y actors])
+              (values (hash 'x x 'y y) #t)))
+
+  (test-elab
+   '(λ (x) (λ (y) (exists _ (λ (film) (and (stars film x) (stars film y))))))
+   '(=> person (=> person bool))
+   '([and    set    (-o bool (-o bool bool))]
+     [stars  point  (=> _ (=> person bool))])
+   #:eval (hash-set stdlib 'stars film-stars-trie)
+   #:to (for/hash ([(x actors) costars])
+          (values x (for/hash ([y actors]) (values y #t)))))
+
   ;; filmCount x = sum λfilm. 1 when stars film x
   (define film-counts (make-hash))
   (for* ([(_ actors) film-stars] [actor actors])
     (hash-update! film-counts actor add1 0))
 
   (test-elab
-   '(sum (λ (film) (when (stars film actor) one)))
+   '(sum _ (λ (film) (when (stars film actor) 1)))
    'natz
    '([actor  fs     person]
-     [one    set    natz]
-     [stars  point  (=> film (=> person bool))]
-     #;[when   set    (-o bool (-o natz natz))]
-     [sum    set    (-o (=> film natz) natz)])
-   #:eval (hash-set* stdlib
-                     'stars film-stars-trie
-                     'one   1)
+     [stars  point  (=> _ (=> person bool))])
+   #:eval (hash-set stdlib 'stars film-stars-trie)
    #:to-map (for/hash ([(actor n) film-counts])
               (values (hash 'actor actor) n)))
 
