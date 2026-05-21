@@ -397,7 +397,7 @@
        [_ (error 'elab "bad type for lambda: ~a" want)])]
 
     ;; HIDEOUS SPECIAL CASES FOR POLYMORPHIC/PARAMETRIC OPERATORS, namely:
-    ;; equality (done), when, exists, sum, minimum
+    ;; equality (done), when (done), exists, sum, minimum
     ;; TODO NEXT FIXME XXX
     ;; TODO: need a test for this!
     [`(= ,a ,b)                         ; EQUALITY
