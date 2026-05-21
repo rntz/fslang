@@ -214,6 +214,12 @@
                  (hash-union row1 row2)
                  (fun-val arg-val))))))
 
+  #;
+  (define ((tensor-combiner combine a-deno b-deno) env)
+    (for*/hash ([(a-row a-val) (a-deno env)]
+                [(b-row b-val) (b-deno (hash-union env a-row))])
+      (values (hash-union a-row b-row) (combine a-val b-val))))
+
   ;; FINITE APPLICATION
   (define (elab-finite-app A P fun-uses fun-deno arg)
     (unless (symbol? arg)
@@ -412,10 +418,11 @@
      (values b-type
              (set-union a-uses b-uses)
              (λ (env)
-               ;; TODO XXX: shit now I have to implement sideways information passing again!
-               (define a-table (a-deno env))
-               (todo)))
-     ]
+               ;; this replicates logic from pointed application, slightly optimized.
+               (for*/hash ([(a-row a-val) (a-deno env)]
+                           #:when a-val
+                           [(b-row b-val) (b-deno (hash-union env a-row))])
+                 (values (hash-union a-row b-row) b-val))))]
 
     [`(app ,fun ,arg)                       ; FUNCTION APPLICATION
      (define-values (fun-type fun-uses fun-deno) (elab fun #f cx))
@@ -866,14 +873,13 @@
   (for* ([(_ actors) film-stars] [actor actors])
     (hash-update! film-counts actor add1 0))
 
-  #;
   (test-elab
    '(sum (λ (film) (when (stars film actor) one)))
    'natz
    '([actor  fs     person]
      [one    set    natz]
      [stars  point  (=> film (=> person bool))]
-     [when   set    (-o bool (-o natz natz))]
+     #;[when   set    (-o bool (-o natz natz))]
      [sum    set    (-o (=> film natz) natz)])
    #:eval (hash-set* stdlib
                      'stars film-stars-trie
