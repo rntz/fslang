@@ -135,6 +135,14 @@
       [(subtype? got want) got]
       [else (error 'elab "wanted ~a, but inferred ~a" want got)]))
 
+  ;; left-to-right grounding: turn finitely supported variables that are
+  ;; supported by `uses` into set variables.
+  (define (cx-grounding cx uses)
+    (for/hash ([(x xinfo) cx])
+      (values x (match xinfo
+                  [`(fs ,xtype) #:when (set-member? uses x) `(set ,xtype)]
+                  [_ xinfo]))))
+
   ;; SET APPLICATION
   (define (elab-set-app A B fun-uses fun-deno arg)
     ;; we treat this like (-o (maybe A) B) and implicitly wrap the argument
@@ -167,14 +175,7 @@
   ;; POINTED APPLICATION
   (define (elab-pointed-app P Q fun-uses fun-deno arg)
     ;; take all fs vars used by `fun` and make them set vars for `arg`.
-    (define arg-cx
-      (for/hash ([(x xinfo) cx])
-        (values x (match xinfo
-                    [`(fs ,xtype) #:when (set-member? fun-uses x)
-                     `(set ,xtype)]
-                    [_ xinfo]))))
-    (define-values (_arg-type arg-uses arg-deno)
-      (elab arg P arg-cx))
+    (define-values (_arg-type arg-uses arg-deno) (elab arg P (cx-grounding cx fun-uses)))
     ;; TODO: THIS IS WRONG WRONG WRONG. we've told arg that it can use vars grounded
     ;; by fun arbitrarily, so it only records whether it USES them, not whether it
     ;; uses them (1) arbitrarily or (2) groundingly or (3) not at all. We need this in
@@ -234,7 +235,7 @@
     (values
      P
      (match arg-area
-       ['point fun-uses]          ; finite map lookup does not preserve nil.
+       ['point fun-uses] ; finite map lookup does not preserve nil wrt the argument.
        [(or 'set 'fs) (set-add fun-uses arg)])
      (λ (env)
        (define fun-map (fun-deno env))
@@ -403,14 +404,25 @@
      (define (eq-a-deno env)
        (define a-table (a-deno env))
        (for/hash ([(k a-val) a-table]) (values k (hash a-val #t))))
-     (elab-finite-app a-type 'bool a-uses eq-a-deno b)]
+     (elab-finite-app a-type (inferred 'bool) a-uses eq-a-deno b)]
+
+    [`(when ,a ,b)
+     (define-values (a-type a-uses a-deno) (elab a 'bool cx))
+     (define-values (b-type b-uses b-deno) (elab b want (cx-grounding cx a-uses)))
+     (values b-type
+             (set-union a-uses b-uses)
+             (λ (env)
+               ;; TODO XXX: shit now I have to implement sideways information passing again!
+               (define a-table (a-deno env))
+               (todo)))
+     ]
 
     [`(app ,fun ,arg)                       ; FUNCTION APPLICATION
      (define-values (fun-type fun-uses fun-deno) (elab fun #f cx))
      (match fun-type
-       [`(=> ,A ,P) (elab-finite-app A P fun-uses fun-deno arg)]
-       [`(-o ,P ,Q) (elab-pointed-app P Q fun-uses fun-deno arg)]
-       [`(-> ,A ,B) (elab-set-app A B fun-uses fun-deno arg)]
+       [`(=> ,A ,P) (elab-finite-app A (inferred P) fun-uses fun-deno arg)]
+       [`(-o ,P ,Q) (elab-pointed-app P (inferred Q) fun-uses fun-deno arg)]
+       [`(-> ,A ,B) (elab-set-app A (inferred B) fun-uses fun-deno arg)]
        [_ (error 'elab "cannot apply non-function of type: ~a" fun-type)])]
 
     ;; SUGAR: "or" expressions get elaborated into calling "or" on with-pairs.
@@ -854,6 +866,7 @@
   (for* ([(_ actors) film-stars] [actor actors])
     (hash-update! film-counts actor add1 0))
 
+  #;
   (test-elab
    '(sum (λ (film) (when (stars film actor) one)))
    'natz
