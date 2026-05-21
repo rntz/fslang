@@ -1,12 +1,54 @@
 #lang racket
 
+;; WHAT DO I NEED TO MAKE THIS INTO A USEFUL DEMO?
+;;
+;; 1 good error messages about variable usage & grounding!
+;; 2 non-S-expr syntax?
+;; 3 ⊗-tuples
+;; 4 support for auto-&-tupling of (infix?) function arguments
+;; 5 a repl?
+;; 6 a website w/ JS implementation? (NOT NECESSARY, BUT SUPER COOL IF POSSIBLE)
+;;
+;; what programs do I want to use? perhaps:
+;;
+;; costars x y = exists(\film. stars film x && stars film y)
+;; filmCount x = sum (\film. 1 when stars film x)
+;;
+;; IDEA: use Topos talk examples.
+;; IDEA: use Will Crichton's query language expressiveness benchmark.
+
+
+;; # HOW TO GET GOOD ERROR MESSAGES #
+;; - print the expression that binds the variable
+;; - point to the location of use? (ugh, hard! need annotations?)
+;; - say what the problem is. what kinds of problems can I have?
+;;
+;; # VARIABLE USAGE ERROR TYPES #
+;; "use of ungrounded variable"
+;; "lambda does not preserve nil in parameter"
+;; "unbound variable" (currently hash-ref fails)
+;; "hidden variable" - when applying set function to pointed var (now: contract failure)
+;;
+;; why do I have both "lambda does not preserve nil in parameter" and "hidden
+;; variable"? in some sense they're the same problem. aha, currently:
+;; - "does not preserve nil in parameter" = variable not used
+;; - hidden = used as argument to -> function.
+;;   (But this is kinda okay, as long as some other path uses it nil-preservingly?)
+;;
+;; Ideally I'd collect all the uses of a variable and know which uses are
+;; point-preserving; for those not point preserving, I'd be able to say which
+;; function application was not point preserving. So I'd be able to point to a
+;; "usage path" that fails to nil-preserve the variable.
+
 ;; CONNECTIVE TODOS:
 ;; - just/letjust
+;; - ⊗intro/elim
 ;;
 ;; OTHER TODOS:
 ;; - think about U and context.
 ;; - implement 3-way grading (unused/ground/used) for fs vars
 ;; - use 3-way grading to implement joins instead of subquerying all the time
+;; - pattern matching?
 
 (require racket/hash)
 
@@ -32,6 +74,10 @@
 ;; maps variables to their area and type
 (define cx? (hash/c symbol? (list/c area? type?)
                     #:immutable #t #:flat? #t))
+(define get-area first)
+(define get-type second)
+(define (cx-area cx var) (get-area (hash-ref cx var)))
+(define (cx-type cx var) (get-type (hash-ref cx var)))
 
 ;; variable usage analysis results:
 ;; a set of variables.
@@ -47,7 +93,8 @@
 ;; A term denotes a function from environments (maps from set or pointed vars to
 ;; values) to finite maps (represented by hash maps) from "rows" (maps from fs
 ;; vars to values) to their values.
-(define deno/c (-> env? (hash/c row? value? #:immutable #t #:flat? #t)))
+(define deno-map? (hash/c row? value? #:immutable #t #:flat? #t))
+(define deno/c (-> env? deno-map?))
 
 (define/contract (make-nil type)
   (-> type? value?)
@@ -59,6 +106,7 @@
     [`(-o ,_ ,b) (const (make-nil b))]
     [`(-> ,_ ,b) (const (make-nil b))]
     [`(=> ,_ ,_) (hash)]))
+
 
 ;; Typecheck/elaborate/interpret a term. Parameters:
 ;;   term   - The term to elaborate
@@ -74,10 +122,8 @@
       ;; type, variable usage, denotation
       (values type? usage? deno/c))
 
-  (define get-area car)
-  (define get-type cadr)
-  (define (var-area x) (get-area (hash-ref cx x)))
-  (define (var-type x) (get-type (hash-ref cx x)))
+  (define (var-area x) (cx-area cx x))
+  (define (var-type x) (cx-type cx x))
 
   (define (cannot-infer name)
     (unless want (error 'elab "cannot infer type of ~a" name))
@@ -90,12 +136,17 @@
       [else (error 'elab "wanted ~a, but inferred ~a" want got)]))
 
   (match term
-    [`(is ,anno ,t)                     ; TYPE ANNOTATION
+    [`(as ,anno ,t)                     ; TYPE ANNOTATION
      (unless (type? anno)
        (error 'elab "type annotation is not a valid type: ~a" anno))
      (when (and want (not (subtype? anno want)))
        (error 'elab "wanted ~a, but annotated ~a" want anno))
      (elab t anno cx)]
+
+    ;; CONSTANTS
+    [(? boolean? x)
+     (if (not x) (elab 'nil 'bool cx)
+         (values 'bool (set) (λ (_) (hash (hash) #t))))]
 
     ['nil                               ; NIL
      (define point-fs-vars
@@ -117,7 +168,7 @@
                 (set x)
                 (λ (env) (hash (hash) (hash-ref env x))))])]
 
-    [`(cons ,@terms)                    ; WITH TUPLES
+    [`(cons ,@terms)                    ; WITH TUPLES (&)
      (define wants
        (match want
          [#f (make-list (length terms) #f)]
@@ -361,21 +412,83 @@
     ))
 
 
+;;; Read eval print loop. WIP.
+
+;; TODO: I *really* need parametric operators to make working at the repl
+;; tolerable. maybe hardcode a few of them in?
+;; NEED PARAMETRIC: equality, and, when, exists, sum
+(define default-repl-env-list
+  `([and    (-o bool (-o bool bool))   ,(λ (x) (λ (y) (and x y)))]
+    [when   (-o bool (-o any any))     ,(λ (x) (λ (y) (and x y)))]
+    [or     (-o (& bool bool) bool)    ,(match-λ [`(,x ,y) (or x y)])]
+    [exists (-o (=> any bool) bool)    ,(λ (table) (for/or ([(_ v) table]) v))]
+    [sum    (-o (=> any natz) natz)    ,(λ (table) (for/sum ([(_ v) table]) v))]
+    ))
+
+(define repl-env? (hash/c symbol? (list/c type? value?) #:flat? #t))
+(define/contract default-repl-env repl-env?
+  (for/hash ([x default-repl-env-list])
+    (match-define `(,name ,type ,value) x)
+    (values name (list type value))))
+
+(define/contract (evaluate term [repl-env default-repl-env])
+  (-> term? repl-env? value?)
+  (define cx  (for/hash ([(x info) repl-env]) (values x (list 'set (first info)))))
+  (define env (for/hash ([(x info) repl-env]) (values x (second info))))
+  (define-values (type used deno) (elab term #f cx))
+  (printf "term: ~a\n" term)
+  (printf "type: ~a\n" type)
+  (printf "uses: ~a\n" (set->list used))
+  #;
+  (for ([(x xinfo) cx])
+    (match (get-area xinfo)
+      ['fs #:when (not (set-member? used x))
+       (error 'repl "Variable not finitely supported: ~a" x)]
+      ['point #:when (not (set-member? used x))
+       (error 'repl "Variable not used in a point preserving way: ~a" x)]
+      [(or 'set 'point)
+       #:when (and (set-member? used x)
+                   (not (hash-has-key? env x)))
+       (error 'repl "Runtime environment missing variable: ~a" x)]
+      [_ (void)]))                      ;otherwise ok.
+  (define term-map (deno env))
+  (define value (hash-ref term-map (hash) (λ () (make-nil type))))
+  value)
+
+(define (read-eval
+         [repl-env default-repl-env]
+         #:from [from-port #f]
+         #:from-string [from-string #f])
+  (when from-string
+    (when from-port (error "Cannot supply both #:from and #:from-string"))
+    (set! from-port (open-input-string from-string)))
+  (define value (evaluate (read (or from-port (current-input-port))) repl-env))
+  ;; TODO: decent pretty printing.
+  (printf "~a\n" value))
+
+
 (module+ test
   (require rackunit)
 
-  ;; TODO: typecheck failure tests for ILL-TYPED terms
-  (define-syntax-rule (tester params ...)
-    (test-begin
-     (test-elab params ...)))
+  (define stdlib
+    (hash
+     'and    (λ (x) (λ (y) (and x y)))
+     'when   (λ (x) (λ (y) (and x y)))
+     'or     (match-λ [`(,x ,y) (or x y)])
+     'exists (λ (table) (for/or ([(_ v) table]) v))
+     'sum    (λ (table) (for/sum ([(_ v) table]) v))
+     ))
 
+  ;; TODO: typecheck failure tests for ILL-TYPED terms
+  (define expect-val-default (gensym 'expect-val-default))
   (define (test-elab term want vartypes
-                     #:name [name #f]
-                     #:fail [exn-predicate #f]
-                     #:type [expect-type #f]
-                     #:uses [expect-uses #f]
-                     #:eval [eval-env #f]
-                     #:to   [expect-eval any/c])
+                     #:name   [name #f]
+                     #:fail   [exn-predicate #f]
+                     #:type   [expect-type #f]
+                     #:uses   [expect-uses #f]
+                     #:eval   [eval-env #f]
+                     #:to-map [expect-map any/c]
+                     #:to     [expect-val expect-val-default])
     (test-case (or name (format "~a" term))
       (let/ec exit-early
         (define cx (for/hash ([vartype vartypes])
@@ -399,75 +512,79 @@
         ;; evaluate if requested
         (when eval-env
           (define term-map (term-deno eval-env))
-          (if (procedure? expect-eval)
-              (check-pred expect-eval term-map)
-              (check-equal? term-map expect-eval)
-              )))))
+          (if (procedure? expect-map)
+              (check-pred expect-map term-map)
+              (check-equal? term-map expect-map))
+          (unless (eq? expect-val expect-val-default)
+            (define term-val
+              (if (hash-empty? term-map)
+                  (make-nil term-type)
+                  (hash-ref term-map (hash))))
+            (if (procedure? expect-val)
+                (check-pred expect-val term-val)
+                (check-equal? term-val expect-val)))))))
 
   (test-elab 'x #f '([x point bool])
              #:type 'bool #:uses '(x)
-             #:eval (hash 'x #t) #:to (hash (hash) #t))
+             #:eval (hash 'x #t) #:to #t)
 
   (test-elab '(f x) #f '([f point (-o bool bool)]
                          [x point bool])
              #:type 'bool #:uses '(f x)
-             #:eval (hash 'f (λ (x) x) 'x #t) #:to (hash (hash) #t)
-             )
+             #:eval (hash 'f (λ (x) x) 'x #t) #:to #t)
 
   (test-elab '(f x) #f '([f set (=> nat bool)]
                          [x fs nat])
              #:type 'bool
              #:uses '(f x)
              #:eval (hash 'f (hash 17 #t 23 #t))
-             #:to (hash (hash 'x 23) #t (hash 'x 17) #t)
-             )
+             #:to-map (hash (hash 'x 23) #t (hash 'x 17) #t))
 
   (test-elab '(f x) #f '([f set (=> nat bool)]
                          [x set nat])
              #:type 'bool
              #:uses '(f x)
              #:eval (hash 'f (hash 17 #t 23 #t) 'x 17)
-             #:to (hash (hash) #t)
-             )
+             #:to #t)
 
   (test-elab 'nil 'bool '([x fs bool] [y point bool])
              #:type 'bool #:uses '(x y)
-             #:eval (hash 'y #t) #:to (hash))
+             #:eval (hash 'y #t) #:to-map (hash))
 
   (test-elab 'x #f '([x point bool] [y point bool] [z fs bool])
              #:type 'bool #:uses '(x)
-             #:eval (hash 'x #f 'y #t) #:to (hash (hash) #f))
+             #:eval (hash 'x #f 'y #t) #:to-map (hash (hash) #f))
 
   (test-elab '(f nil)
              #f
              '([f point (-o bool bool)] [x point bool])
              #:type 'bool #:uses '(f x)
-             #:eval (hash 'f (λ (x) x) 'x #t) #:to (hash))
+             #:eval (hash 'f (λ (x) x) 'x #t) #:to-map (hash))
 
-  (test-elab '((is (-o bool bool) nil) x)
+  (test-elab '((as (-o bool bool) nil) x)
              #f
              '([x point bool])
              #:type 'bool #:uses '(x)
-             #:eval (hash 'x #t) #:to (hash))
+             #:eval (hash 'x #t) #:to-map (hash))
 
   (test-elab '(λ (x) nil)
              '(=> nat bool)
              '()
              #:type '(=> nat bool)
-             #:eval (hash) #:to (hash))
+             #:eval (hash) #:to-map (hash))
 
   (test-elab '(λ (x) x)
              '(-o bool bool)
              '()
              #:type '(-o bool bool)
              #:eval (hash)
-             #:to (match-lambda [(hash (hash) (? procedure?)) #t] [_ #f]))
+             #:to-map (match-lambda [(hash (hash) (? procedure?)) #t] [_ #f]))
 
   (test-elab '(λ (x) (λ (y) (x y)))
              '(-o (-o bool bool) (-o bool bool))
              '()
              #:eval (hash)
-             #:to (match-lambda [(hash (hash) (? procedure?)) #t] [_ #f]))
+             #:to-map (match-lambda [(hash (hash) (? procedure?)) #t] [_ #f]))
 
   #; ;; fails b/c don't support set lambdas yet
   (test-elab '(λ (f) (λ (x) (f x)))
@@ -483,7 +600,7 @@
                [x point bool])
              #:uses '(f x)
              #:eval (hash 'f (λ (x) (λ (y) (and x y))) 'x #t)
-             #:to (hash (hash) #t))
+             #:to #t)
 
   (test-elab '(f x x) #f '([f set (=> nat (=> nat nat))]
                            [x set nat])
@@ -492,7 +609,7 @@
              #:eval (hash 'x 23
                           'f (hash 17 (hash 17 1717 23 1723)
                                    23 (hash 23 2323 17 2317)))
-             #:to (hash (hash) 2323))
+             #:to 2323)
 
   (test-elab '(f x y) #f '([f set (=> nat (=> nat bool))]
                            [x fs nat]
@@ -501,10 +618,10 @@
              #:uses '(f x y)
              #:eval (hash 'f (hash 17 (hash 17 1717 23 1723)
                                    23 (hash 23 2323 17 2317)))
-             #:to (hash (hash 'x 17 'y 17) 1717
-                        (hash 'x 17 'y 23) 1723
-                        (hash 'x 23 'y 17) 2317
-                        (hash 'x 23 'y 23) 2323))
+             #:to-map (hash (hash 'x 17 'y 17) 1717
+                            (hash 'x 17 'y 23) 1723
+                            (hash 'x 23 'y 17) 2317
+                            (hash 'x 23 'y 23) 2323))
 
   ;; Filtering a set. This was curiously harder to get working than set
   ;; intersection, below.
@@ -522,7 +639,7 @@
                           'g (λ (x) (< x 20)))
              ;; NB. the 23 doesn't get filtered out!
              ;; TODO: filter out nils if type has decidable point?
-             #:to (hash (hash 'x 17) #t (hash 'x 23) #f)
+             #:to-map (hash (hash 'x 17) #t (hash 'x 23) #f)
              )
 
   ;; AN ACTUAL RELATIONAL JOIN
@@ -539,7 +656,7 @@
              #:eval (hash 'and (λ (x) (λ (y) (and x y)))
                           'f (hash 17 #t 23 #t)
                           'g (hash 23 #t 54 #t))
-             #:to (hash (hash 'x 23) #t))
+             #:to-map (hash (hash 'x 23) #t))
 
   ;; cross product
   (test-elab '(and (f x) (g y))
@@ -555,20 +672,20 @@
              #:eval (hash 'and (λ (x) (λ (y) (and x y)))
                           'f (hash 'ada #t 'bob #t)
                           'g (hash 17 #t 23 #t))
-             #:to (hash (hash 'x 'ada 'y 17) #t
-                        (hash 'x 'ada 'y 23) #t
-                        (hash 'x 'bob 'y 17) #t
-                        (hash 'x 'bob 'y 23) #t))
+             #:to-map (hash (hash 'x 'ada 'y 17) #t
+                            (hash 'x 'ada 'y 23) #t
+                            (hash 'x 'bob 'y 17) #t
+                            (hash 'x 'bob 'y 23) #t))
 
   ;; FINITE LAMBDAS
   (test-elab '(λ (x) (f x))
              '(=> nat bool)
              '([f point (=> nat bool)])
-             #:eval (hash 'f (hash 17 #t)) #:to (hash (hash) (hash 17 #t))
-             )
+             #:eval (hash 'f (hash 17 #t))
+             #:to   (hash 17 #t))
 
   (test-elab '(λ (x) (f x)) '(=> nat bool) '([f point (=> nat bool)])
-             #:eval (hash 'f (hash)) #:to (hash))
+             #:eval (hash 'f (hash)) #:to-map (hash))
 
   (test-elab '(λ (x) (and (f x) (g x)))
              '(=> nat bool)
@@ -579,7 +696,7 @@
              #:eval (hash 'and (λ (x) (λ (y) (and x y)))
                           'f (hash 17 #t 23 #t)
                           'g (hash 23 #t 54 #t))
-             #:to (hash (hash) (hash 23 #t)))
+             #:to (hash 23 #t))
 
   (test-elab '(λ (y) (and (f x) (g y)))
              '(=> b bool)
@@ -591,15 +708,15 @@
              #:eval (hash 'and (λ (x) (λ (y) (and x y)))
                           'f (hash 'ada #t 'bob #t)
                           'g (hash 17 #t 23 #t))
-             #:to (hash (hash 'x 'ada) (hash 17 #t 23 #t)
-                        (hash 'x 'bob) (hash 17 #t 23 #t)))
+             #:to-map (hash (hash 'x 'ada) (hash 17 #t 23 #t)
+                            (hash 'x 'bob) (hash 17 #t 23 #t)))
 
   ;; WITH TUPLES. TODO: use #:eval argument once implemented.
   (test-elab '(cons) #f '([x point bool] [y fs nat])
              #:type '(&)
              #:uses '(x y)
              #:eval (hash)
-             ;;#:to '() ;; TODO
+             #:to-map (hash)            ;TODO: why? why not (hash (hash) '())?
              )
 
   (test-elab '(cons (f x y))
@@ -611,19 +728,19 @@
              #:uses '(f x y)
              #:eval (hash 'f (λ (x) (if (eq? x 'IAMX) (hash 17 #t 23 #t) (hash)))
                           'x 'IAMX)
-             #:to (hash (hash 'y 17) '(#t)
-                        (hash 'y 23) '(#t)))
+             #:to-map (hash (hash 'y 17) '(#t)
+                            (hash 'y 23) '(#t)))
 
   (test-elab '(cons x x) #f '([x point bool])
              #:type '(& bool bool)
              #:uses '(x)
-             #:eval (hash 'x 'yes) #:to (hash (hash) '(yes yes)))
+             #:eval (hash 'x 'yes) #:to '(yes yes))
 
   (test-elab '(cons x y) #f '([x point bool] [y set nat])
              #:type '(& bool nat)
              #:uses '(y) ;; depends on y, but does not preserve point wrt x
              #:eval (hash 'x #t 'y 17)
-             #:to (hash (hash) '(#t 17)))
+             #:to   '(#t 17))
 
   ;; our first real outer join
   (test-elab '(cons (f x) (g x))
@@ -635,9 +752,9 @@
              #:uses '(x f)
              #:eval (hash 'f (hash 17 #t 23 #t)
                           'g (hash 23 #t 54 #t))
-             #:to (hash (hash 'x 17) '(#t #f)
-                        (hash 'x 23) '(#t #t)
-                        (hash 'x 54) '(#f #t)))
+             #:to-map (hash (hash 'x 17) '(#t #f)
+                            (hash 'x 23) '(#t #t)
+                            (hash 'x 54) '(#f #t)))
 
   (test-elab '(cons x (cons (f x y) x))
              #f
@@ -648,7 +765,7 @@
              #:uses '(x)
              #:eval (hash 'x 'x 'y 'y
                           'f (λ (x) (λ (y) (and (eq? x 'x) (eq? y 'y)))))
-             #:to (hash (hash) '(x (#t x))))
+             #:to '(x (#t x)))
 
   (test-elab '(cons x (f y))
              '(& p q)
@@ -668,18 +785,70 @@
   ;; OR EXPRESSIONS
   (test-elab '(or) #f '([x point p] [y fs q])
              #:type 'bool #:uses '(x y)
-             #:eval (hash 'x 'x) #:to (hash))
+             #:eval (hash 'x 'x) #:to-map (hash))
 
   (test-elab '(or x) #f '([x point bool] [y fs q])
              #:type 'bool #:uses '(x)
-             #:eval (hash 'x #t) #:to (hash (hash) #t))
+             #:eval (hash 'x #t) #:to #t)
 
   (test-elab '(or x y) #f '([x point bool]
                             [y point bool]
                             [or set (-o (& bool bool) bool)])
              #:type 'bool #:uses '(or)
              #:eval (hash 'x #f 'y #t 'or (match-λ [`(,x ,y) (or x y)]))
-             #:to (hash (hash) #t))
+             #:to #t)
+
+  ;; costars x y = ∃λfilm. stars film x AND stars film y
+  (define film-stars
+    (hash 'casablanca '(bogart bergman)
+          'the-big-sleep '(bogart bacall)))
+  (define film-stars-trie
+    (for/hash ([(film actors) film-stars])
+      (values film (for/hash ([actor actors]) (values actor #t)))))
+  (define costars (make-hash))
+  (for* ([(_ actors) film-stars] [actor1 actors] [actor2 actors])
+    (hash-update! costars actor1 (λ (s) (set-add s actor2)) (λ () (set))))
+
+  (test-elab
+   '(exists (λ (film) (and (stars film x) (stars film y))))
+   'bool
+   '([x      fs     person]
+     [y      fs     person]
+     [exists set    (-o (=> film bool) bool)]
+     [and    set    (-o bool (-o bool bool))]
+     [stars  point  (=> film (=> person bool))])
+   #:eval (hash-set stdlib 'stars film-stars-trie)
+   #:to-map (for*/hash ([(x actors) costars] [y actors])
+              (values (hash 'x x 'y y) #t)))
+
+  (test-elab
+   '(λ (x) (λ (y) (exists (λ (film) (and (stars film x) (stars film y))))))
+   '(=> person (=> person bool))
+   '([exists set    (-o (=> film bool) bool)]
+     [and    set    (-o bool (-o bool bool))]
+     [stars  point  (=> film (=> person bool))])
+   #:eval (hash-set stdlib 'stars film-stars-trie)
+   #:to (for/hash ([(x actors) costars])
+          (values x (for/hash ([y actors]) (values y #t)))))
+
+  ;; filmCount x = sum λfilm. 1 when stars film x
+  (define film-counts (make-hash))
+  (for* ([(_ actors) film-stars] [actor actors])
+    (hash-update! film-counts actor add1 0))
+
+  (test-elab
+   '(sum (λ (film) (when (stars film actor) one)))
+   'natz
+   '([actor  fs     person]
+     [one    set    natz]
+     [stars  point  (=> film (=> person bool))]
+     [when   set    (-o bool (-o natz natz))]
+     [sum    set    (-o (=> film natz) natz)])
+   #:eval (hash-set* stdlib
+                     'stars film-stars-trie
+                     'one   1)
+   #:to-map (for/hash ([(actor n) film-counts])
+              (values (hash 'actor actor) n)))
 
   #;
   (check-equal? #t #f))
