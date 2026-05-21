@@ -390,12 +390,20 @@
        [_ (error 'elab "bad type for lambda: ~a" want)])]
 
     ;; HIDEOUS SPECIAL CASES FOR POLYMORPHIC/PARAMETRIC OPERATORS, namely:
-    ;; equality, when, exists, sum, minimum
+    ;; equality (done), when, exists, sum, minimum
     ;; TODO NEXT FIXME XXX
-    [`(= ,a ,b)
+    ;; TODO: need a test for this!
+    [`(= ,a ,b)                         ; EQUALITY
+     ;; FIXME: don't I need to clear the context for a? because it's a set
+     ;; argument? YES I DO, because otherwise it regards this as "using" a in a
+     ;; point-preserving way. I really need to refactor how I represent variable
+     ;; usage, it is a loaded footgun!
      (define-values (a-type a-uses a-deno) (elab a #f cx))
-     (todo)                             ;TODO NEXT FIXME XXX
-     ]
+     ;; TODO FIXME: check that a-type supports equality (is first-order)!
+     (define (eq-a-deno env)
+       (define a-table (a-deno env))
+       (for/hash ([(k a-val) a-table]) (values k (hash a-val #t))))
+     (elab-finite-app a-type 'bool a-uses eq-a-deno b)]
 
     [`(app ,fun ,arg)                       ; FUNCTION APPLICATION
      (define-values (fun-type fun-uses fun-deno) (elab fun #f cx))
@@ -442,7 +450,7 @@
     (values name (list type value))))
 
 (define/contract (evaluate term [repl-env default-repl-env])
-  (-> term? repl-env? value?)
+  (-> term? repl-env? value?)           ;TODO: allow optional argument!
   (define cx  (for/hash ([(x info) repl-env]) (values x (list 'set (first info)))))
   (define env (for/hash ([(x info) repl-env]) (values x (second info))))
   (define-values (type used deno) (elab term #f cx))
