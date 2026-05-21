@@ -538,13 +538,15 @@
   (define stdlib
     (hash
      'and    (λ (x) (λ (y) (and x y)))
-     'when   (λ (x) (λ (y) (and x y)))
      'or     (match-λ [`(,x ,y) (or x y)])
+     ;; NB. these are redundant with the built-in parametric versions in elab.
+     ;; I should probably remove these and the tests for them at some point.
+     'when   (λ (x) (λ (y) (and x y)))
      'exists (λ (table) (for/or ([(_ v) table]) v))
      'sum    (λ (table) (for/sum ([(_ v) table]) v))
      ))
 
-  ;; TODO: typecheck failure tests for ILL-TYPED terms
+  ;; TODO: more failure tests for ill-typed terms
   (define expect-val-default (gensym 'expect-val-default))
   (define (test-elab term want vartypes
                      #:name   [name #f]
