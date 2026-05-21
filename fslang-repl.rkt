@@ -135,13 +135,131 @@
       [(subtype? got want) got]
       [else (error 'elab "wanted ~a, but inferred ~a" want got)]))
 
+  ;; SET APPLICATION
+  (define (elab-set-app A B fun-uses fun-deno arg)
+    ;; we treat this like (-o (maybe A) B) and implicitly wrap the argument
+    ;; in "just", hiding all pointed/fs variables from its context.
+    (define arg-cx
+      (for/hash ([(x xinfo) cx])
+        (values x (match xinfo
+                    [(list (or 'point 'fs) _) 'hidden] ;TODO: test this hiding!
+                    [_ xinfo]))))
+    (define-values (_arg-type arg-uses arg-deno) (elab arg A arg-cx))
+    (values
+     B                   ; TODO think about adjunction typing rule structure
+     (set-union fun-uses arg-uses)
+     (λ (env)
+       (define fun-table (fun-deno env))
+       (define arg-table (arg-deno env))
+       ;; TODO FIXME: need to generate nil of the appropriate type in the
+       ;; default case! but this shouldn't be possible. except it is because
+       ;; U is silent. augh.
+       (unless (= 1 (hash-count arg-table)) ; TODO: trip this case in a test!
+         (error 'elab "evaled to non-singleton: ~a" arg))
+       ;; (printf "fun ~a --> ~a\n" fun fun-table) (printf "arg ~a --> ~a\n" arg arg-table)
+       (define arg-val (hash-ref arg-table (hash)))
+       (define result
+        (for/hash ([(row fun-val) fun-table])
+          (values row (fun-val arg-val))))
+       ;; (printf "result => ~a\n" result)
+       result)))
+
+  ;; POINTED APPLICATION
+  (define (elab-pointed-app P Q fun-uses fun-deno arg)
+    ;; take all fs vars used by `fun` and make them set vars for `arg`.
+    (define arg-cx
+      (for/hash ([(x xinfo) cx])
+        (values x (match xinfo
+                    [`(fs ,xtype) #:when (set-member? fun-uses x)
+                     `(set ,xtype)]
+                    [_ xinfo]))))
+    (define-values (_arg-type arg-uses arg-deno)
+      (elab arg P arg-cx))
+    ;; TODO: THIS IS WRONG WRONG WRONG. we've told arg that it can use vars grounded
+    ;; by fun arbitrarily, so it only records whether it USES them, not whether it
+    ;; uses them (1) arbitrarily or (2) groundingly or (3) not at all. We need this in
+    ;; order to figure out whether we execute as a join or a subquery.
+    ;;
+    ;; Variables grounded by fun that are used non-groundingly by arg, ie:
+    ;; sideways information passing / subquery parameters.
+    #;
+    (define sideways-vars
+      (for/list ([(x xinfo) cx]
+                 #:when (match xinfo [`(fs ,_) #t] [_ #f])
+                 #:when (set-member? fun-uses x)
+                 #:when (set-member? arg-uses x))
+         x))
+    #; ;; THIS IS WRONG for the same reason given above.
+    (if (null? sideways-vars)
+      (printf "%%%%% JOIN ON ~a: ~a ====> ~a %%%%%\n"
+              (for/list ([(x xinfo) cx] #:when (match xinfo [`(fs ,_) #t] [_ #f])) x)
+              fun arg)
+      (printf "***** SUBQUERY: ~a == ~a ==> ~a *****\n" fun sideways-vars arg))
+    (values Q
+            (set-union fun-uses arg-uses)
+            ;; TODO: TEST THIS CODE EXTENSIVELY
+            (λ (env)
+              ;; any fs vars grounded by fun get bound in arg's environment. TODO: if
+              ;; there's no real sideways info passing, so I can eval arg _once_ and
+              ;; then join (iterate smaller, probe larger) instead of subquerying.
+              (for*/hash ([(row1 fun-val) (fun-deno env)]
+                          ;; is it really as simple as a hash-union?
+                          #:do [(define arg-env (hash-union env row1))]
+                          [(row2 arg-val) (arg-deno arg-env)])
+                (values
+                 ;; NB. This hash-union is only guaranteed not to hit any colliding
+                 ;; keys because we told `arg' that all of `fun's grounded variables
+                 ;; were arbitrary, not fs, variables.
+                 (hash-union row1 row2)
+                 (fun-val arg-val))))))
+
+  ;; FINITE APPLICATION
+  (define (elab-finite-app A P fun-uses fun-deno arg)
+    (unless (symbol? arg)
+      ;; TODO LATER: weaken this restriction to allow patterns.
+      (error 'elab "can only apply finite maps to variables"))
+    (define arg-area (var-area arg))
+    (define arg-type (var-type arg))
+    #; ;; FIXED but need to update typing rules.
+    (unless (eq? 'fs arg-area)
+      ;; this invalidates the idea that it's always legitimate to "promote"
+      ;; a fs var to a set var that justifies my approach to tensor
+      ;; products.
+      (error 'elab "cannot only apply finite map to a f.s. variable"))
+    ;; TODO: which direction should the subtyping relationship go???
+    ;; for now, requiring equality
+    (unless (equal? A arg-type)
+      (error 'elab "applying finite map (~a => ~a) to invalid input (~a)"
+             A P arg-type))
+    (values
+     P
+     (match arg-area
+       ['point fun-uses]          ; finite map lookup does not preserve nil.
+       [(or 'set 'fs) (set-add fun-uses arg)])
+     (λ (env)
+       (define fun-map (fun-deno env))
+       (match arg-area
+         ['fs #:when (set-member? fun-uses arg)
+          (for/hash ([(row table) fun-map])
+            (values row (hash-ref table (hash-ref row arg))))]
+         ['fs
+          (for*/hash ([(row table) fun-map]
+                      [(key value) table])
+            (when (hash-has-key? row arg) (error 'elab "fuck"))
+            (values (hash-set row arg key) value))]
+         [(or 'set 'point)
+          (define key (hash-ref env arg))
+          (for/hash ([(row table) fun-map]
+                     #:when (hash-has-key? table key))
+            (values row (hash-ref table key)))]))))
+
   (match term
-    [`(as ,anno ,t)                     ; TYPE ANNOTATION
-     (unless (type? anno)
-       (error 'elab "type annotation is not a valid type: ~a" anno))
-     (when (and want (not (subtype? anno want)))
-       (error 'elab "wanted ~a, but annotated ~a" want anno))
-     (elab t anno cx)]
+    [`(as ,hideaki ,t)                     ; TYPE ANNOTATION
+     (unless (type? hideaki)
+       (error 'elab "type annotation is not a valid type: ~a" hideaki))
+     (when (and want (not (subtype? hideaki want)))
+       (error 'elab "wanted ~a, but annotated ~a" want hideaki))
+     (elab t hideaki cx)]
 
     ;; CONSTANTS
     [(? boolean? x)
@@ -271,128 +389,20 @@
 
        [_ (error 'elab "bad type for lambda: ~a" want)])]
 
+    ;; HIDEOUS SPECIAL CASES FOR POLYMORPHIC/PARAMETRIC OPERATORS, namely:
+    ;; equality, when, exists, sum, minimum
+    ;; TODO NEXT FIXME XXX
+    [`(= ,a ,b)
+     (define-values (a-type a-uses a-deno) (elab a #f cx))
+     (todo)                             ;TODO NEXT FIXME XXX
+     ]
+
     [`(app ,fun ,arg)                       ; FUNCTION APPLICATION
      (define-values (fun-type fun-uses fun-deno) (elab fun #f cx))
      (match fun-type
-
-       [`(=> ,A ,P)                     ; FINITE APPLICATION
-        (unless (symbol? arg)
-          ;; TODO LATER: weaken this restriction to allow patterns.
-          (error 'elab "can only apply finite maps to variables"))
-        (define arg-area (var-area arg))
-        (define arg-type (var-type arg))
-        #; ;; FIXED but need to update typing rules.
-        (unless (eq? 'fs arg-area)
-          ;; this invalidates the idea that it's always legitimate to "promote"
-          ;; a fs var to a set var that justifies my approach to tensor
-          ;; products.
-          (error 'elab "cannot only apply finite map to a f.s. variable"))
-        ;; TODO: which direction should the subtyping relationship go???
-        ;; for now, requiring equality
-        (unless (equal? A arg-type)
-          (error 'elab "applying finite map (~a => ~a) to invalid input (~a)"
-                 A P arg-type))
-        (values
-         P
-         (match arg-area
-           ['point fun-uses]          ; finite map lookup does not preserve nil.
-           [(or 'set 'fs) (set-add fun-uses arg)])
-         (λ (env)
-           (define fun-map (fun-deno env))
-           (match arg-area
-             ['fs #:when (set-member? fun-uses arg)
-              (for/hash ([(row table) fun-map])
-                (values row (hash-ref table (hash-ref row arg))))]
-             ['fs
-              (for*/hash ([(row table) fun-map]
-                          [(key value) table])
-                (when (hash-has-key? row arg) (error 'elab "fuck"))
-                (values (hash-set row arg key) value))]
-             [(or 'set 'point)
-              (define key (hash-ref env arg))
-              (for/hash ([(row table) fun-map]
-                         #:when (hash-has-key? table key))
-                (values row (hash-ref table key)))]))
-         )]
-
-       [`(-o ,P ,Q)                     ; POINTED APPLICATION
-        ;; take all fs vars used by `fun` and make them set vars for `arg`.
-        (define arg-cx
-          (for/hash ([(x xinfo) cx])
-            (values x (match xinfo
-                        [`(fs ,xtype) #:when (set-member? fun-uses x)
-                         `(set ,xtype)]
-                        [_ xinfo]))))
-        (define-values (_arg-type arg-uses arg-deno)
-          (elab arg P arg-cx))
-        ;; TODO: THIS IS WRONG WRONG WRONG. we've told arg that it can use vars grounded
-        ;; by fun arbitrarily, so it only records whether it USES them, not whether it
-        ;; uses them (1) arbitrarily or (2) groundingly or (3) not at all. We need this in
-        ;; order to figure out whether we execute as a join or a subquery.
-        ;;
-        ;; Variables grounded by fun that are used non-groundingly by arg, ie:
-        ;; sideways information passing / subquery parameters.
-        #;
-        (define sideways-vars
-          (for/list ([(x xinfo) cx]
-                     #:when (match xinfo [`(fs ,_) #t] [_ #f])
-                     #:when (set-member? fun-uses x)
-                     #:when (set-member? arg-uses x))
-             x))
-        #; ;; THIS IS WRONG for the same reason given above.
-        (if (null? sideways-vars)
-          (printf "%%%%% JOIN ON ~a: ~a ====> ~a %%%%%\n"
-                  (for/list ([(x xinfo) cx] #:when (match xinfo [`(fs ,_) #t] [_ #f])) x)
-                  fun arg)
-          (printf "***** SUBQUERY: ~a == ~a ==> ~a *****\n" fun sideways-vars arg))
-        (values Q
-                (set-union fun-uses arg-uses)
-                ;; TODO: TEST THIS CODE EXTENSIVELY
-                (λ (env)
-                  ;; any fs vars grounded by fun get bound in arg's environment. TODO: if
-                  ;; there's no real sideways info passing, so I can eval arg _once_ and
-                  ;; then join (iterate smaller, probe larger) instead of subquerying.
-                  (for*/hash ([(row1 fun-val) (fun-deno env)]
-                              ;; is it really as simple as a hash-union?
-                              #:do [(define arg-env (hash-union env row1))]
-                              [(row2 arg-val) (arg-deno arg-env)])
-                    (values
-                     ;; NB. This hash-union is only guaranteed not to hit any colliding
-                     ;; keys because we told `arg' that all of `fun's grounded variables
-                     ;; were arbitrary, not fs, variables.
-                     (hash-union row1 row2)
-                     (fun-val arg-val)))))]
-
-       [`(-> ,A ,B)                     ; SET APPLICATION
-        ;; we treat this like (-o (maybe A) B) and implicitly wrap the argument
-        ;; in "just", hiding all pointed/fs variables from its context.
-        (define arg-cx
-          (for/hash ([(x xinfo) cx])
-            (values x (match xinfo
-                        [(list (or 'point 'fs) _) 'hidden] ;TODO: test this hiding!
-                        [_ xinfo]))))
-        (define-values (_arg-type arg-uses arg-deno) (elab arg A arg-cx))
-        (values
-         B                   ; TODO think about adjunction typing rule structure
-         (set-union fun-uses arg-uses)
-         (λ (env)
-           (define fun-table (fun-deno env))
-           (define arg-table (arg-deno env))
-           ;; TODO FIXME: need to generate nil of the appropriate type in the
-           ;; default case! but this shouldn't be possible. except it is because
-           ;; U is silent. augh.
-           (unless (= 1 (hash-count arg-table)) ; TODO: trip this case in a test!
-             (error 'elab "evaled to non-singleton: ~a" arg))
-           ;; (printf "fun ~a --> ~a\n" fun fun-table) (printf "arg ~a --> ~a\n" arg arg-table)
-           (define arg-val (hash-ref arg-table (hash)))
-           (define result
-            (for/hash ([(row fun-val) fun-table])
-              (values row (fun-val arg-val))))
-           ;; (printf "result => ~a\n" result)
-           result
-           )
-         )]
-
+       [`(=> ,A ,P) (elab-finite-app A P fun-uses fun-deno arg)]
+       [`(-o ,P ,Q) (elab-pointed-app P Q fun-uses fun-deno arg)]
+       [`(-> ,A ,B) (elab-set-app A B fun-uses fun-deno arg)]
        [_ (error 'elab "cannot apply non-function of type: ~a" fun-type)])]
 
     ;; SUGAR: "or" expressions get elaborated into calling "or" on with-pairs.
