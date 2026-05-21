@@ -236,7 +236,7 @@
     ;; TODO: which direction should the subtyping relationship go???
     ;; for now, requiring equality
     (unless (equal? A arg-type)
-      (error 'elab "applying finite map (~a => ~a) to invalid input (~a)"
+      (error 'elab "applying finite map to input of wrong type\n  map: (=> ~a ~a)\n  arg: ~a"
              A P arg-type))
     (values
      P
