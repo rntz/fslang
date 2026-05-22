@@ -52,6 +52,16 @@
 
 (require racket/hash)
 
+;; NB. Racket 'min coerces the result to inexact if any argument is - but +inf.0
+;; is inexact. Hence these functions.
+(define natinf? (or/c exact-nonnegative-integer? +inf.0))
+(define/contract (exact-minimum xs)
+  (-> (listof natinf?) natinf?)
+  (match (filter exact-nonnegative-integer? xs)
+    ['() +inf.0]
+    [xs (apply min xs)]))
+(define (exact-min . xs) (exact-minimum xs))
+
 (define-syntax-rule (todo)
   (error "todo"))
 
@@ -100,7 +110,8 @@
   (-> type? value?)
   (match type
     ['bool #f]
-    ['nat #f]
+    ['natz 0]
+    ['natinf +inf.0]
     [(? symbol? x) (error "do not know how to make nil for type: ~a" x)]
     [`(& ,@types) (for/list ([t types]) (make-nil t))]
     [`(-o ,_ ,b) (const (make-nil b))]
@@ -418,10 +429,8 @@
 
        [_ (error 'elab "bad type for lambda: ~a" want)])]
 
-    ;; HIDEOUS SPECIAL CASES FOR POLYMORPHIC/PARAMETRIC OPERATORS, namely:
-    ;; equality (done), when (done), exists, sum, minimum
-    ;; TODO NEXT FIXME XXX
-    ;; TODO: need a test for this!
+    ;; POLYMORPHIC/PARAMETRIC OPERATOR special cases:
+    ;; equality, when, exists, sum, minimum
     [`(= ,a ,b)                         ; EQUALITY
      ;; FIXME: don't I need to clear the context for a? because it's a set
      ;; argument? YES I DO, because otherwise it regards this as "using" a in a
@@ -448,9 +457,12 @@
 
     [`(exists ,tp ,a)
      (elab-aggregation 'exists 'bool (λ (xs) (for/or ([x xs]) x)) tp a)]
-
     [`(sum ,tp ,a)
      (elab-aggregation 'sum 'natz (curry apply +) tp a)]
+    [`(minimum ,tp ,a)
+     (elab-aggregation 'minimum 'natinf exact-minimum tp a)]
+    [`(maximum ,tp ,a)
+     (elab-aggregation 'maximum 'natz (curry apply max 0) tp a)]
 
     [`(app ,fun ,arg)                       ; FUNCTION APPLICATION
      (define-values (fun-type fun-uses fun-deno) (elab fun #f cx))
@@ -932,6 +944,24 @@
    #:eval (hash-set stdlib 'stars film-stars-trie)
    #:to-map (for/hash ([(actor n) film-counts])
               (values (hash 'actor actor) n)))
+
+  ;; TODO: a better test for minimum.
+  (test-elab
+   '(minimum _ (λ (film) (when (stars film actor) 1)))
+   'natinf
+   '([actor  fs     person]
+     [stars  point  (=> _ (=> person bool))])
+   #:eval (hash-set stdlib 'stars film-stars-trie)
+   #:to-map (for/hash ([(actor n) film-counts])
+              (values (hash 'actor actor) 1)))
+
+  ;; maximum
+  (test-elab
+   '(maximum person (λ (actor) (sum _ (λ (film) (when (stars film actor) 1)))))
+   'natz
+   '([stars  point  (=> _ (=> person bool))])
+   #:eval (hash-set stdlib 'stars film-stars-trie)
+   #:to (apply max 0 (hash-values film-counts)))
 
   #;
   (check-equal? #t #f))
