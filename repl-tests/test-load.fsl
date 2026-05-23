@@ -3,4 +3,3 @@
 (load "data/simple.fsl")
 hello
 k
-:q
