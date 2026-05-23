@@ -1,0 +1,8 @@
+;; define a finite map via a finite lambda, then look it up using
+;; def-bound variables (since elab-finite-app requires variable args).
+(def f (=> natz bool) (λ (x) (= (as natz 17) x)))
+(def k1 natz 17)
+(def k2 natz 23)
+(f k1)
+(f k2)
+:q

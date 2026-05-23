@@ -1,0 +1,8 @@
+;; basic def + use, with an error in the middle to confirm the loop recovers
+;; and existing bindings survive.
+(def t bool #t)
+t
+(this-symbol-is-not-bound)
+(def after-error bool #t)
+after-error
+:q

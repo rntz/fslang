@@ -1,0 +1,6 @@
+;; :q should exit immediately; the form below must NOT be evaluated.
+(def x bool #t)
+x
+:q
+(def should-not-run bool #t)
+should-not-run
