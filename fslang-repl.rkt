@@ -513,7 +513,7 @@
 
     ))
 
-
+
 ;;; Read eval print loop. WIP.
 
 ;; TODO: I *really* need parametric operators to make working at the repl
@@ -568,7 +568,48 @@
   ;; TODO: decent pretty printing.
   (printf "~a\n" value))
 
-
+;; Process one repl form. (def NAME TYPE EXPR) extends repl-env with a new
+;; set-area binding; any other form is evaluated and its value printed.
+;; Returns the (possibly extended) repl-env.
+(define/contract (repl-step form repl-env)
+  (-> term? repl-env? repl-env?)
+  (match form
+    [`(def ,(? symbol? name) ,type ,expr)
+     (unless (type? type)
+       (error 'repl "not a valid type in (def ~a ...): ~a" name type))
+     (define cx  (for/hash ([(x info) repl-env]) (values x (list 'set (first info)))))
+     (define env (for/hash ([(x info) repl-env]) (values x (second info))))
+     (define-values (got-type _uses deno) (elab expr type cx))
+     (define value (hash-ref (deno env) (hash) (λ () (make-nil got-type))))
+     (printf "~a : ~a\n" name got-type)
+     (hash-set repl-env name (list got-type value))]
+    [_
+     ;; TODO: decent pretty printing.
+     (printf "~a\n" (evaluate form repl-env))
+     repl-env]))
+
+;; Interactive read-eval-print loop. Exits on EOF or `:q`.
+(define (repl [repl-env default-repl-env])
+  (printf "fslang repl. type :q or ctrl-D to quit.\n")
+  (let loop ([repl-env repl-env])
+    (printf "> ")
+    (flush-output)
+    (define form (read))
+    (cond
+      [(eof-object? form) (newline)]
+      [(eq? form ':q) (void)]
+      [else
+       (define next-env
+         (with-handlers ([exn:fail?
+                          (λ (e)
+                            (printf "error: ~a\n" (exn-message e))
+                            repl-env)])
+           (repl-step form repl-env)))
+       (loop next-env)])))
+
+(module+ main (repl))
+
+
 ;; TODO: more failure tests for ill-typed terms.
 ;; TODO: test variable hiding in set-function application.
 (module+ test
