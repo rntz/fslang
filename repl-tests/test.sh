@@ -5,32 +5,43 @@
 
 set -e
 cd "$(dirname "$0")"
+tmpdir="${TMPDIR:-/tmp}"
 passed=()
 failed=()
-second=false
 
 for fsl in *.fsl; do
-  $second && echo
   name="${fsl%.fsl}"
   expect="$name.expect"
   if [ ! -f "$expect" ]; then
     echo "SKIP $name (no .expect file)"
     continue
   fi
-  if racket ../fslang-repl.rkt < "$fsl" 2>&1 | \
-      diff --color --unified "$expect" -; then
-      # reset colors; diff can leave colors on if file is missing trailing newline.
-      echo -en "\033[0m"
+  actual="$tmpdir/repl-test.$$.$name.out"
+  racket ../fslang-repl.rkt < "$fsl" > "$actual" 2>&1
+  if diff -s "$expect" "$actual" >/dev/null; then
       echo "PASS $name"
       passed+=("$name")
+      rm "$actual"
   else
-      echo -en "\033[0m"        # reset colors
+      echo "FAIL $name"
       failed+=("$name")
   fi
-  second=true
 done
 
-echo
+nfailed="${#failed[@]}"
+if (( $nfailed > 0 )); then
+    echo
+    for name in "${failed[@]}"; do
+        expect="$name.expect"
+        actual="$tmpdir/repl-test.$$.$name.out"
+        diff --color=auto -U 2 "$expect" "$actual" || true
+        # reset colors; diff can leave colors on if file is missing trailing newline.
+        rm "$actual"
+        #echo -e "\033[0m"
+        echo
+    done
+fi
+
 echo "PASSED: ${passed[@]}"
 echo "FAILED: ${failed[@]}"
 exit "${#failed[@]}"
