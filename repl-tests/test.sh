@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run every repl-tests/*.fsl through the repl and diff its combined
+# Run every repl-tests/*.fl through the repl and diff its combined
 # stdout+stderr against the matching .expect file in unified-diff format.
 # Exit status is the number of failing tests (0 == all pass).
 
@@ -9,8 +9,8 @@ tmpdir="${TMPDIR:-/tmp}"
 passed=()
 failed=()
 
-for fsl in *.fsl; do
-  name="${fsl%.fsl}"
+for fsl in *.fl; do
+  name="${fsl%.fl}"
   expect="$name.expect"
   if [ ! -f "$expect" ]; then
     echo "SKIP $name (no .expect file)"

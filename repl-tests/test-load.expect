@@ -1,7 +1,7 @@
 fslang repl. type :q or ctrl-D to quit.
 > hello : bool
 k : natz
-loaded data/simple.fsl
+loaded data/simple.fl
 > type: bool
 uses: (hello)
 #t

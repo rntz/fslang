@@ -1,3 +1,0 @@
-;; A handful of valid definitions used by test-load.fsl.
-(def hello bool #t)
-(def k natz 17)
