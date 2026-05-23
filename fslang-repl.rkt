@@ -121,7 +121,7 @@
     ['bool #f]
     ['natz 0]
     ['natinf +inf.0]
-    [(? symbol? x) (error "do not know how to make nil for type: ~a" x)]
+    [(? symbol? x) (error 'make-nil "do not know how to make nil for type: ~a" x)]
     [`(& ,@types) (for/list ([t types]) (make-nil t))]
     [`(-o ,_ ,b) (const (make-nil b))]
     [`(-> ,_ ,b) (const (make-nil b))]
@@ -338,8 +338,8 @@
 
     ;; CONSTANTS
     [(? boolean? x)
-     (if (not x) (elab 'nil 'bool cx)
-         (values 'bool (set) (λ (_) (hash (hash) #t))))]
+     (if (not x) (elab 'nil (inferred 'bool) cx)
+         (values (inferred 'bool) (set) (λ (_) (hash (hash) #t))))]
 
     [(? exact-nonnegative-integer? n)
      (unless (member want '(nat natz natinf))
@@ -353,6 +353,8 @@
                           [(list (or 'point 'fs) _) #t]
                           [_ #f]))
          x))
+     ;; NB/TODO. I'm assuming all types are pointed here. But this isn't really
+     ;; so. Need to think about the set-expr/pointed-term distinction more.
      (values (cannot-infer "nil") point-fs-vars (λ (_env) (hash)))]
 
     ;; TODO: should this be able to use set variables? they'll have types of the
