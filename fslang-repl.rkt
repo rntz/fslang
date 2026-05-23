@@ -557,17 +557,6 @@
   (define value (hash-ref term-map (hash) (λ () (make-nil type))))
   value)
 
-(define (read-eval
-         [repl-env default-repl-env]
-         #:from [from-port #f]
-         #:from-string [from-string #f])
-  (when from-string
-    (when from-port (error "Cannot supply both #:from and #:from-string"))
-    (set! from-port (open-input-string from-string)))
-  (define value (evaluate (read (or from-port (current-input-port))) repl-env))
-  ;; TODO: decent pretty printing.
-  (printf "~a\n" value))
-
 ;; Process one repl form. (def NAME TYPE EXPR) extends repl-env with a new
 ;; set-area binding; any other form is evaluated and its value printed.
 ;; Returns the (possibly extended) repl-env.
