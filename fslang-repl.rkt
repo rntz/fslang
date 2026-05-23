@@ -51,6 +51,7 @@
 ;; - pattern matching?
 
 (require racket/hash)
+(require readline/pread)
 
 ;; NB. Racket 'min coerces the result to inexact if any argument is - but +inf.0
 ;; is inexact. Hence these functions.
@@ -579,10 +580,9 @@
 ;; Interactive read-eval-print loop. Exits on EOF or `:q`.
 (define (repl [repl-env default-repl-env])
   (printf "fslang repl. type :q or ctrl-D to quit.\n")
+  (define fslang-prompt (string->bytes/utf-8 "> "))
   (let loop ([repl-env repl-env])
-    (printf "> ")
-    (flush-output)
-    (define form (read))
+    (define form (parameterize ([readline-prompt fslang-prompt]) (read)))
     (cond
       [(eof-object? form) (newline)]
       [(eq? form ':q) (void)]
@@ -595,7 +595,9 @@
            (repl-step form repl-env)))
        (loop next-env)])))
 
-(module+ main (repl))
+(module+ main
+  (require readline) ;; wraps the current input port in readline
+  (repl))
 
 
 ;; TODO: more failure tests for ill-typed terms.
