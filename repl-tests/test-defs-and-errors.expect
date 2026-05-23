@@ -1,0 +1,12 @@
+fslang repl. type :q or ctrl-D to quit.
+> t : bool
+> type: bool
+uses: (t)
+#t
+> error: hash-ref: no value found for key
+  key: 'this-symbol-is-not-bound
+> after-error : bool
+> type: bool
+uses: (after-error)
+#t
+> 

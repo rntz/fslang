@@ -1,0 +1,11 @@
+fslang repl. type :q or ctrl-D to quit.
+> f : (=> natz bool)
+> k1 : natz
+> k2 : natz
+> type: bool
+uses: (f k1)
+#t
+> type: bool
+uses: (k2 f)
+#f
+> 

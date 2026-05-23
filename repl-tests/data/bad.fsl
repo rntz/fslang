@@ -1,0 +1,4 @@
+;; A file with a successful def followed by an undefined symbol.
+(def good-before bool #t)
+this-is-not-defined
+(def good-after bool #t)

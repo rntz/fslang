@@ -1,0 +1,14 @@
+fslang repl. type :q or ctrl-D to quit.
+> survivor : bool
+> good-before : bool
+error: load: while loading data/bad.fsl: hash-ref: no value found for key
+  key: 'this-is-not-defined
+> error: hash-ref: no value found for key
+  key: 'good-before
+> error: load: while loading data/does-not-exist.fsl: open-input-file: cannot open input file
+  path: /Users/marntzenius/research/fslang/repl-tests/data/does-not-exist.fsl
+  system error: No such file or directory; errno=2
+> type: bool
+uses: (survivor)
+#t
+> 

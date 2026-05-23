@@ -1,0 +1,6 @@
+;; happy path: load a file of defs, then use them. Paths are relative to
+;; the cwd when running through repl-tests/test.sh (which is repl-tests/).
+(load "data/simple.fsl")
+hello
+k
+:q

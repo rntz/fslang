@@ -1,0 +1,10 @@
+(def survivor bool #t)
+;; Loading bad.fsl should error and roll back: good-before must NOT be
+;; bound after the failure. The repl loop continues so we can verify.
+;; Paths are relative to the cwd used by repl-tests/test.sh (repl-tests/).
+(load "data/bad.fsl")
+good-before
+;; A non-existent file should also error cleanly.
+(load "data/does-not-exist.fsl")
+;; Bindings defined before any load attempt are unaffected.
+survivor

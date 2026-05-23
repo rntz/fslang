@@ -557,25 +557,53 @@
   (define value (hash-ref term-map (hash) (λ () (make-nil type))))
   value)
 
-;; Process one repl form. (def NAME TYPE EXPR) extends repl-env with a new
-;; set-area binding; any other form is evaluated and its value printed.
-;; Returns the (possibly extended) repl-env.
-(define/contract (repl-step form repl-env)
+;; Execute one top-level form. (def NAME TYPE EXPR) extends repl-env with a new
+;; set-area binding; (load PATH) reads PATH and executes its forms, aborting on
+;; the first error; any other form is evaluated and its value printed. Returns
+;; the (possibly extended) repl-env.
+;;
+;; TODO: make printing optional, use an argument.
+(define/contract (execute form repl-env)
   (-> term? repl-env? repl-env?)
   (match form
-    [`(def ,(? symbol? name) ,type ,expr)
-     (unless (type? type)
-       (error 'repl "not a valid type in (def ~a ...): ~a" name type))
+    [`(def ,name ,anno ,expr)
+     (unless (symbol? name)
+       (error 'repl "not a valid name: (def ~a ...)" name))
+     (unless (type? anno)
+       (error 'repl "not a valid type in (def ~a ...): ~a" name anno))
      (define cx  (for/hash ([(x info) repl-env]) (values x (list 'set (first info)))))
      (define env (for/hash ([(x info) repl-env]) (values x (second info))))
-     (define-values (got-type _uses deno) (elab expr type cx))
-     (define value (hash-ref (deno env) (hash) (λ () (make-nil got-type))))
-     (printf "~a : ~a\n" name got-type)
-     (hash-set repl-env name (list got-type value))]
+     (define-values (type _uses deno) (elab expr anno cx))
+     (define value (hash-ref (deno env) (hash) (λ () (make-nil type))))
+     (printf "~a : ~a\n" name type)
+     (hash-set repl-env name (list type value))]
+    [`(def ,@_) (error 'repl "invalid definition form")]
     [_
      ;; TODO: decent pretty printing.
      (printf "~a\n" (evaluate form repl-env))
      repl-env]))
+
+;; Load a file by executing every form. The first failing form aborts the load.
+(define (execute-file path repl-env)
+  (with-handlers ([exn:fail?
+                   (λ (e) (error 'load "while loading ~a: ~a" path (exn-message e)))])
+    (call-with-input-file path
+      (λ (port)
+        (let loop ([env repl-env])
+          (define form (read port))
+          (if (eof-object? form) env
+              (loop (execute form env))))))))
+
+;; Handles forms which can only occur at the top-level repl, not within files.
+(define/contract (execute-repl form repl-env)
+  (-> term? repl-env? repl-env?)
+  (match form
+    [`(load ,(? string? path))
+     (define new-env (execute-file path repl-env))
+     (printf "loaded ~a\n" path)
+     new-env]
+    [`(load ,@_) (error 'repl "invalid load form")]
+    [_ (execute form repl-env)]))
 
 ;; Interactive read-eval-print loop. Exits on EOF or `:q`.
 (define (repl [repl-env default-repl-env])
@@ -585,18 +613,16 @@
   (let loop ([repl-env repl-env])
     (printf "> ")
     (flush-output)
-    (define form (read))
-    (cond
-      [(eof-object? form) (newline)]
-      [(eq? form ':q) (void)]
-      [else
-       (define next-env
-         (with-handlers ([exn:fail?
-                          (λ (e)
-                            (printf "error: ~a\n" (exn-message e))
-                            repl-env)])
-           (repl-step form repl-env)))
-       (loop next-env)])))
+    (match (read)
+      [(? eof-object?) (newline)]
+      [':q (void)]
+      [form
+       (loop
+        (with-handlers ([exn:fail?
+                         (λ (e)
+                           (printf "error: ~a\n" (exn-message e))
+                           repl-env)])
+          (execute-repl form repl-env)))])))
 
 (module+ main
   (repl))

@@ -1,0 +1,6 @@
+fslang repl. type :q or ctrl-D to quit.
+> x : bool
+> type: bool
+uses: (x)
+#t
+> 
