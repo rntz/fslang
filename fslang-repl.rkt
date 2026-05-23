@@ -538,7 +538,6 @@
   (define cx  (for/hash ([(x info) repl-env]) (values x (list 'set (first info)))))
   (define env (for/hash ([(x info) repl-env]) (values x (second info))))
   (define-values (type used deno) (elab term #f cx))
-  (printf "term: ~a\n" term)
   (printf "type: ~a\n" type)
   (printf "uses: ~a\n" (set->list used))
   #;
