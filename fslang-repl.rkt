@@ -55,12 +55,11 @@
 ;; NB. Racket 'min coerces the result to inexact if any argument is - but +inf.0
 ;; is inexact. Hence these functions.
 (define natinf? (or/c exact-nonnegative-integer? +inf.0))
-(define/contract (exact-minimum xs)
-  (-> (listof natinf?) natinf?)
-  (match (filter exact-nonnegative-integer? xs)
-    ['() +inf.0]
-    [xs (apply min xs)]))
-(define (exact-min . xs) (exact-minimum xs))
+(define/contract (exact-min x y)
+  (-> natinf? natinf? natinf?)
+  (cond [(eqv? +inf.0 x) y]
+        [(eqv? +inf.0 y) x]
+        [#t (min x y)]))
 
 (define-syntax-rule (todo)
   (error "todo"))
@@ -271,22 +270,51 @@
                      #:when (hash-has-key? table key))
             (values row (hash-ref table key)))]))))
 
-  ;; AGGREGATION: handles operators of type ((=> A P) -> P).
-  ;; `name` is the operator name (for error messages); `P` is the codomain type;
-  ;; `combine` reduces a list of values to one.
-  (define (elab-aggregation name P combine tp a)
-    (unless (or (type? tp) (not tp))
-      (error 'elab "~a type annotation is not a valid type: ~a" name tp))
-    (define-values (a-type a-uses a-deno)
-      (elab a (and tp `(=> ,tp ,P)) cx))
-    (match a-type
-      [`(=> ,_ ,(== P)) (void)]         ;TODO: a subtype check here?
-      [_ (error 'elab "~a requires argument of type (=> _ ~a), got: ~a" name P a-type)])
-    (values (inferred P)
-            a-uses
-            (λ (env)
-              (for/hash ([(row table) (a-deno env)])
-                (values row (combine (hash-values table)))))))
+  ;; FS BINDERS (eg finite lambda, aggregations): handles forms that bind fs
+  ;; vars. Arguments:
+  ;;
+  ;;   name    The operator name (for error messages)
+  ;;   zero    The initial group accumulator value, or a thunk returning it.
+  ;;           For finite lambdas, this is an empty hash.
+  ;;           For aggregations, this is the initial value (eg 0 for sum).
+  ;;   adjoin  A function (adjoin accum key value) that extends a group accumulator
+  ;;           with a key-value mapping. For finite lambdas, extends the hash.
+  ;;           For aggregations, combines accum & value.
+  ;;   A       The type of the bound fs var
+  ;;   P       The expected body type (may be #f to infer).
+  ;;
+  ;; NB. Returns (values type uses deno) as usual, but type is always the type
+  ;; of body, which is correct for aggregation but wrong for finite lambda.
+  (define (elab-fs-binder name zero adjoin A P param body)
+    (define-values (body-type body-uses body-deno)
+      (elab body P (hash-set cx param `(fs ,A))))
+    (unless (set-member? body-uses param)
+      (error 'elab "ungrounded parameter in ~a: ~a" name param))
+    (values
+     body-type ;; NB. caller may need to adjust this!
+     (set-remove body-uses param)
+     ;; We're going from a flat table [(other-fs-vars..., param) ↦ value, ...]
+     ;; to a grouped one,             [(other-fs-vars...) ↦ combine(param ↦ value, ...), ...]
+     ;; the combining operation is determined by the operator:
+     ;; for finite lambdas, we make a hash table of the (param ↦ value) mappings.
+     ;; for aggregations, we aggregate the values and throw away the parameter values.
+     (λ (env)
+       (define result (make-hash))
+       (for ([(row value) (body-deno env)])
+         (define key (hash-ref row param))
+         (hash-update! result
+                       (hash-remove row param)
+                       (λ (group) (adjoin group key value))
+                       zero))
+       (hash-map/copy result values #:kind 'immutable))))
+
+  ;; AGGREGATION: handles aggregation binding forms, (op (var var-type) body),
+  ;; which are semantically ((A => P) -o P). zero, plus should be the identity
+  ;; and binary operator for the aggregation respectively.
+  (define (elab-aggregation name P zero plus var var-type body)
+    (unless (type? var-type)
+      (error 'elab "~a parameter type is not a valid type: ~a" name var-type))
+    (elab-fs-binder name zero (λ (accum k v) (plus accum v)) var-type P var body))
 
   (match term
     [`(as ,hideaki ,t)                     ; TYPE ANNOTATION
@@ -384,22 +412,9 @@
      (match (cannot-infer "lambda")
 
        [`(=> ,A ,P)                     ; FINITE LAMBDA
-        (define-values (body-type body-uses body-deno)
-          (elab body P (hash-set cx param (list 'fs A))))
-        (unless (set-member? body-uses param)
-          (error 'elab "ungrounded lambda parameter: ~a" param))
-        (values
-         `(=> ,A ,body-type)
-         (set-remove body-uses param)
-         (λ (env)
-           (define result (make-hash))
-           (for ([(row value) (body-deno env)])
-             (define key (hash-ref row param))
-             (hash-update! result
-                           (hash-remove row param)
-                           (λ (map) (hash-set map key value))
-                           (λ () (hash))))
-           (hash-map/copy result values #:kind 'immutable)))]
+        (define-values (body-type uses deno)
+          (elab-fs-binder 'lambda hash hash-set A P param body))
+        (values `(=> ,A ,body-type) uses deno)]
 
        [`(-o ,P ,Q)                     ; POINTED LAMBDA; TODO: implement & test evaluation
         (define fs-vars
@@ -455,14 +470,15 @@
                            [(b-row b-val) (b-deno (hash-union env a-row))])
                  (values (hash-union a-row b-row) b-val))))]
 
-    [`(exists ,tp ,a)
-     (elab-aggregation 'exists 'bool (λ (xs) (for/or ([x xs]) x)) tp a)]
-    [`(sum ,tp ,a)
-     (elab-aggregation 'sum 'natz (curry apply +) tp a)]
-    [`(minimum ,tp ,a)
-     (elab-aggregation 'minimum 'natinf exact-minimum tp a)]
-    [`(maximum ,tp ,a)
-     (elab-aggregation 'maximum 'natz (curry apply max 0) tp a)]
+    ;; AGGREGATIONS
+    [`(exists (,(? symbol? var) ,var-type) ,body)
+     (elab-aggregation 'exists 'bool #f (λ (x y) (or x y)) var var-type body)]
+    [`(sum (,(? symbol? var) ,var-type) ,body)
+     (elab-aggregation 'sum 'natz 0 + var var-type body)]
+    [`(minimum (,(? symbol? var) ,var-type) ,body)
+     (elab-aggregation 'minimum 'natinf +inf.0 exact-min var var-type body)]
+    [`(maximum (,(? symbol? var) ,var-type) ,body)
+     (elab-aggregation 'maximum 'natz 0 max var var-type body)]
 
     [`(app ,fun ,arg)                       ; FUNCTION APPLICATION
      (define-values (fun-type fun-uses fun-deno) (elab fun #f cx))
@@ -559,6 +575,10 @@
      ))
 
   ;; TODO: more failure tests for ill-typed terms
+  (define check-subtype?
+    (if (eq? subtype? equal?) check-equal?
+        (curry check subtype?)))
+
   (define expect-val-default (gensym 'expect-val-default))
   (define (test-elab term want vartypes
                      #:name   [name #f]
@@ -581,7 +601,7 @@
         (check subset? term-uses (list->set (hash-keys cx)))
         ;; The inferred type should be a subtype of the `want' type.
         (when want
-          (check subtype? term-type want))
+          (check-subtype? term-type want))
         ;; The inferred type should equal the expected type.
         (when expect-type
           (check-equal? term-type expect-type))
@@ -912,7 +932,7 @@
 
   ;; test the built-in polymorphic exists
   (test-elab
-   '(exists _ (λ (film) (and (stars film x) (stars film y))))
+   '(exists (film _) (and (stars film x) (stars film y)))
    'bool
    '([x      fs     person]
      [y      fs     person]
@@ -923,7 +943,7 @@
               (values (hash 'x x 'y y) #t)))
 
   (test-elab
-   '(λ (x) (λ (y) (exists _ (λ (film) (and (stars film x) (stars film y))))))
+   '(λ (x) (λ (y) (exists (film _) (and (stars film x) (stars film y)))))
    '(=> person (=> person bool))
    '([and    set    (-o bool (-o bool bool))]
      [stars  point  (=> _ (=> person bool))])
@@ -937,7 +957,7 @@
     (hash-update! film-counts actor add1 0))
 
   (test-elab
-   '(sum _ (λ (film) (when (stars film actor) 1)))
+   '(sum (film _) (when (stars film actor) 1))
    'natz
    '([actor  fs     person]
      [stars  point  (=> _ (=> person bool))])
@@ -947,7 +967,7 @@
 
   ;; TODO: a better test for minimum.
   (test-elab
-   '(minimum _ (λ (film) (when (stars film actor) 1)))
+   '(minimum (film _) (when (stars film actor) 1))
    'natinf
    '([actor  fs     person]
      [stars  point  (=> _ (=> person bool))])
@@ -957,7 +977,7 @@
 
   ;; maximum
   (test-elab
-   '(maximum person (λ (actor) (sum _ (λ (film) (when (stars film actor) 1)))))
+   '(maximum (actor person) (sum (film _) (when (stars film actor) 1)))
    'natz
    '([stars  point  (=> _ (=> person bool))])
    #:eval (hash-set stdlib 'stars film-stars-trie)
