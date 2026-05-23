@@ -335,7 +335,8 @@
        (error 'elab "wanted ~a, but annotated ~a" want hideaki))
      (elab t hideaki cx)]
 
-    ;; CONSTANTS
+    ;; CONSTANTS: booleans, naturals
+    ;; TODO: symbols or strings
     [(? boolean? x)
      (if (not x) (elab 'nil (inferred 'bool) cx)
          (values (inferred 'bool) (set) (λ (_) (hash (hash) #t))))]
@@ -518,9 +519,7 @@
 
 ;;; Read eval print loop. WIP.
 
-;; TODO: I *really* need parametric operators to make working at the repl
-;; tolerable. maybe hardcode a few of them in?
-;; NEED PARAMETRIC: equality, and, when, exists, sum
+;; TODO: more builtins. addition?
 (define default-repl-env-list
   `([and    (-o bool (-o bool bool))   ,(λ (x) (λ (y) (and x y)))]
     [when   (-o bool (-o any any))     ,(λ (x) (λ (y) (and x y)))]
