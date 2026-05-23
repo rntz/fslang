@@ -77,6 +77,15 @@
 
 (define subtype? equal?)
 
+;; First-order types: those that support equality, i.e. contain no function types.
+(define/contract (first-order? t)
+  (-> type? boolean?)
+  (match t
+    [(? symbol?) #t]
+    [`(& ,@types) (andmap first-order? types)]
+    ;; TODO: ⊗-tuples, maybe
+    [_ #f]))
+
 ;; Which kind of context: set (Γ) or pointed set (Δ) or finite support (Ω)
 (define area? (or/c 'set 'point 'fs))
 ;; cx = a variable context (Γ/Δ/Ω in typing judgment):
@@ -153,16 +162,18 @@
                   [`(fs ,xtype) #:when (set-member? uses x) `(set ,xtype)]
                   [_ xinfo]))))
 
+  ;; hide pointed/fs variables — used for arguments to set functions.
+  (define (cx-hide cx)
+    (for/hash ([(x xinfo) cx])
+      (values x (match xinfo
+                  [(list (or 'point 'fs) _) 'hidden]
+                  [_ xinfo]))))
+
   ;; SET APPLICATION
   (define (elab-set-app A B fun-uses fun-deno arg)
     ;; we treat this like (-o (maybe A) B) and implicitly wrap the argument
     ;; in "just", hiding all pointed/fs variables from its context.
-    (define arg-cx
-      (for/hash ([(x xinfo) cx])
-        (values x (match xinfo
-                    [(list (or 'point 'fs) _) 'hidden] ;TODO: test this hiding!
-                    [_ xinfo]))))
-    (define-values (_arg-type arg-uses arg-deno) (elab arg A arg-cx))
+    (define-values (_arg-type arg-uses arg-deno) (elab arg A (cx-hide cx)))
     (values
      B                   ; TODO think about adjunction typing rule structure
      (set-union fun-uses arg-uses)
@@ -447,12 +458,10 @@
     ;; POLYMORPHIC/PARAMETRIC OPERATOR special cases:
     ;; equality, when, exists, sum, minimum
     [`(= ,a ,b)                         ; EQUALITY
-     ;; FIXME: don't I need to clear the context for a? because it's a set
-     ;; argument? YES I DO, because otherwise it regards this as "using" a in a
-     ;; point-preserving way. I really need to refactor how I represent variable
-     ;; usage, it is a loaded footgun!
-     (define-values (a-type a-uses a-deno) (elab a #f cx))
-     ;; TODO FIXME: check that a-type supports equality (is first-order)!
+     ;; `a` is a set argument: hide pointed/fs vars like elab-set-app does.
+     (define-values (a-type a-uses a-deno) (elab a #f (cx-hide cx)))
+     (unless (first-order? a-type)
+       (error 'elab "equality is only supported at first-order types; got: ~a" a-type))
      (define (eq-a-deno env)
        (define a-table (a-deno env))
        (for/hash ([(k a-val) a-table]) (values k (hash a-val #t))))
@@ -560,6 +569,8 @@
   (printf "~a\n" value))
 
 
+;; TODO: more failure tests for ill-typed terms.
+;; TODO: test variable hiding in set-function application.
 (module+ test
   (require rackunit)
 
@@ -574,7 +585,6 @@
      'sum    (λ (table) (for/sum ([(_ v) table]) v))
      ))
 
-  ;; TODO: more failure tests for ill-typed terms
   (define check-subtype?
     (if (eq? subtype? equal?) check-equal?
         (curry check subtype?)))
