@@ -2,10 +2,6 @@ fslang repl. type :q or ctrl-D to quit.
 > hello : bool
 k : natz
 loaded data/simple.fl
-> type: bool
-uses: (hello)
-#t
-> type: natz
-uses: (k)
-17
+> #t
+> 17
 > 

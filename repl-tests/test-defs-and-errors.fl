@@ -2,7 +2,7 @@
 ;; and existing bindings survive.
 (def t bool #t)
 t
-(this-symbol-is-not-bound)
-(def after-error bool #t)
+this-symbol-is-not-bound
+(def after-error bool t)
 after-error
 :q

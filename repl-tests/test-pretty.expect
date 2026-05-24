@@ -1,0 +1,15 @@
+fslang repl. type :q or ctrl-D to quit.
+> #t
+> (cons #t 17)
+> set1 : (=> natz bool)
+17 -> #t
+23 -> #t
+> 17 -> #t
+23 -> #t
+> rel : (=> natz (=> natz bool))
+17:
+  23 -> #t
+> 17:
+  23 -> #t
+> nil
+> 

@@ -1,0 +1,26 @@
+;; Exercise the type-directed pretty-printer.
+;; - scalar result (bool) — unchanged behaviour
+;; - tuple result — (cons ...) syntax
+;; - finite map (set) — sorted "k -> #t" lines
+;; - nested finite map — indented tree
+;; - empty finite map — "nil"
+
+;; scalar
+#t
+
+;; tuple
+(cons #t (as natz 17))
+
+;; sorted set: (=> natz bool)
+(def set1 (=> natz bool)
+  (λ (x) (or (= (as natz 23) x) (= (as natz 17) x))))
+set1
+
+;; nested map: (=> natz (=> natz bool))
+(def rel (=> natz (=> natz bool))
+  (λ (a) (λ (b) (and (= (as natz 17) a) (= (as natz 23) b)))))
+rel
+
+;; empty
+(as (=> natz bool) nil)
+:q

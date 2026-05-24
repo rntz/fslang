@@ -9,15 +9,15 @@ tmpdir="${TMPDIR:-/tmp}"
 passed=()
 failed=()
 
-for fsl in *.fl; do
-  name="${fsl%.fl}"
+for source in *.fl; do
+  name="${source%.fl}"
   expect="$name.expect"
   if [ ! -f "$expect" ]; then
     echo "SKIP $name (no .expect file)"
     continue
   fi
   actual="$tmpdir/repl-test.$$.$name.out"
-  racket ../fslang-repl.rkt < "$fsl" > "$actual" 2>&1
+  racket ../fslang-repl.rkt < "$source" > "$actual" 2>&1
   if diff -s "$expect" "$actual" >/dev/null; then
       echo "PASS $name"
       passed+=("$name")

@@ -83,6 +83,7 @@
   (match t
     [(? symbol?) #t]
     [`(& ,@types) (andmap first-order? types)]
+    ;; TODO: add hash tables with first order values here!
     ;; TODO: ⊗-tuples, maybe
     [_ #f]))
 
@@ -180,13 +181,13 @@
      (λ (env)
        (define fun-table (fun-deno env))
        (define arg-table (arg-deno env))
-       ;; TODO FIXME: need to generate nil of the appropriate type in the
-       ;; default case! but this shouldn't be possible. except it is because
-       ;; U is silent. augh.
-       (unless (= 1 (hash-count arg-table)) ; TODO: trip this case in a test!
-         (error 'elab "evaled to non-singleton: ~a" arg))
-       ;; (printf "fun ~a --> ~a\n" fun fun-table) (printf "arg ~a --> ~a\n" arg arg-table)
-       (define arg-val (hash-ref arg-table (hash)))
+       ;; TODO: think carefully about under what circumstances it's possible to
+       ;; get an empty hash table here. can do it with eg (not nil). but should
+       ;; that even typecheck?
+       (unless (>= 1 (hash-count arg-table))
+         ;; (printf "fun ~a\n" fun-table) (printf "arg ~a\n" arg-table)
+         (error 'elab "set argument produced non-singleton: ~a" arg))
+       (define arg-val (hash-ref arg-table (hash) (λ () (make-nil B))))
        (define result
         (for/hash ([(row fun-val) fun-table])
           (values row (fun-val arg-val))))
@@ -319,7 +320,7 @@
                        zero))
        (hash-map/copy result values #:kind 'immutable))))
 
-  ;; AGGREGATION: handles aggregation binding forms, (op (var var-type) body),
+  ;; AGGREGATION: handles aggregation binding forms, (op var var-type body),
   ;; which are semantically ((A => P) -o P). zero, plus should be the identity
   ;; and binary operator for the aggregation respectively.
   (define (elab-aggregation name P zero plus var var-type body)
@@ -335,11 +336,18 @@
        (error 'elab "wanted ~a, but annotated ~a" want hideaki))
      (elab t hideaki cx)]
 
-    ;; CONSTANTS: booleans, naturals
-    ;; TODO: symbols or strings
+    ;; CONSTANTS: booleans, naturals, symbols
+    [`(quote ,(? symbol? x))
+     (values (inferred 'symbol) (set) (λ (_) (hash (hash) x)))]
+
     [(? boolean? x)
+     ;; NB. #f differs from (as bool nil) in that it doesn't use all pointed
+     ;; variables in sight. I could change it to act like nil, but... should I?
+     #;
      (if (not x) (elab 'nil (inferred 'bool) cx)
-         (values (inferred 'bool) (set) (λ (_) (hash (hash) #t))))]
+         (values (inferred 'bool) (set) (λ (_) (hash (hash) #t))))
+     (values (inferred 'bool) (set) (λ (_) (hash (hash) x)))
+     ]
 
     [(? exact-nonnegative-integer? n)
      (unless (member want '(nat natz natinf))
@@ -422,7 +430,7 @@
                     ;; I need to generate nil for that component.
                     (hash-ref m row (λ () (make-nil tp))))))))]
 
-    [`(,(or 'lambda 'λ) (,(? symbol? param)) ,body) ; LAMBDAS
+    [`(,(or 'lambda 'λ 'fn) (,(? symbol? param)) ,body) ; LAMBDAS
      (match (cannot-infer "lambda")
 
        [`(=> ,A ,P)                     ; FINITE LAMBDA
@@ -458,6 +466,10 @@
 
        [_ (error 'elab "bad type for lambda: ~a" want)])]
 
+    ;; SUGAR: multi-parameter lambdas desugar to nested single-parameter ones
+    [`(,(or 'lambda 'λ 'fn) (,param ,@params) ,body)
+     (elab `(lambda (,param) (lambda (,@params) ,body)) want cx)]
+
     ;; POLYMORPHIC/PARAMETRIC OPERATOR special cases:
     ;; equality, when, exists, sum, minimum
     [`(= ,a ,b)                         ; EQUALITY
@@ -483,13 +495,13 @@
                  (values (hash-union a-row b-row) b-val))))]
 
     ;; AGGREGATIONS
-    [`(exists (,(? symbol? var) ,var-type) ,body)
+    [`(exists ,(? symbol? var) ,var-type ,body)
      (elab-aggregation 'exists 'bool #f (λ (x y) (or x y)) var var-type body)]
-    [`(sum (,(? symbol? var) ,var-type) ,body)
+    [`(sum ,(? symbol? var) ,var-type ,body)
      (elab-aggregation 'sum 'natz 0 + var var-type body)]
-    [`(minimum (,(? symbol? var) ,var-type) ,body)
+    [`(minimum ,(? symbol? var) ,var-type ,body)
      (elab-aggregation 'minimum 'natinf +inf.0 exact-min var var-type body)]
-    [`(maximum (,(? symbol? var) ,var-type) ,body)
+    [`(maximum ,(? symbol? var) ,var-type ,body)
      (elab-aggregation 'maximum 'natz 0 max var var-type body)]
 
     [`(app ,fun ,arg)                       ; FUNCTION APPLICATION
@@ -504,6 +516,12 @@
     [`(or)            (elab 'nil (inferred 'bool) cx)]
     [`(or ,x)         (elab x    (inferred 'bool) cx)]
     [`(or ,x ,y ,@ys) (elab `(or (app or (cons ,x ,y)) ,@ys) want cx)]
+
+    ;; SUGAR: `and` with ≠2 arguments gets desugared.
+    [`(and)           (elab #t (inferred 'bool) cx)]
+    [`(and ,x)        (elab x (inferred 'bool) cx)]
+    [`(and ,x ,y)     (elab `(app (app and ,x) ,y) want cx)]
+    [`(and ,x ,y ,@zs) (elab `(and (and ,x ,y) ,@zs) want cx)]
 
     ;; SUGAR: Any other list with two or more elements gets elaborated into
     ;; function application, nested/curried as necessary.
@@ -526,6 +544,7 @@
     [or     (-o (& bool bool) bool)    ,(match-λ [`(,x ,y) (or x y)])]
     [exists (-o (=> any bool) bool)    ,(λ (table) (for/or ([(_ v) table]) v))]
     [sum    (-o (=> any natz) natz)    ,(λ (table) (for/sum ([(_ v) table]) v))]
+    [not    (-> bool bool)             ,not]
     ))
 
 (define repl-env? (hash/c symbol? (list/c type? value?) #:flat? #t))
@@ -534,13 +553,77 @@
     (match-define `(,name ,type ,value) x)
     (values name (list type value))))
 
-(define/contract (evaluate term [repl-env default-repl-env])
-  (-> term? repl-env? value?)           ;TODO: allow optional argument!
+;; Sort comparator for first-order values. We only ever compare things of the
+;; same type, although we don't provide that type here.
+(define/contract (value< type)
+  (-> (and/c type? first-order?) (-> value? value? boolean?))
+  (match type
+    [(or 'natz 'natinf 'nat) <]
+    ['symbol symbol<?]
+    ['string string<?]
+    ['bool (λ (x y) (implies x y))]
+    ['(&) (λ (x y) #f)]
+    [`(& ,A ,@As)
+     (define A< (value< A))
+     (define As< (value< `(& ,@As)))
+     (λ (x y) (or (A< (car x) (car y))
+                  (and (equal? (first x) (first y))
+                       (As< (rest x) (rest y)))))]
+    [`(=> ,A ,B) (todo)] ;; first-order? doesn't recognize these yet but it should
+    ))
+
+;; Render a value of TYPE on one line, returning a string with no trailing
+;; newline. Used for terminal map entries and tuple components. Nested finite
+;; maps fall back to a compact "{k -> v, ...}" form for the unusual case
+;; where one appears inline (e.g. inside a tuple).
+(define (pretty-inline type value)
+  (match type
+    [`(=> ,_ ,_) #:when (hash-empty? value) "nil"]
+    [`(=> ,A ,B)
+     (define keys (sort (hash-keys value) (value< A)))
+     (string-append
+      "{"
+      (string-join
+       (for/list ([k keys])
+         (format "~v -> ~a" k (pretty-inline B (hash-ref value k))))
+       ", ")
+      "}")]
+    [`(& ,@Ts)
+     (string-append
+      "(cons"
+      (apply string-append
+             (for/list ([T Ts] [v value])
+               (string-append " " (pretty-inline T v))))
+      ")")]
+    [_ (format "~v" value)]))
+
+;; Pretty-print VALUE at TYPE to OUT, prefixing every line with INDENT.
+(define (pretty-print type value [indent ""] [out (current-output-port)])
+  (match type
+    [`(=> ,_ ,_) #:when (hash-empty? value) (fprintf out "~anil\n" indent)]
+    [`(=> ,A ,B)
+     (define keys (sort (hash-keys value) (value< A)))
+     (for ([k keys])
+       (define v (hash-ref value k))
+       (match B
+         [`(=> ,_ ,_)
+          (fprintf out "~a~v:\n" indent k)
+          (pretty-print B v (string-append indent "  ") out)]
+         ;; TODO: use pretty-inline for the key too!
+         [_ (fprintf out "~a~v -> ~a\n" indent k (pretty-inline B v))]))]
+    ;; TODO: just use pretty-inline here.
+    [`(& ,@Ts)
+     (fprintf out "~a~a\n" indent (pretty-inline type value))]
+    [_ (fprintf out "~a~v\n" indent value)]))
+
+(define/contract (evaluate term [repl-env default-repl-env] #:debug [debug #f])
+  (-> term? repl-env? (values type? value?))
   (define cx  (for/hash ([(x info) repl-env]) (values x (list 'set (first info)))))
   (define env (for/hash ([(x info) repl-env]) (values x (second info))))
   (define-values (type used deno) (elab term #f cx))
-  (printf "type: ~a\n" type)
-  (printf "uses: ~a\n" (set->list used))
+  (when debug
+    (printf "type: ~a\n" type)
+    (printf "uses: ~a\n" (set->list used)))
   #;
   (for ([(x xinfo) cx])
     (match (get-area xinfo)
@@ -555,7 +638,7 @@
       [_ (void)]))                      ;otherwise ok.
   (define term-map (deno env))
   (define value (hash-ref term-map (hash) (λ () (make-nil type))))
-  value)
+  (values type value))
 
 ;; Execute one top-level form. (def NAME TYPE EXPR) extends repl-env with a new
 ;; set-area binding; (load PATH) reads PATH and executes its forms, aborting on
@@ -563,9 +646,15 @@
 ;; the (possibly extended) repl-env.
 ;;
 ;; TODO: make printing optional, use an argument.
-(define/contract (execute form repl-env)
-  (-> term? repl-env? repl-env?)
+(define form? any/c)
+(define/contract (execute form repl-env #:repl [repl #f])
+  (->* (form? repl-env?) (#:repl boolean?) repl-env?)
   (match form
+    [`(load ,(? string? path))
+     (define new-env (execute-file path repl-env))
+     (when repl (printf "loaded ~a\n" path))
+     new-env]
+    [`(load ,@_) (error 'repl "invalid load form")]
     [`(def ,name ,anno ,expr)
      (unless (symbol? name)
        (error 'repl "not a valid name: (def ~a ...)" name))
@@ -576,11 +665,14 @@
      (define-values (type _uses deno) (elab expr anno cx))
      (define value (hash-ref (deno env) (hash) (λ () (make-nil type))))
      (printf "~a : ~a\n" name type)
+     (when repl
+       (pretty-print type value))
      (hash-set repl-env name (list type value))]
     [`(def ,@_) (error 'repl "invalid definition form")]
     [_
-     ;; TODO: decent pretty printing.
-     (printf "~a\n" (evaluate form repl-env))
+     (define-values (type value) (evaluate form repl-env))
+     (when repl
+       (pretty-print type value))
      repl-env]))
 
 ;; Load a file by executing every form. The first failing form aborts the load.
@@ -592,18 +684,7 @@
         (let loop ([env repl-env])
           (define form (read port))
           (if (eof-object? form) env
-              (loop (execute form env))))))))
-
-;; Handles forms which can only occur at the top-level repl, not within files.
-(define/contract (execute-repl form repl-env)
-  (-> term? repl-env? repl-env?)
-  (match form
-    [`(load ,(? string? path))
-     (define new-env (execute-file path repl-env))
-     (printf "loaded ~a\n" path)
-     new-env]
-    [`(load ,@_) (error 'repl "invalid load form")]
-    [_ (execute form repl-env)]))
+              (loop (execute form env #:repl #f))))))))
 
 ;; Interactive read-eval-print loop. Exits on EOF or `:q`.
 (define (repl [repl-env default-repl-env])
@@ -622,7 +703,7 @@
                          (λ (e)
                            (printf "error: ~a\n" (exn-message e))
                            repl-env)])
-          (execute-repl form repl-env)))])))
+          (execute form repl-env #:repl #t)))])))
 
 (module+ main
   (repl))
@@ -633,16 +714,8 @@
 (module+ test
   (require rackunit)
 
-  (define stdlib
-    (hash
-     'and    (λ (x) (λ (y) (and x y)))
-     'or     (match-λ [`(,x ,y) (or x y)])
-     ;; NB. these are redundant with the built-in parametric versions in elab.
-     ;; I should probably remove these and the tests for them at some point.
-     'when   (λ (x) (λ (y) (and x y)))
-     'exists (λ (table) (for/or ([(_ v) table]) v))
-     'sum    (λ (table) (for/sum ([(_ v) table]) v))
-     ))
+  (define stdlib (for/hash ([(name type-and-value) default-repl-env])
+                   (values name (second type-and-value))))
 
   (define check-subtype?
     (if (eq? subtype? equal?) check-equal?
@@ -1001,7 +1074,7 @@
 
   ;; test the built-in polymorphic exists
   (test-elab
-   '(exists (film _) (and (stars film x) (stars film y)))
+   '(exists film _ (and (stars film x) (stars film y)))
    'bool
    '([x      fs     person]
      [y      fs     person]
@@ -1012,7 +1085,7 @@
               (values (hash 'x x 'y y) #t)))
 
   (test-elab
-   '(λ (x) (λ (y) (exists (film _) (and (stars film x) (stars film y)))))
+   '(λ (x) (λ (y) (exists film _ (and (stars film x) (stars film y)))))
    '(=> person (=> person bool))
    '([and    set    (-o bool (-o bool bool))]
      [stars  point  (=> _ (=> person bool))])
@@ -1026,7 +1099,7 @@
     (hash-update! film-counts actor add1 0))
 
   (test-elab
-   '(sum (film _) (when (stars film actor) 1))
+   '(sum film _ (when (stars film actor) 1))
    'natz
    '([actor  fs     person]
      [stars  point  (=> _ (=> person bool))])
@@ -1036,7 +1109,7 @@
 
   ;; TODO: a better test for minimum.
   (test-elab
-   '(minimum (film _) (when (stars film actor) 1))
+   '(minimum film _ (when (stars film actor) 1))
    'natinf
    '([actor  fs     person]
      [stars  point  (=> _ (=> person bool))])
@@ -1046,11 +1119,43 @@
 
   ;; maximum
   (test-elab
-   '(maximum (actor person) (sum (film _) (when (stars film actor) 1)))
+   '(maximum actor person (sum film _ (when (stars film actor) 1)))
    'natz
    '([stars  point  (=> _ (=> person bool))])
    #:eval (hash-set stdlib 'stars film-stars-trie)
    #:to (apply max 0 (hash-values film-counts)))
+
+  ;; left-to-right grounding test
+  (test-elab
+   '(and (ground x) (= x x))
+   'bool
+   '([x      fs  symbol]
+     [ground set (=> symbol bool)]
+     [and    set (-o bool (-o bool bool))])
+   #:eval (hash-set stdlib 'ground (hash 'john #t 'mary #t))
+   #:to-map (hash (hash 'x 'john) #t (hash 'x 'mary) #t))
+
+  (test-elab
+   '(and (ground x) (not (= x x)))
+   'bool
+   '([x      fs  symbol]
+     [ground set (=> symbol bool)]
+     [and    set (-o bool (-o bool bool))]
+     [not    set (-> bool bool)])
+   #:eval (hash-set stdlib 'ground (hash 'john #t 'mary #t))
+   #:to-map (hash (hash 'x 'john) #f (hash 'x 'mary) #f))
+
+  (test-elab
+   '(and (ground x) (ground y) (not (= x y)))
+   'bool
+   '([x      fs  symbol]
+     [y      fs  symbol]
+     [ground set (=> symbol bool)]
+     [and    set (-o bool (-o bool bool))]
+     [not    set (-> bool bool)])
+   #:eval (hash-set stdlib 'ground (hash 'john #t 'mary #t))
+   #:to-map (for*/hash ([x '(john mary)] [y '(john mary)])
+              (values (hash 'x x 'y y) (not (equal? x y)))))
 
   #;
   (check-equal? #t #f))
