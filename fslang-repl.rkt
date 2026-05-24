@@ -558,6 +558,13 @@
     (match-define `(,name ,type ,value) x)
     (values name (list type value))))
 
+(define/contract (repl-env->cx repl-env)
+  (-> repl-env? cx?)
+  (for/hash ([(x info) repl-env]) (values x (list 'set (first info)))))
+(define (repl-env->env repl-env)
+  (-> repl-env? env?)
+  (for/hash ([(x info) repl-env]) (values x (second info))))
+
 ;; Sort comparator for first-order values. We only ever compare things of the
 ;; same type, although we don't provide that type here.
 (define/contract (value< type)
@@ -622,9 +629,9 @@
     [_ (fprintf out "~a~v\n" indent value)]))
 
 (define/contract (evaluate term [repl-env default-repl-env] #:debug [debug #f])
-  (-> term? repl-env? (values type? value?))
-  (define cx  (for/hash ([(x info) repl-env]) (values x (list 'set (first info)))))
-  (define env (for/hash ([(x info) repl-env]) (values x (second info))))
+  (->* (term? repl-env?) (#:debug boolean?) (values type? value?))
+  (define cx  (repl-env->cx repl-env))
+  (define env (repl-env->env repl-env))
   (define-values (type used deno) (elab term #f cx))
   (when debug
     (printf "type: ~a\n" type)
@@ -674,6 +681,18 @@
        (pretty-print type value))
      (hash-set repl-env name (list type value))]
     [`(def ,@_) (error 'repl "invalid definition form")]
+    ;; TODO: :type and :debug should be allowed only in repl mode, right?
+    [`(:type ,term)
+     (define-values (type _usage _deno) (elab term #f (repl-env->cx repl-env)))
+     (when repl
+       (if (symbol? term)
+           (printf "~a : ~a\n" term type)
+           (printf "~a\n" type)))
+     repl-env]
+    [`(:debug ,term)
+     (define-values (type value) (evaluate term repl-env #:debug #t))
+     (when repl (pretty-print type value))
+     repl-env]
     [_
      (define-values (type value) (evaluate form repl-env))
      (when repl
