@@ -1,0 +1,4 @@
+(def film-count (=> symbol natz)
+  (lambda (actor)
+    (sum film symbol
+      (when (stars film actor) 1))))

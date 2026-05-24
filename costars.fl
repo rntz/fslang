@@ -1,0 +1,4 @@
+(def costars (=> symbol (=> symbol bool))
+  (lambda (x y)
+    (exists film symbol
+      (and (stars film x) (stars film y) (not (= x y))))))

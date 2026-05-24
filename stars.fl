@@ -1,0 +1,7 @@
+(def stars (=> symbol (=> symbol bool))
+  (lambda (film)
+    (lambda (actor)
+      (or (and (= 'casablanca film) (= 'bogart actor))
+          (and (= 'casablanca film) (= 'bergman actor))
+          (and (= 'the-big-sleep film) (= 'bogart actor))
+          (and (= 'the-big-sleep film) (= 'bacall actor))))))
