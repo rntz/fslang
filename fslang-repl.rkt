@@ -328,6 +328,7 @@
   ;; which are semantically ((A => P) -o P). zero, plus should be the identity
   ;; and binary operator for the aggregation respectively.
   (define (elab-aggregation name P zero plus var var-type body)
+    (inferred P) ;; check that we don't expect some type other than P
     (unless (type? var-type)
       (error 'elab "~a parameter type is not a valid type: ~a" name var-type))
     (elab-fs-binder name zero (λ (accum k v) (plus accum v)) var-type P var body))
