@@ -1,7 +1,6 @@
 fslang repl. type :q or ctrl-D to quit.
 > hello : bool
 k : natz
-loaded data/simple.fl
 > #t
 > 17
 > 

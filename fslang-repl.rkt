@@ -664,7 +664,6 @@
   (match form
     [`(load ,(? string? path))
      (define new-env (execute-file path repl-env))
-     (when repl (printf "loaded ~a\n" path))
      new-env]
     [`(load ,@_) (error 'repl "invalid load form")]
     [`(def ,name ,anno ,expr)
