@@ -312,7 +312,11 @@
      ;; for aggregations, we aggregate the values and throw away the parameter values.
      (λ (env)
        (define result (make-hash))
-       (for ([(row value) (body-deno env)])
+       (for ([(row value) (body-deno env)]
+             ;; A cheap special-case hack to avoid unnecessary aggregation of booleans.
+             ;; Could generalize this to filtering out non-nil values at other first-order
+             ;; types. TODO: Worth it? Where _should_ this filter go?
+             #:when (match P ['bool value] [_ #t]))
          (define key (hash-ref row param))
          (hash-update! result
                        (hash-remove row param)
