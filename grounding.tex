@@ -1,0 +1,462 @@
+\documentclass[10pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\usepackage{lipsum}             %TODO remove
+
+\usepackage[
+  letterpaper, text={175mm,230mm}, % 215.9 x 279.4 mm   US Letter paper
+  %vratio=1:1, hratio=1:1,
+  text={153.33mm,230mm},         % 2:3
+  text={148mm, 222mm},           % 2:3
+]{geometry}
+
+\usepackage[spacing,tracking,letterspace=60,]{microtype}
+
+\usepackage[dvipsnames,svgnames]{xcolor}
+%\usepackage{anyfontsize} % silence font size not available warnings by autoscaling fonts
+\usepackage{amssymb}            % \multimap, \mathbb
+\usepackage{amsmath}
+%\usepackage{latexsym}
+\usepackage{stmaryrd}           % \shortrightarrow
+\usepackage{mathtools}          % \dblcolon, \Coloneqq, \intertext
+\usepackage{mathpartir}         % \begin{mathpar}, \infer
+%\usepackage{nccmath}            % fleqn (for code environment)
+\usepackage{booktabs}           % \midrule
+%\usepackage{pifont}             % \ding{55}
+%\usepackage{placeins}           % \FloatBarrier
+%\usepackage{changepage}         % \begin{adjustwidth}
+%\usepackage{etoolbox}           % \newtoggle etc
+%\usepackage{graphicx}           % \rotatebox
+\usepackage{url, hyperref}
+
+\usepackage[nameinlink,noabbrev]{cleveref}
+\newcommand\crefrangeconjunction{--} % use en-dashes for ranges.
+
+%\usepackage{minted}
+\usepackage{listings}           % lstlisting
+\lstset{language=prolog, columns=fullflexible,
+  basicstyle=\ttfamily,
+  commentstyle=\color{Green},
+}
+
+
+%% ===== FONTS ====
+%% \usepackage[scaled=0.965, scaled=0.98, proportional,semibold]{sourcesanspro}
+%% \usepackage[scaled=1.021,var0,varl,]{inconsolata}
+\usepackage[scaled=0.97, osf]{XCharter}
+\linespread{1.0333}
+\usepackage[xcharter, alty, scaled=1.0556, % scaling makes \Rightarrow too bold :(
+  %scaled=1.0424,
+]{newtxmath}
+
+
+%% ===== STYLING =====
+\frenchspacing
+\raggedbottom                   % makes things look better in the worst case
+
+\makeatletter
+\newlength\headeroffset
+\setlength\headeroffset{1em}
+\newcommand\makehno[1]{%
+  \llap{\parbox[t]{100in}{\hfill\tbfigures#1}%
+    \hspace*{\headeroffset}}%
+}
+\makeatother
+
+\usepackage{titlesec}
+\titleformat{\section}[block]{\scshape}{\makehno{\thesection}}{0pt}{\MakeLowercase}
+%\titleformat{\section}[block]{\itshape}{\thesection\quad}{0pt}{}
+%\titlespacing*{\section}{0pt}{1.5\baselineskip}{1\baselineskip}
+%\titleformat{\paragraph}[runin]{\itshape}{}{}{}
+\titlespacing*{\section}{0pt}{1ex}{0pt}
+\titlespacing*{\paragraph}{0pt}{0pt}{1em}
+
+\setlength\parindent{0pt}
+\setlength\parskip{2ex}
+
+%% \setlength\tabcolsep{5pt}
+%% \setlength\arraycolsep{5pt}
+%\def\arraystretch{1.05}
+
+
+%% ===== COMMANDS =====
+\newcommand\strong[1]{{\bfseries#1}}
+
+\DeclareRobustCommand{\ensuretext}[1]{\ifmmode{\text{#1}}\else{#1}\fi}
+
+\newcommand\todocolor{\color{IndianRed}}
+\newcommand\todo[1]{\ensuretext{\todocolor #1}}
+\newcommand\TODO[1]{\todo{\strong{TODO}: #1}}
+\newcommand\xxx{\text{\todo{\strong{XXX}}}}
+\newcommand\draft[1]{{\color{RoyalBlue}#1}}
+
+\newcommand\fslang{\ensuremath{\lambda_{\mathrm{FS}}}}
+\newcommand\catname[1]{\ensuremath{\mathrm{#1}}}
+\newcommand\Set{\ensuremath{\catname{Set}}}
+\newcommand\Point{\ensuremath{\catname{Set}_{*}}}
+\DeclareMathOperator{\support}{supp}
+
+\newcommand\den[1]{\llbracket{#1}\rrbracket}
+\newcommand\bnfeq{\Coloneqq}
+\newcommand\bnfor{\mathrel{\,|\,}}
+\newcommand\defeq{\coloneqq}
+
+\newcommand\name[1]{\ensuremath{\mathit{#1}}}
+%\newcommand\<\;                 %function application space
+\newcommand\<\:                 %function application space
+\newcommand\fnspace{\<}         %space after a binder
+\newcommand\fn[1]{\lambda{#1}.\fnspace}
+\newcommand\fa[1]{\forall{#1}.\fnspace}
+\newcommand\ex[1]{\exists{#1}.\fnspace}
+
+%\newcommand\cto{\Rightarrow}    % "cartesian \to"
+\newcommand\cto\to
+\newcommand\lto\multimap        % "linear \to"
+\newcommand\fto\Rightarrow
+%\renewcommand\fto{\underset{\textsf{fin}}{\to}}           % finite map
+%\newcommand\fto{\rightarrow}    % "finitely supported \to"
+\newcommand\x\times
+\newcommand\with{\mathbin{\&}}
+\newcommand\ox\otimes
+\newcommand\typename\textit
+\newcommand\bool{\typename{bool}}
+\newcommand\maybe{\typename{maybe}}
+\newcommand\maybeof[1]{\ensuremath{\maybe~{#1}}}
+
+%% need \usepackage{accent} for these
+%\newcommand\undertype[2]{\underaccent{\textsf{\upshape\scshape#1}}{#2}}
+%\newcommand\eqt[1]{\undertype{eq}{#1}}
+
+\newcommand\G{\mathrm{\Gamma}}
+\newcommand\D{\mathrm{\Delta}}
+\renewcommand\O{\mathrm{\Omega}}
+\renewcommand\L{\mathrm{\Lambda}}
+\renewcommand\G\Gamma
+\renewcommand\D\Delta
+\renewcommand\O\Omega
+
+%\newcommand\emptycx\varepsilon
+\newcommand\emptycx{{\cdot}}
+\newcommand\of{\mathbin{:}}
+\newcommand\cxsep{\mathbin{/}}
+\newcommand\hyp[2]{{#1} \of {#2}}
+
+\newcommand\entails{\,\vdash\,}
+%\newcommand\cJ[3]{{#3} \entails {#1} : {#2}}
+%\newcommand\J[5]{{#3} \mathrel{\cdot} {#4} \cxsep {#5} \entails {#1} : {#2}}
+\newcommand\Jold[5]{{#4} \cxsep {#5} \cxsep {#3} \entails {#1} : {#2}}
+\newcommand\J[5]{{#3} \cxsep {#4} \cxsep {#5} \entails {#1} : {#2}}
+
+\newcommand\rulename\textsc
+\newcommand\kword[1]{\ensuremath{\textrm{#1}}}
+\newcommand\const\name
+%\newcommand\cname\text          %constructor name
+%\newcommand\cname\name
+\newcommand\cname\textrm
+\newcommand\cnil{\cname{none}}
+\newcommand\cjust{\cname{just}}
+%\newcommand\ctrue{\cname{true}}
+%\newcommand\cfalse{\cname{false}}
+
+\newcommand\nil{\name{nil}}
+\newcommand\true{\name{true}}
+\newcommand\false{\name{false}}
+
+\newcommand\letin[1]{\kword{let}~{#1}~\kword{in}~}
+\newcommand\leteq[2]{\letin{{#1} = {#2}}}
+\newcommand\tjust[1]{\cjust\<{#1}}
+\newcommand\letjust[3]{\leteq{\tjust {#1}}{#2}{#3}}
+\newcommand\letpair[4]{\leteq{({#1}, {#2})}{#3}{#4}}
+\newcommand\tabsurd{\kword{absurd}\<}
+\newcommand\tand{\mathrel{\kword{and}}}
+\newcommand\tor{\mathrel{\kword{or}}}
+%% \renewcommand\tand{~\kword{and}~}
+%% \renewcommand\tor{~\kword{or}~}
+%\newcommand\twhen[2]{\kword{when} \<({#1}) \<{#2}}
+%\newcommand\twhen[2]{\kword{if}~ {#1} ~\kword{then}~ {#2}}
+%\newcommand\twhen[2]{{#1} \Rightarrow {#2}}
+%\newcommand\twhen[2]{{#2} \mathrel{\kword{when}} {#1}}
+\newcommand\whenkword{\kword{when}}
+\newcommand\when{\mathrel{\whenkword}}
+%\newcommand\teq[2]{\name{eq} \<{#1} \<{#2}}
+\newcommand\teq[2]{{#1} = {#2}}
+%\newcommand\teq[2]{{#1} \mathrel{\kword{is}} {#2}}
+%\newcommand\teq[2]{{#2} \gets {#1}}
+\newcommand\withpair[1]{\ensuremath{\langle{#1}\rangle}}
+%\newcommand\tif[3]{\kword{if}~{#1}~\kword{then}~{#2}~\kword{else}~{#3}}
+\newcommand\ifjust[4]{%
+  \kword{case}~{#1}\ \kword{of}\
+  \cjust~{#2} \shortrightarrow {#3};\, \cnil \shortrightarrow {#4}%
+}
+
+%% \renewcommand\tand{\mathrel{\mathrm{\&\&}}}
+%% \renewcommand\tor{\mathrel{\mathrm{||}}}
+%% \newcommand\tand{\mathrel{\mathbf{and}}}
+%% \newcommand\tor{\mathrel{\mathbf{or}}}
+%% \renewcommand\ifjust[3]{%
+%%   \kword{if}~\cjust~{#2} \gets {#1} ~\kword{then}~ {#3} ~\kword{else}~
+%% }
+
+\newcommand\pwild{\text{\textunderscore}}
+
+\newcommand\typeforget{}
+\newcommand\termforget[1]{#1}
+
+\newcommand\nat{\mathbb{N}}
+\newcommand\natz{\ensuremath{\nat_0}}
+
+%% mode commands
+%\newcommand\many{\top} \newcommand\mnone{0} \newcommand\mand{,} \newcommand\mplus{+}
+\newcommand\many{\top}
+\newcommand\mnone{\bot}
+\newcommand\mand{\sqcap} \newcommand\bigmand\bigsqcap
+\newcommand\mplus{\sqcup}
+\newcommand\mdep[2]{{#1} \to {#2}} %\to? \shortrightarrow?
+\newcommand\mundep[1]{#1} % \mundep{x} means x is ground, no dependencies
+\newcommand\mex[2]{\ex{#1} {#2}}
+
+\newcommand\mto[3]{{#1} \star {#2} \to {#3}}
+\renewcommand\mto[3]{{#1}\,\{{#2}\} \to {#3}}
+%\renewcommand\mto[3]{{#1} \oast {#2} \to {#3}}
+\renewcommand\mto[3]{{#1}_{#2} \to {#3}}
+
+
+\begin{document}
+\section{notation}
+
+\newcommand\modeto
+
+\[
+\begin{array}{rccll}
+  \text{vars} & x,y
+  \\
+  \text{modes} & m,n &\bnfeq&
+  \mdep{x_1 \dots\, x_n}{y}
+  \bnfor \mex x m
+  \bnfor m \mand n \bnfor m \mplus n
+  \bnfor \many \bnfor \mnone
+  \\
+  \text{contexts} & \G,\L &\bnfeq& \emptycx \bnfor \G, \hyp x A
+  \\
+  \text{pointed contexts} & \D
+  &\bnfeq& \emptycx \bnfor \D, \hyp x P
+  \\
+  \text{types} & A,B &\bnfeq&
+  \typeforget P \bnfor A \to B \bnfor A \times B \bnfor 1 \bnfor \dots\\
+  \text{pointed types} & P,Q &\bnfeq&
+  P \with Q \bnfor P \ox Q \bnfor P \lto Q
+  %\bnfor A \fto Q
+  \bnfor \mto \G m P
+  \\
+  &&&%\bnfor
+  \maybeof A
+  %\bnfor \bool
+  \bnfor \natz
+  \\
+  \text{expressions} & e &\bnfeq&
+  \dots
+  %% \termforget t
+  %% \bnfor x \bnfor \fn x e \bnfor e_1 \<e_2
+  %% \bnfor (e_1, e_2) \bnfor \pi_i \<e \bnfor ()
+  %% \\&&&
+  %% %\bnfor
+  %% \ifjust{e_1}{x}{e_2}{e_3}
+  %% \bnfor ...
+  \\
+  \text{pointed terms} & t,u &\bnfeq&
+  \nil
+  \bnfor x \bnfor \fn{x} t \bnfor t\<u
+  \bnfor t\<x \bnfor t\<e
+  \bnfor \withpair{t, u} \bnfor \pi_i \<t
+  \\
+  &&& (t,u) \bnfor \letpair x y t u
+  \bnfor \tjust e \bnfor \letjust x t u
+\end{array}
+\]
+
+\begin{tabular}{llp{86mm}}%{rp{25mm}p{110mm}}
+  \it Syntax & \it Name & \it Interpretation\\
+  $A,B$ & Types & Sets\\
+  $A \to B$ & Functions & Functions\\
+  $P,Q$ & Pointed types & Sets with a designated `zero' element, written $\nil_P$ or just $\nil$.
+  For instance, booleans with $\nil = \text{false}$, or the integers with $\nil = 0$.
+  \\
+  $P \lto Q$ & Point-preserving maps & Functions that preserve $\nil$, that is, $f(\nil_P) = \nil_Q$.
+  \\
+  $A \fto P$ & Finite maps &
+  Functions $f : A \to P$ such that $\support{f} \defeq \{ x : f(x) \ne \nil \}$ is finite.
+\end{tabular}
+
+\begin{tabular}{lp{108mm}}
+  \em Mode & \em Interpretation \\
+  $\mdep{x_1\dots\,x_n}{y}$
+  &
+  A finiteness dependency:
+  for fixed $x_1\dots\,x_n$, finitely many $y$ satisfy the relation.
+  Operationally, grounds $y$ if $x_1\dots\,x_n$ are ground.
+  \\
+  $\mex x m$ & Existential projection: the relation $m$ with the variable $x$ phidden.
+  \\
+  $m \mand n$ & Intersection of relations; union of their dependencies.
+  \\
+  $m \mplus n$ & Union of relations.
+  Can be approximated as the intersection of the closure of their dependencies.
+  \\
+  $\mnone$ & Empty relation. Identity of ${\mand}$.\\
+  $\many$ & Unknown; any relation. Identity of ${\mplus}$.
+\end{tabular}
+
+\begin{tabular}{lp{108mm}}
+  \em Judgment & \em Interpretation
+  \\
+  %% $\cJ e A \G$ & $\G \to A$
+  %% \\
+  $\J t P \G \D m$ & Term $t$ has type $P$ using variables in $\G \cup \D$.
+  It has mode $m$.
+  It preserves $\nil$ in $\D$:
+  for all $\hyp x Q \in D$, we have $x = \nil_Q$ implies $t = \nil_P$.
+\end{tabular}
+
+
+\newcommand\sub[2]{{#1}\{#2\}}
+\let\oldmodels\models
+\renewcommand\models\vDash      %maybe?
+
+\newcommand\Jmode[3]{{#1} \cxsep {#2} \entails {#3}~\text{mode}}
+
+\pagebreak
+\section{Typing rules}
+
+\newcommand\ground[1]{\mathit{ground}(#1)}
+
+Let $\ground{\L} \defeq \bigmand_{\hyp x A \in \L} \mundep{x}$ be the mode that says all variables in $\L$ are ground.
+
+\TODO{need rule like \rulename{$\to$\,e~var} but that mixes vars and terms in argument list.}
+%
+\begin{mathpar}
+  \infer[$\to$\,i]{
+    \J t P {\G, \L} \D m
+    \\
+    \L = (\hyp{x_i}{A_i})_i
+    \\
+    \Jmode \L \emptycx n
+    \\
+    m \mand \ground{\L} \models n
+  }{
+    \J {\fn {x_1 \dots\, x_n} t} {\mto \L n P} \G \D {\mex{x_1\dots\,x_n} m}
+  }
+
+  \infer[$\to$\,e~var]{
+    \J t {\mto \L n P} \G \D m
+    \\
+    \L = (\hyp{x_i}{A_i})_i \subseteq \G
+    %% \fa{i} \hyp {x_i} {A_i} \in \G
+  }{
+    \J {t \< (x_1 \dots\, x_n)} P \G \D {m \mand n}
+  }
+\\
+  \infer[$\ox$\,i]{
+    \J t P \G {\D_1} m\\
+    \J u P \G {\D_2} n
+  }{
+    \J {(t,u)} {P \ox Q} \G {\D_1\cup\D_2} {m \mand n}
+  }
+
+  \infer[$\with$\,i]{
+    \J t P \G \D m\\
+    \J u Q \G \D n
+  }{
+    \J {\withpair{t, u}} {P \with Q} \G \D {m \mplus n}
+  }
+
+  \TODO{$\ox$\,e}
+
+  \TODO{$\with$\,e}
+\end{mathpar}
+
+\TODO{Is $n$ in \rulename{$\to$\,i} effectively $\ex{(\G \setminus \L)} m$?}
+
+\TODO{\rulename{$\to$\,i} isn't strong enough!
+  Let $\G = a,b,x,y$ and $\L = x,y$.
+  What if $m = \mdep x y$?
+  Then what $n$ is valid?
+  In fact, it's okay to let $n = \mundep y$!
+  I think the rule isn't strong enough!
+}
+
+\newcommand\wantcolor{\color{RoyalBlue}}
+
+\TODO{Does the mode judgment $\Jmode \G \D m$ actually need the $\D$ context, so that modes can refer to pointed vars in the LHSes of dependencies? Argument for yes: if $f : A \fto P$ is a pointed var, then $f\<x$ grounds $x$ only when $f$ is fixed, so it depends on $f$. This could come up if I compare $\fn f \fn x f\< x : (A \fto P) \lto (A \fto P)$ (obviously ok) with $\fn x \fn f f \< x : A \fto (A \lto P) \lto P$ --- this is WRONG! So what mode should $f\<x$ have?}
+I've colored the mode I believe is semantically correct {\wantcolor in blue}.
+%
+\begin{mathpar}
+  \infer{
+    \J f P {\hyp x A} {\hyp f {\mto {(\hyp x A)} {\mundep x} P}} \many
+  }{
+    \J {f\<x}
+       {P}
+       {\hyp x A}
+       {\hyp f {\mto {(\hyp x A)} {\mundep x} P}}
+       {\many \mand \wantcolor \mdep f x}
+  }
+\end{mathpar}
+
+But also, what about applying a curried function $f : \mto {(\hyp x A)} {\mundep x} {\mto {(\hyp y B)} {\mundep y} P}$?
+%
+\begin{mathpar}
+  \infer{
+    \infer{
+      \J f
+         {\mto {(\hyp x A)} {\mundep x} {\mto {(\hyp y B)} {\mundep y} P}}
+         {\hyp x A, \hyp y B}
+         {\hyp f {\mto {(\hyp x A)} {\mundep x} {\mto {(\hyp y B)} {\mundep y} P}}}
+         \many
+    }{
+      \J {f\<x}
+         {\mto {(\hyp y B)} {\mundep y} P}
+         {\hyp x A, \hyp y B}
+         {\hyp f {\mto {(\hyp x A)} {\mundep x} {\mto {(\hyp y B)} {\mundep y} P}}}
+         {\xxx}
+    }
+  }{
+    \J {f\<x\<y}
+       {P}
+       {\hyp x A, \hyp y B}
+       {\hyp f {\mto {(\hyp x A)} {\mundep x} {\mto {(\hyp y B)} {\mundep y} P}}}
+       {\xxx}
+  }
+\end{mathpar}
+
+Or a curried function which doesn't ground its first argument $\hyp x A$?
+%
+\begin{mathpar}
+  \infer{
+    \infer{
+      \J f
+         {\mto {(\hyp x A)} {\many} {\mto {(\hyp y B)} {\mundep y} P}}
+         {\hyp x A, \hyp y B}
+         {\hyp f {\mto {(\hyp x A)} {\many} {\mto {(\hyp y B)} {\mundep y} P}}}
+         \many
+    }{
+      \J {f\<x}
+         {\mto {(\hyp y B)} {\mundep y} P}
+         {\hyp x A, \hyp y B}
+         {\hyp f {\mto {(\hyp x A)} {\many} {\mto {(\hyp y B)} {\mundep y} P}}}
+         {\wantcolor \many}
+    }
+  }{
+    \J {f\<x\<y}
+       {P}
+       {\hyp x A, \hyp y B}
+       {\hyp f {\mto {(\hyp x A)} {\many} {\mto {(\hyp y B)} {\mundep y} P}}}
+       {\wantcolor \mdep{f,x} y}
+  }
+\end{mathpar}
+
+\section{Lipsum}
+
+\lipsum[1-5]
+
+\end{document}
