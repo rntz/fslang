@@ -1,4 +1,4 @@
-\documentclass[10pt]{article}
+\documentclass[11pt]{article}
 
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
@@ -9,7 +9,7 @@
   letterpaper, text={175mm,230mm}, % 215.9 x 279.4 mm   US Letter paper
   %vratio=1:1, hratio=1:1,
   text={153.33mm,230mm},         % 2:3
-  text={148mm, 222mm},           % 2:3
+  %text={148mm, 222mm},           % 2:3
 ]{geometry}
 
 \usepackage[spacing,tracking,letterspace=60,]{microtype}
@@ -40,16 +40,6 @@
   basicstyle=\ttfamily,
   commentstyle=\color{Green},
 }
-
-
-%% ===== FONTS ====
-%% \usepackage[scaled=0.965, scaled=0.98, proportional,semibold]{sourcesanspro}
-%% \usepackage[scaled=1.021,var0,varl,]{inconsolata}
-\usepackage[scaled=0.97, osf]{XCharter}
-\linespread{1.0333}
-\usepackage[xcharter, alty, scaled=1.0556, % scaling makes \Rightarrow too bold :(
-  %scaled=1.0424,
-]{newtxmath}
 
 
 %% ===== STYLING =====
@@ -136,12 +126,18 @@
 \renewcommand\G\Gamma
 \renewcommand\D\Delta
 \renewcommand\O\Omega
+\renewcommand\L{\Lambda}
 
 %\newcommand\emptycx\varepsilon
 \newcommand\emptycx{{\cdot}}
 \newcommand\of{\mathbin{:}}
 \newcommand\cxsep{\mathbin{/}}
 \newcommand\hyp[2]{{#1} \of {#2}}
+%\renewcommand\hyp[2]{{#1}\colon\!{#2}} % good in newtxmath[charter]
+%\renewcommand\hyp[2]{{#1}\!:{#2}} %good in Euler, too loose in newtxmath[xcharter]
+%% "parameter": type tagged with a variable name for use in modes
+\newcommand\param[2]{\hyp{#1}{#2}}
+\renewcommand\param[2]{{#1}\colon\!{#2}}
 
 \newcommand\entails{\,\vdash\,}
 %\newcommand\cJ[3]{{#3} \entails {#1} : {#2}}
@@ -217,16 +213,47 @@
 \newcommand\mundep[1]{#1} % \mundep{x} means x is ground, no dependencies
 \newcommand\mex[2]{\ex{#1} {#2}}
 
-\newcommand\mto[3]{{#1} \star {#2} \to {#3}}
-\renewcommand\mto[3]{{#1}\,\{{#2}\} \to {#3}}
+\newcommand\mto[3]{{#1}_{#2} \to {#3}}
+%\renewcommand\mto[3]{{#1}\,\{{#2}\} \to {#3}}
+%\renewcommand\mto[3]{{#1} \cdot {#2} \to {#3}}
+%\renewcommand\mto[3]{{#1} \star {#2} \to {#3}}
 %\renewcommand\mto[3]{{#1} \oast {#2} \to {#3}}
-\renewcommand\mto[3]{{#1}_{#2} \to {#3}}
+
+
+%% %% ===== FONT OPTION 1: CHARTER ====
+
+%% %% \usepackage[scaled=0.965, scaled=0.98, proportional,semibold]{sourcesanspro}
+%% %% \usepackage[scaled=1.021,var0,varl,]{inconsolata}
+%% \usepackage[scaled=0.97, osf]{XCharter}
+%% \linespread{1.0333}
+%% \usepackage[xcharter, alty, scaled=1.0556, % scaling makes \Rightarrow too bold :(
+%%   %scaled=1.0424,
+%% ]{newtxmath}
+
+
+%% ===== FONT OPTION 2: PALATINO =====
+\usepackage[scaled=0.96, largesc, nohelv, osf]{newpxtext}
+%\usepackage[scaled=1.0176]{biolinum}
+%\usepackage[scaled=0.964203422764601]{inconsolata}
+\makeatletter
+%\edef\zeu@Scale{.96}            %too small
+\edef\zeu@Scale{.975}           %eyeballed 2026-11-08
+%% HACK: newpxtext doesn't respect fontaxes' \tbfigures! :( but it _does_
+%% define, eg., \tlfstyle! hm...
+\usepackage{fontaxes}
+\renewcommand\tbfigures{}
+\renewcommand\lnfigures{}
+\linespread{1.08}
+\usepackage{eulervm}
+%\PassOptionsToPackage{scaled=\zeu@Scale,bbscaled=\zeu@Scale,scrscaled=\zeu@Scale}{mathalfa}
+\makeatother
+
+%\renewcommand\name[1]{\ensuremath{\mathrm{#1}}}
 
 
 \begin{document}
-\section{notation}
 
-\newcommand\modeto
+\section{notation}
 
 \[
 \begin{array}{rccll}
@@ -297,7 +324,7 @@
   for fixed $x_1\dots\,x_n$, finitely many $y$ satisfy the relation.
   Operationally, grounds $y$ if $x_1\dots\,x_n$ are ground.
   \\
-  $\mex x m$ & Existential projection: the relation $m$ with the variable $x$ phidden.
+  $\mex x m$ & Existential projection: the relation $m$ with the variable $x$ hidden.
   \\
   $m \mand n$ & Intersection of relations; union of their dependencies.
   \\
@@ -316,7 +343,7 @@
   $\J t P \G \D m$ & Term $t$ has type $P$ using variables in $\G \cup \D$.
   It has mode $m$.
   It preserves $\nil$ in $\D$:
-  for all $\hyp x Q \in D$, we have $x = \nil_Q$ implies $t = \nil_P$.
+  for all $\hyp x Q \in \D$, we have $x = \nil_Q$ implies $t = \nil_P$.
 \end{tabular}
 
 
@@ -329,9 +356,9 @@
 \pagebreak
 \section{Typing rules}
 
-\newcommand\ground[1]{\mathit{ground}(#1)}
+\newcommand\ground[1]{\name{ground}(#1)}
 
-Let $\ground{\L} \defeq \bigmand_{\hyp x A \in \L} \mundep{x}$ be the mode that says all variables in $\L$ are ground.
+Let $\ground{\G} \defeq \bigmand_{\hyp x A \in \G} \mundep{x}$ be the mode that says all variables in $\L$ are ground.
 
 \TODO{need rule like \rulename{$\to$\,e~var} but that mixes vars and terms in argument list.}
 %
@@ -343,7 +370,9 @@ Let $\ground{\L} \defeq \bigmand_{\hyp x A \in \L} \mundep{x}$ be the mode that 
     \\
     \Jmode \L \emptycx n
     \\
-    m \mand \ground{\L} \models n
+    m \mand {\todocolor\ground{\G}} \models n
+    %% \\
+    %% \todo{WRONG: should be $\ground{\G}$ right?}
   }{
     \J {\fn {x_1 \dots\, x_n} t} {\mto \L n P} \G \D {\mex{x_1\dots\,x_n} m}
   }
@@ -352,9 +381,11 @@ Let $\ground{\L} \defeq \bigmand_{\hyp x A \in \L} \mundep{x}$ be the mode that 
     \J t {\mto \L n P} \G \D m
     \\
     \L = (\hyp{x_i}{A_i})_i \subseteq \G
+    \\
+    \todo{need to make $n$ depend on vars used in $t$!}
     %% \fa{i} \hyp {x_i} {A_i} \in \G
   }{
-    \J {t \< (x_1 \dots\, x_n)} P \G \D {m \mand n}
+    \J {t \< (x_1 \dots\, x_n)} P \G \D {m \mand n \mand \xxx}
   }
 \\
   \infer[$\ox$\,i]{
@@ -376,7 +407,14 @@ Let $\ground{\L} \defeq \bigmand_{\hyp x A \in \L} \mundep{x}$ be the mode that 
   \TODO{$\with$\,e}
 \end{mathpar}
 
-\TODO{Is $n$ in \rulename{$\to$\,i} effectively $\ex{(\G \setminus \L)} m$?}
+\strong{Question}: Is $n$ in \rulename{$\to$\,i} effectively $\ex{\G} m$?
+\strong{Answer}: No!
+We are not projecting away the variables in $\G$, we are fixing them, which is stronger.
+Relational $\lambda$ is effectively a group-by, and each group receives concrete fixed values for the group-by variables in $\G$.
+A concrete example:
+Let $\G = (x:A)$, $\L = (y:B)$, $m = \mdep x y$.
+Then $n=y$ is acceptable because $m \mand \ground{\G} = \mdep x y \mand x \models y = n$.
+But $\ex{\G} m = \ex{x} \mdep x y = \many$ does not entail $y$.
 
 \TODO{\rulename{$\to$\,i} isn't strong enough!
   Let $\G = a,b,x,y$ and $\L = x,y$.
@@ -388,43 +426,45 @@ Let $\ground{\L} \defeq \bigmand_{\hyp x A \in \L} \mundep{x}$ be the mode that 
 
 \newcommand\wantcolor{\color{RoyalBlue}}
 
-\TODO{Does the mode judgment $\Jmode \G \D m$ actually need the $\D$ context, so that modes can refer to pointed vars in the LHSes of dependencies? Argument for yes: if $f : A \fto P$ is a pointed var, then $f\<x$ grounds $x$ only when $f$ is fixed, so it depends on $f$. This could come up if I compare $\fn f \fn x f\< x : (A \fto P) \lto (A \fto P)$ (obviously ok) with $\fn x \fn f f \< x : A \fto (A \lto P) \lto P$ --- this is WRONG! So what mode should $f\<x$ have?}
+\TODO{Does the mode judgment $\Jmode \G \D m$ actually need the $\D$ context, so that modes can refer to pointed vars in the LHSes of dependencies? Argument for no: in the type $\mto \G m P$, the mode $m$ can refer only to vars in $\G$, which cannot be pointed.
+
+  Argument for yes: if $f : A \fto P$ is a pointed var, then $f\<x$ grounds $x$ only when $f$ is fixed, so it depends on $f$. This could come up if I compare $\fn f \fn x f\< x : (A \fto P) \lto (A \fto P)$ (obviously ok) with $\fn x \fn f f \< x : A \fto (A \lto P) \lto P$ --- this is WRONG! So what mode should $f\<x$ have?}
 I've colored the mode I believe is semantically correct {\wantcolor in blue}.
 %
 \begin{mathpar}
   \infer{
-    \J f P {\hyp x A} {\hyp f {\mto {(\hyp x A)} {\mundep x} P}} \many
+    \J f P {\hyp x A} {\hyp f {\mto {(\param x A)} {\mundep x} P}} \many
   }{
     \J {f\<x}
        {P}
        {\hyp x A}
-       {\hyp f {\mto {(\hyp x A)} {\mundep x} P}}
+       {\hyp f {\mto {(\param x A)} {\mundep x} P}}
        {\many \mand \wantcolor \mdep f x}
   }
 \end{mathpar}
 
-But also, what about applying a curried function $f : \mto {(\hyp x A)} {\mundep x} {\mto {(\hyp y B)} {\mundep y} P}$?
+But also, what about applying a curried function $f : \mto {(\param x A)} {\mundep x} {\mto {(\param y B)} {\mundep y} P}$?
 %
 \begin{mathpar}
   \infer{
     \infer{
       \J f
-         {\mto {(\hyp x A)} {\mundep x} {\mto {(\hyp y B)} {\mundep y} P}}
+         {\mto {(\param x A)} {\mundep x} {\mto {(\param y B)} {\mundep y} P}}
          {\hyp x A, \hyp y B}
-         {\hyp f {\mto {(\hyp x A)} {\mundep x} {\mto {(\hyp y B)} {\mundep y} P}}}
+         {\hyp f {\mto {(\param x A)} {\mundep x} {\mto {(\param y B)} {\mundep y} P}}}
          \many
     }{
       \J {f\<x}
-         {\mto {(\hyp y B)} {\mundep y} P}
+         {\mto {(\param y B)} {\mundep y} P}
          {\hyp x A, \hyp y B}
-         {\hyp f {\mto {(\hyp x A)} {\mundep x} {\mto {(\hyp y B)} {\mundep y} P}}}
+         {\hyp f {\mto {(\param x A)} {\mundep x} {\mto {(\param y B)} {\mundep y} P}}}
          {\xxx}
     }
   }{
     \J {f\<x\<y}
        {P}
        {\hyp x A, \hyp y B}
-       {\hyp f {\mto {(\hyp x A)} {\mundep x} {\mto {(\hyp y B)} {\mundep y} P}}}
+       {\hyp f {\mto {(\param x A)} {\mundep x} {\mto {(\param y B)} {\mundep y} P}}}
        {\xxx}
   }
 \end{mathpar}
@@ -435,22 +475,22 @@ Or a curried function which doesn't ground its first argument $\hyp x A$?
   \infer{
     \infer{
       \J f
-         {\mto {(\hyp x A)} {\many} {\mto {(\hyp y B)} {\mundep y} P}}
+         {\mto {(\param x A)} {\many} {\mto {(\param y B)} {\mundep y} P}}
          {\hyp x A, \hyp y B}
-         {\hyp f {\mto {(\hyp x A)} {\many} {\mto {(\hyp y B)} {\mundep y} P}}}
+         {\hyp f {\mto {(\param x A)} {\many} {\mto {(\param y B)} {\mundep y} P}}}
          \many
     }{
       \J {f\<x}
-         {\mto {(\hyp y B)} {\mundep y} P}
+         {\mto {(\param y B)} {\mundep y} P}
          {\hyp x A, \hyp y B}
-         {\hyp f {\mto {(\hyp x A)} {\many} {\mto {(\hyp y B)} {\mundep y} P}}}
+         {\hyp f {\mto {(\param x A)} {\many} {\mto {(\param y B)} {\mundep y} P}}}
          {\wantcolor \many}
     }
   }{
     \J {f\<x\<y}
        {P}
        {\hyp x A, \hyp y B}
-       {\hyp f {\mto {(\hyp x A)} {\many} {\mto {(\hyp y B)} {\mundep y} P}}}
+       {\hyp f {\mto {(\param x A)} {\many} {\mto {(\param y B)} {\mundep y} P}}}
        {\wantcolor \mdep{f,x} y}
   }
 \end{mathpar}
