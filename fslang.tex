@@ -562,10 +562,8 @@ However, \textsc{limited include} has several issues:
   \infer[var]{~}{
     \J x P \G {\hyp x P} {\emptycx}
   }
-
   &
   \infer{~}{\dmap \G P 1 P}
-
   &
   \dfn{\g}{p}{()} p
   \\
@@ -574,17 +572,14 @@ However, \textsc{limited include} has several issues:
   }{
     \J{\fn x t}{P \lto Q}{\G}{\D}{\emptycx}
   }
-
   &  
   \infer{
     \dmap \G {\D \ox P} 1 Q
   }{
     \dmap \G \D 1 {P \lto Q}
   }
-
   &
   \dfn{\g}{\d}{()} \fn{p} t\<\g\<(\d \ox p)\<()
-
   %% &\raggedright\sffamily\small
   %% Does this need $\Omega=\emptycx$?
   \\
@@ -595,7 +590,6 @@ However, \textsc{limited include} has several issues:
   }{
     \J{t\<s}{Q}{\G}{\D_1 \cup \D_2}{\O_1, \O_2}
   }
-
   &
   \infer{
     \G \to \D_1 \to \O_1 \fto P \lto Q
@@ -604,7 +598,6 @@ However, \textsc{limited include} has several issues:
   }{
     \G \to \D_1 \ox \D_2 \lto \O_1 \x \O_2 \fto Q
   }
-
   &
   \xxx
 \end{array}
