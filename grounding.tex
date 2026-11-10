@@ -61,7 +61,11 @@
 %\titleformat{\section}[block]{\itshape}{\thesection\quad}{0pt}{}
 %\titlespacing*{\section}{0pt}{1.5\baselineskip}{1\baselineskip}
 %\titleformat{\paragraph}[runin]{\itshape}{}{}{}
+\titleformat{\subsection}[block]{\scshape}{%\makehno{\thesubsection}%
+}{0pt}{\MakeLowercase}
+%\titleformat{\subsection}[block]{\itshape}{\thesubsection\quad}{0pt}{}
 \titlespacing*{\section}{0pt}{1ex}{0pt}
+\titlespacing*{\subsection}{0pt}{1ex}{0pt}
 \titlespacing*{\paragraph}{0pt}{0pt}{1em}
 
 \setlength\parindent{0pt}
@@ -230,8 +234,9 @@
 \newcommand\mdep[2]{{#1} \to {#2}} %\to? \shortrightarrow?
 \newcommand\mundep[1]{#1} % \mundep{x} means x is ground, no dependencies
 \newcommand\mex[1]{\ex{#1}}
+\newcommand\msetdep[2]{{\todocolor\mdep{#1}{#2}}}
 
-\newcommand\mto[3]{{#1}_{#2} \to {#3}}
+\newcommand\mto[3]{{#1}_{#2} \!\to {#3}}
 %\renewcommand\mto[3]{{#1}\,\{{#2}\} \to {#3}}
 %\renewcommand\mto[3]{{#1} \cdot {#2} \to {#3}}
 %\renewcommand\mto[3]{{#1} \star {#2} \to {#3}}
@@ -282,7 +287,8 @@
   \text{vars} & x,y
   \\
   \text{modes} & m,n &\bnfeq&
-  \mdep{x_1 \dots\, x_n}{y}
+  \mdep X y
+  \bnfor \msetdep X m
   \bnfor \mex x m
   \bnfor m \mand n \bnfor m \mplus n
   \bnfor \many \bnfor \mnone
@@ -339,8 +345,6 @@
   $A \fto P$ & Finite maps &
   Functions $f : A \to P$ such that $\support{f} \defeq \{ x : f(x) \ne \nil \}$ is finite.
 \end{tabular}
-
-\newcommand\msetdep[2]{{\todocolor\mdep{#1}{#2}}}
 
 \begin{tabular}{lp{108mm}}
   \em Mode & \em Interpretation \\
@@ -470,20 +474,30 @@ But $\ex{\G} m = \ex{x} \mdep x y = \many$ does not entail $y$.
 
 \newcommand\wantcolor{\color{RoyalBlue}}
 
+
+\subsection{Pointed variables in finiteness dependencies}
+
+\TODO{Explain why we need pointed vars in both LHSes and RHSes of finiteness dependencies, sometimes.}
+
 \TODO{Does the mode judgment $\Jmodeold \G \D m$ actually need the $\D$ context, so that modes can refer to pointed vars in the LHSes of dependencies? Argument for no: in the type $\mto \G m P$, the mode $m$ can refer only to vars in $\G$, which cannot be pointed.
 
   Argument for yes: if $f : A \fto P$ is a pointed var, then $f\<x$ grounds $x$ only when $f$ is fixed, so it depends on $f$. This could come up if I compare $\fn f \fn x f\< x : (A \fto P) \lto (A \fto P)$ (obviously ok) with $\fn x \fn f f \< x : A \fto (A \lto P) \lto P$ --- this is WRONG! So what mode should $f\<x$ have?}
+
+
+\subsection{Example derivations}
+
+\TODO{check/reformat these.}
 I've colored the mode I believe is semantically correct {\wantcolor in blue}.
 %
 \begin{mathpar}
   \infer{
-    \Jold f P {\hyp x A} {\hyp f {\mto {(\param x A)} {\mundep x} P}} \many
+    \J f P {f} \many {\hyp x A, \phyp f {\mto {(\param x A)} {\mundep x} P}}
   }{
-    \Jold {f\<x}
+    \J {f\<x}
        {P}
-       {\hyp x A}
-       {\hyp f {\mto {(\param x A)} {\mundep x} P}}
-       {\many \mand \wantcolor \mdep f x}
+       {f}
+       {\wantcolor \mdep f x}
+       {\hyp x A, \phyp f {\mto {(\param x A)} {\mundep x} P}}
   }
 \end{mathpar}
 
@@ -492,24 +506,29 @@ But also, what about applying a curried function $f : \mto {(\param x A)} {\mund
 \begin{mathpar}
   \infer{
     \infer{
-      \Jold f
+      \J f
          {\mto {(\param x A)} {\mundep x} {\mto {(\param y B)} {\mundep y} P}}
-         {\hyp x A, \hyp y B}
-         {\hyp f {\mto {(\param x A)} {\mundep x} {\mto {(\param y B)} {\mundep y} P}}}
+         {f}
          \many
+         {\phyp f {\mto {(\param x A)} {\mundep x} {\mto {(\param y B)} {\mundep y} P}},\,
+           \hyp x A,\,
+           \hyp y B}
     }{
-      \Jold {f\<x}
+      \J {f\<x}
          {\mto {(\param y B)} {\mundep y} P}
-         {\hyp x A, \hyp y B}
-         {\hyp f {\mto {(\param x A)} {\mundep x} {\mto {(\param y B)} {\mundep y} P}}}
+         {f}
          {\xxx}
+         {\phyp f {\mto {(\param x A)} {\mundep x} {\mto {(\param y B)} {\mundep y} P}},\,
+           \hyp x A,\,
+           \hyp y B}
     }
   }{
-    \Jold {f\<x\<y}
+    \J {f\<x\<y}
        {P}
-       {\hyp x A, \hyp y B}
-       {\hyp f {\mto {(\param x A)} {\mundep x} {\mto {(\param y B)} {\mundep y} P}}}
+       {f}
        {\xxx}
+       {\phyp f {\mto {(\param x A)} {\mundep x} {\mto {(\param y B)} {\mundep y} P}},\,
+         \hyp x A,\, \hyp y B}
   }
 \end{mathpar}
 
@@ -518,24 +537,29 @@ Or a curried function which doesn't ground its first argument $\hyp x A$?
 \begin{mathpar}
   \infer{
     \infer{
-      \Jold f
+      \J f
          {\mto {(\param x A)} {\many} {\mto {(\param y B)} {\mundep y} P}}
-         {\hyp x A, \hyp y B}
-         {\hyp f {\mto {(\param x A)} {\many} {\mto {(\param y B)} {\mundep y} P}}}
+         {f}
          \many
+         {\phyp f {\mto {(\param x A)} {\many} {\mto {(\param y B)} {\mundep y} P}},\,
+           \hyp x A,\,
+           \hyp y B}
     }{
-      \Jold {f\<x}
+      \J {f\<x}
          {\mto {(\param y B)} {\mundep y} P}
-         {\hyp x A, \hyp y B}
-         {\hyp f {\mto {(\param x A)} {\many} {\mto {(\param y B)} {\mundep y} P}}}
+         {f}
          {\wantcolor \many}
+         {\phyp f {\mto {(\param x A)} {\many} {\mto {(\param y B)} {\mundep y} P}},\,
+           \hyp x A,\, \hyp y B}
     }
   }{
-    \Jold {f\<x\<y}
+    \J {f\<x\<y}
        {P}
-       {\hyp x A, \hyp y B}
-       {\hyp f {\mto {(\param x A)} {\many} {\mto {(\param y B)} {\mundep y} P}}}
+       {f}
        {\wantcolor \mdep{f,x} y}
+       {\phyp f {\mto {(\param x A)} {\many} {\mto {(\param y B)} {\mundep y} P}},\
+         \hyp x A,\,
+         \hyp y B}
   }
 \end{mathpar}
 
