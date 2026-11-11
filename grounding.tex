@@ -64,12 +64,16 @@
 \titleformat{\subsection}[block]{\scshape}{%\makehno{\thesubsection}%
 }{0pt}{\MakeLowercase}
 %\titleformat{\subsection}[block]{\itshape}{\thesubsection\quad}{0pt}{}
-\titlespacing*{\section}{0pt}{1ex}{0pt}
-\titlespacing*{\subsection}{0pt}{1ex}{0pt}
-\titlespacing*{\paragraph}{0pt}{0pt}{1em}
 
-\setlength\parindent{0pt}
-\setlength\parskip{2ex}
+\titlespacing*{\section}{0pt}{2ex}{2ex}
+\titlespacing*{\subsection}{0pt}{2ex}{2ex}
+
+%% %% to NOT use indentation:
+%% \setlength\parindent{0pt}
+%% \setlength\parskip{2ex}
+%% \titlespacing*{\section}{0pt}{1ex}{0pt}
+%% \titlespacing*{\subsection}{0pt}{1ex}{0pt}
+%% \titlespacing*{\paragraph}{0pt}{0pt}{1em}
 
 %% \setlength\tabcolsep{5pt}
 %% \setlength\arraycolsep{5pt}
@@ -77,7 +81,6 @@
 
 
 %% ===== COMMANDS =====
-\DeclareMathOperator{\dom}{dom}
 \DeclareRobustCommand{\ensuretext}[1]{\ifmmode{\text{#1}}\else{#1}\fi}
 
 \newcommand\strong[1]{{\bfseries#1}}
@@ -128,16 +131,19 @@
 \newcommand\G{\mathrm{\Gamma}}
 \newcommand\D{\mathrm{\Delta}}
 \renewcommand\O{\mathrm{\Omega}}
-\renewcommand\L{\mathrm{\todocolor\Lambda}}
+\renewcommand\L{\mathrm{\Lambda}}
 \renewcommand\G\Gamma
 \renewcommand\D\Delta
 \renewcommand\O\Omega
-\renewcommand\L{{\todocolor\Lambda}} %TODO: STOP USING THIS
+\renewcommand\L{\Lambda}
 
 %\newcommand\emptycx\varepsilon
 \newcommand\emptycx{{\cdot}}
 \newcommand\of{\mathbin{:}}
 \newcommand\cxsep{\mathbin{/}}
+%\renewcommand\cxsep{\,/\,}
+\renewcommand\cxsep{\mathbin{|}}
+
 \newcommand\hyp[2]{{#1} \of {#2}}
 %\renewcommand\hyp[2]{{#1}\colon\!{#2}} % good in newtxmath[charter]
 %\renewcommand\hyp[2]{{#1}\!:{#2}} %good in Euler, too loose in newtxmath[xcharter]
@@ -146,26 +152,17 @@
 %% "parameter": type tagged with a variable name for use in modes
 \newcommand\param[2]{\hyp{#1}{#2}}
 \renewcommand\param[2]{{#1}\colon\!{#2}}
-
 \renewcommand\hyp[2]{{#1} : {#2}}\renewcommand\phyp[2]{{#1} \dblcolon {#2}}
 \renewcommand\param[2]{{#1}\colon{#2}}
 
-\newcommand\entails{\,\vdash\,}
-\newcommand\entailsub[1]{\,\vdash_{#1}\,}
-%% Alas, I think subscripting entails is the most readable option.
-%% By also subscripting the mode in \mto, modes are always subscripts.
-\newcommand\Jold[5]{{#3} \cxsep {#4} \vdash_{#5} {#1} : {#2}}
-\renewcommand\Jold[5]{{#3} \vdash^{#4}_{#5} {#1} : {#2}}
-\newcommand\J[5]{\Jold{#1}{#2}{#5}{#3}{#4}}
-\newcommand\Jmodeold[3]{{#1} \cxsep {#2} \entails {#3}~\text{mode}}
 \newcommand\Jmode[2]{{#1} \vdash {#2}~\text{mode}}
-
-%\renewcommand\J[5]{{#3} \cxsep {#4} \entails {#1} : {#2} \dblcolon {#5}}
-%\renewcommand\J[5]{{#3} \cxsep {#4} \entails {#1} : {#2} ,\, {#5}}
-
-%\renewcommand\J[5]{{#3} \cxsep {#4} \entails {#1} \dblcolon {#5} : {#2}}
-%\renewcommand\J[5]{{#3} \cxsep {#4} \entails {#1} \mathbin{.} {#5} : {#2}}
-%\renewcommand\J[5]{{#3} \cxsep {#4} \entails {#1} \mathbin{@} {#5} : {#2}}
+%% Alas, I think subscripting entails is the most readable option.
+%% By also subscripting the mode in \mfun, modes are always subscripts.
+\newcommand\J[5]{{#5} \vdash^{#3}_{#4} {#1} : {#2}}
+%\renewcommand\J[5]{{#5} \cxsep {#3} \vdash {#1} : {#2}\ \{{#4}\}}
+%\renewcommand\J[5]{{#5} \cxsep {#3} \vdash {#1} : {#2} \dblcolon {#4}}
+%\renewcommand\J[5]{{#5} \cxsep {#3} \vdash {#1} : {#2} \mathbin{@} {#4}}
+%\renewcommand\J[5]{{#5} \cxsep {#3} \vdash {#1} : {#2} \sim {#4}}
 
 \newcommand\rulename\textsc
 \newcommand\kword[1]{\ensuremath{\textrm{#1}}}
@@ -226,84 +223,100 @@
 \newcommand\natz{\ensuremath{\nat_0}}
 
 %% mode commands
-%\newcommand\many{\top} \newcommand\mnone{0} \newcommand\mand{,} \newcommand\mplus{+}
 \newcommand\many{\top}
 \newcommand\mnone{\bot}
 \newcommand\mand{\sqcap} \newcommand\bigmand\bigsqcap
 \newcommand\mplus{\sqcup}
 \newcommand\mdep[2]{{#1} \to {#2}} %\to? \shortrightarrow?
-\newcommand\mundep[1]{#1} % \mundep{x} means x is ground, no dependencies
 \newcommand\mex[1]{\ex{#1}}
-\newcommand\msetdep[2]{{\todocolor\mdep{#1}{#2}}}
 
-\newcommand\mto[3]{{#1}_{#2} \!\to {#3}}
-%\renewcommand\mto[3]{{#1}\,\{{#2}\} \to {#3}}
-%\renewcommand\mto[3]{{#1} \cdot {#2} \to {#3}}
-%\renewcommand\mto[3]{{#1} \star {#2} \to {#3}}
-%\renewcommand\mto[3]{{#1} \oast {#2} \to {#3}}
+\renewcommand\many{\top} \renewcommand\mnone{0} \renewcommand\mand{\sqcap} \renewcommand\mplus{+}
+
+\newcommand\mfun[3]{{#1}_{#2} \!\to {#3}}
+%\renewcommand\mfun[3]{{#1}\,\{{#2}\} \to {#3}}
+%\renewcommand\mfun[3]{{#1} \cdot {#2} \to {#3}}
+%\renewcommand\mfun[3]{{#1} \star {#2} \to {#3}}
+%\renewcommand\mfun[3]{{#1} \oast {#2} \to {#3}}
+
+%\newcommand\sub[2]{{#1}\{#2\}}
+\let\oldmodels\models
+\renewcommand\models\vDash      %maybe?
+
+\newcommand\multiarg[1]{({#1})}
+\newcommand\multiapp[2]{{#1}\<\multiarg{#2}}
+
+\DeclareMathOperator{\dom}{dom}
+
+%% \newcommand\vars{\name{vars}}
+%% \newcommand\nils{\name{pp}}
+%% \newcommand\mode{\name{mode}}
+%% \newcommand\varsof{\vars\<}
+%% \newcommand\nilsof{\nils\<}
+%% \newcommand\modeof{\mode\<}
+
+\DeclareMathOperator{\vars}{vars}
+\DeclareMathOperator{\nils}{pp}
+\DeclareMathOperator{\mode}{mode}
+\newcommand\varsof\vars
+\newcommand\nilsof\nils
+\newcommand\modeof\mode
+
 
 
-%% %% ===== FONT OPTION 1: CHARTER ====
+%% ===== FONT OPTION 1: CHARTER ====
 
-%% %% \usepackage[scaled=0.965, scaled=0.98, proportional,semibold]{sourcesanspro}
-%% %% \usepackage[scaled=1.021,var0,varl,]{inconsolata}
-%% \usepackage[scaled=0.97, osf]{XCharter}
-%% \linespread{1.0333}
-%% \usepackage[xcharter, alty, scaled=1.0556, % scaling makes \Rightarrow too bold :(
-%%   %scaled=1.0424,
-%% ]{newtxmath}
+%% \usepackage[scaled=0.965, scaled=0.98, proportional,semibold]{sourcesanspro}
+%% \usepackage[scaled=1.021,var0,varl,]{inconsolata}
+\usepackage[scaled=0.97, osf]{XCharter}
+\linespread{1.0333}
+\usepackage[xcharter, alty, scaled=1.0556, % scaling makes \Rightarrow too bold :(
+  %scaled=1.0424,
+]{newtxmath}
 
 
-%% ===== FONT OPTION 2: PALATINO =====
-\usepackage[scaled=0.96, largesc, nohelv, osf]{newpxtext}
-%\usepackage[scaled=1.0176]{biolinum}
-%\usepackage[scaled=0.964203422764601]{inconsolata}
-\makeatletter
-%\edef\zeu@Scale{.96}            %too small
-\edef\zeu@Scale{.97}           %eyeballed 2026-11-08
-\linespread{1.08}
-\usepackage{eulervm}
-%\PassOptionsToPackage{scaled=\zeu@Scale,bbscaled=\zeu@Scale,scrscaled=\zeu@Scale}{mathalfa}
-\makeatother
+%% %% ===== FONT OPTION 2: PALATINO =====
+%% \usepackage[scaled=0.96, largesc, nohelv, osf]{newpxtext}
+%% %\usepackage[scaled=1.0176]{biolinum}
+%% %\usepackage[scaled=0.964203422764601]{inconsolata}
+%% \makeatletter
+%% %\edef\zeu@Scale{.96}            %too small
+%% \edef\zeu@Scale{.97}           %eyeballed 2026-11-08
+%% \linespread{1.08}
+%% \usepackage{eulervm}
+%% %\PassOptionsToPackage{scaled=\zeu@Scale,bbscaled=\zeu@Scale,scrscaled=\zeu@Scale}{mathalfa}
+%% \makeatother
 
-%\renewcommand\name[1]{\ensuremath{\mathrm{#1}}}
+%% %\renewcommand\name[1]{\ensuremath{\mathrm{#1}}}
 
 
 \begin{document}
-
-\todo{In progress of rewriting to use a one-context formulation where all variable usage is tracked. One-context also makes the ``is a mode'' judgment, $\Jmodeold \G \D m$, simpler.
-  I think the most ideal way to do this is to separate variable \emph{usage} from the \emph{used in a \nil-preserving way} mode.
-  Variable \emph{usage} is needed for determining finiteness dependencies in grounding applications, $t\<x$.
-  This is for precision only; weakening to include more variables is sound.
-  Variables used in a \nil-preserving way is used for introducing $\lto$; weakening this to include more variables would be unsound.
-  By separating these we allow the following: in an $\ox$-pair $(t,u)$, if $t$ uses $\hyp x P$ in a nil-preserving way, it's ok for $u$ to use $x$ in a non-nil-preserving way, e.g.~$(\tjust x)$.
-  I don't think any of our examples need this, however, and avoiding it may simplify the rules.
-}
 
 \section{notation}
 
 \[
 \begin{array}{rccll}
-  \text{vars} & x,y
+  \text{variables} & x,y
   \\
   \text{modes} & m,n &\bnfeq&
-  \mdep X y
-  \bnfor \msetdep X m
-  \bnfor \mex x m
+  x
+  \bnfor \mdep X m
+  \bnfor \mex X m
   \bnfor m \mand n \bnfor m \mplus n
   \bnfor \many \bnfor \mnone
+  \\
+  \text{variable sets} & X,Y &\bnfeq& \emptyset \bnfor X,\, x
   \\
   \text{contexts} & \G,\D &\bnfeq& \emptycx
   \bnfor \G,\, \hyp x A \bnfor \G,\, \phyp x A
   \\
-  \text{variable set} & X,Y &\bnfeq& \emptyset \bnfor X,\, x
+  \text{set contexts} & \L &\bnfeq& \emptycx \bnfor \L,\, \hyp x A
   \\
   \text{types} & A,B &\bnfeq&
   \typeforget P \bnfor A \to B \bnfor A \times B \bnfor 1 \bnfor \dots\\
   \text{pointed types} & P,Q &\bnfeq&
   P \with Q \bnfor P \ox Q \bnfor P \lto Q
   %\bnfor A \fto Q
-  \bnfor \mto \G m P
+  \bnfor \mfun \L m P
   \\
   &&&%\bnfor
   \maybeof A
@@ -329,10 +342,11 @@
   &&& (t,u) \bnfor \letpair x y t u
   \bnfor \tjust e \bnfor \letjust x t u
   \\
-  &&& \todo{need multi-$\lambda$ and multi-app!}
+  &&& \fn X t \bnfor \multiapp t {e_1 \dots e_n}
 \end{array}
 \]
 
+\vspace{2ex}\noindent
 \begin{tabular}{llp{86mm}}%{rp{25mm}p{110mm}}
   \it Syntax & \it Name & \it Interpretation\\
   $A,B$ & Types & Sets\\
@@ -346,30 +360,31 @@
   Functions $f : A \to P$ such that $\support{f} \defeq \{ x : f(x) \ne \nil \}$ is finite.
 \end{tabular}
 
+\vspace{2ex} \noindent
 \begin{tabular}{lp{108mm}}
   \em Mode & \em Interpretation \\
-  $\mdep{x_1\dots\,x_n}{y}$
-  &
-  A finiteness dependency:
-  for fixed $x_1\dots\,x_n$, finitely many $y$ satisfy the relation.
-  Operationally, grounds $y$ if $x_1\dots\,x_n$ are ground.
+  $x$ & Finitely many values of $x$ satisfy the relation.
   \\
-  $\msetdep{X}{m}$
-  &
-  A conditional dependency.
-  \todo{Explain. Does this fully generalize regular finiteness dependencies $\mdep{x_1\dots\,x_n}{y}$?}
+  $\mdep X m$ &
+  The mode $m$ holds once the variables in $X$ are fixed.
+  For instance, $\mdep x y$ means for each $x$ there are finitely many $y$.
   \\
-  $\mex x m$ & Existential projection: the relation $m$ with the variable $x$ hidden.
+  $\mex X m$ &
+  Existential projection: a relation satisfying $m$ with the variables in $X$ hidden.
   \\
-  $m \mand n$ & Intersection of relations; union of their dependencies.
+  $m \mand n$ &
+  Both $m, n$ hold.
+  Intersection of relations; union of their dependencies.
   \\
-  $m \mplus n$ & Union of relations.
+  $m \mplus n$ &
+  Union of relations.
   Can be approximated as the intersection of the closure of their dependencies.
   \\
-  $\mnone$ & Empty relation. Identity of ${\mand}$.\\
-  $\many$ & Unknown; any relation. Identity of ${\mplus}$.
+  $\many$ & Unknown; any relation. Identity of ${\mand}$.\\
+  $\mnone$ & Empty relation. Identity of ${\mplus}$.
 \end{tabular}
 
+\vspace{2ex} \noindent
 \begin{tabular}{lp{108mm}}
   \em Judgment & \em Interpretation
   \\
@@ -381,60 +396,151 @@
   It has mode $m$.
   \\
   $\Jmode \G m$ &
-  The mode $m$ uses variables in $\G$.
-  It constrains only set variables $\hyp x A \in \G$, and may depend upon both those and pointed variables $\phyp y P \in \G$.
+  The mode $m$ refers only to variables in $\G$.
 \end{tabular}
 
 
-\newcommand\sub[2]{{#1}\{#2\}}
-\let\oldmodels\models
-\renewcommand\models\vDash      %maybe?
+\newcommand\ground{\name{ground}}
 
+\section{An algebra of contexts?}
+
+A \emph{context} is a triple $\Omega = (\G, X, m)$ of a typing context $\G$, a set of variables $X$, and a mode $m$.
+We write $\O \vdash t : P$ for $\J t P X m \G$. We define:
+%
+\begin{align*}
+  \varsof {(\G,X,m)} &\defeq \G
+  &
+  \nilsof {(\G,X,m)} &\defeq X
+  &
+  \modeof {(\G,X,m)} &\defeq m
+  &
+  \dom \O &\defeq \dom (\varsof \O)
+\end{align*}
+
+\newcommand\consistent[2]{{#1} \mathbin{\uparrow} {#2}}
+\newcommand\cxox\ox
+\newcommand\cxwith\with
+
+\noindent
+Then we define some operators on contexts:
+%
+\begin{align*}
+  (\G_1, X_1, m_1) \cxox (\G_2, X_2, m_2)
+  &\defeq
+  (\G_1 \cup \G_2,\, X_1 \cup X_2,\, (m_1 \mand m_2))
+  \\
+  (\G_1, X_1, m_1) \cxwith (\G_2, X_2, m_2)
+  &\defeq
+  (\G_1 \cup \G_2,\, X_1 \cap X_2,\, (m_1 \mplus m_2))
+  \\
+  \ex {\G_2} (\G_1, X, m) &\defeq
+  (\G_1 \setminus \G_2,\, X \setminus \dom {\G_2},\, \ex{(\dom \G_2)} m)
+  \\
+  (\G, X, m) \mand n &\defeq (\G, X, m \mand n)
+\end{align*}
+
+\noindent
+The operators $\G_1 \cup \G_2$ and $\G_1 \setminus \G_2$ are defined only when $\G_1,\G_2$ are \emph{consistent,} that is, do not assign unequal types to the same variable $x$.
+This makes them, and the context operators $\cxox,\cxwith,\exists$ defined using them, partial functions.
+Where we use these in the conclusion or premises of a typing judgment, the judgment is derivable only when this result is defined.
+%Let $\consistent {\G_1} {\G_2}$ indicate that the typing contexts $\G_1,\G_2$ are consistent.
+
+\begin{mathpar}
+  \infer[var]{
+    \phyp x P \in \G
+  }{
+    (\G, x, \many) \vdash x : P
+  }
+\\
+  \infer[$\to$\,i]{
+    \O \vdash t : P \\
+    X = \dom \L \\
+    \modeof \O \mand \ground(\dom \O \setminus X) \models m
+  }{
+    \ex \L \O \vdash \fn X t : \mfun \L m P
+  }
+
+  \infer[$\to$\,e~var]{
+    \O \vdash t : \mfun \L m P\\
+    X = \dom \L
+  }{
+    \O \cxox (\L, X, \mdep{\dom \O} m) \vdash \multiapp t X : P
+  }
+\\
+  \infer[$\ox$\,i]{
+    \O_1 \vdash t_1 : P_1\\
+    \O_2 \vdash t_2 : P_2
+  }{
+    \O_1 \cxox \O_2 \vdash (t_1, t_2) : P_1 \ox P_2
+  }
+
+  \infer[$\with$\,i]{
+    \O_1 \vdash t_1 : P_1\\
+    \O_2 \vdash t_2 : P_2
+  }{
+    \O_1 \cxwith \O_2 \vdash \withpair{t_1, t_2} : P_1 \with P_2
+  }
+\\
+  \infer[$\ox$\,e]{
+    \O_1 \vdash t : P_1 \ox P_2\\
+    \O_2 \vdash u : Q\\
+    x,y \subseteq \nils \O_2
+  }{
+    \O_1 \cxox \ex{(\phyp x {P_1}, \phyp y {P_2})} \O_2
+    \vdash \letpair x y t u : Q
+  }
+
+  \infer[$\with$\,e]{
+    \O \vdash t : P_1 \with P_2
+  }{
+    \O \vdash \pi_i \<t : P_i
+  }
+\end{mathpar}
+
+
 \section{Typing rules}
 
-\newcommand\ground{\name{ground}}
-\newcommand\setofcx[1]{\dom{{#1}}}
-
-Let $\setofcx{\G} = \{x : \hyp x A \in \G\} \cup \{x : \phyp x P \in \G\}$ be the domain of $\G$ (its variable set).
-Let $\ground(\G) \defeq \bigmand_{x \in \dom \G} \mundep{x}$ be the mode that says all variables in $\G$ are ground / finitely constrained---pointed variables $\phyp x A \in \G$ included.
-This means that unfortunately we do \emph{not} have $\Jmode \G {\ground(\G)}$ when $\G$ contains pointed variables; however, this is necessary to make \rulename{$\to$\,i} work.
-\TODO{rethink $\Jmode \G m$. Should we just allow pointed vars?}
+Let $\dom \G$ be the set of variables given types by $\G$.
+Let $\ground(\G) \defeq \bigmand_{x \in \dom \G} x$ be the mode that says all variables in $\G$ are ground / finitely constrained (pointed variables $\phyp x A \in \G$ included).
 
 \TODO{need rule like \rulename{$\to$\,e~var} but that mixes vars and terms in argument list.}
 %
 \begin{mathpar}
   \infer[$\to$\,i]{
-    \J t P X m {\G, \D}
+    \J t P Y m {\G, \L'}
     \\
-    \D = (\hyp{x_i}{A_i})_i
+    \L' \subseteq \L
     \\
-    \Jmode \D n
+    X = \dom\L
+    \\
+    \Jmode \L n
     \\
     \ground(\G) \mand m \models n
   }{
-    \J {\fn {x_1 \dots\, x_n} t} {\mto \D n P} X {\mex{x_1\dots\,x_n} m} \G
+    \J {\fn X t} {\mfun \L n P} Y {\mex X m} \G
   }
 
   \infer[$\to$\,e~var]{
-    \J t {\mto \D n P} X m \G
+    \J t {\mfun \L n P} X m \G
     \\
-    \D = (\hyp{x_i}{A_i})_i \subseteq \G
+    Y = \dom \L \subseteq \G
   }{
-    \J {t \< (x_1 \dots\, x_n)} P X {m \mand (\msetdep{\dom\G}{n})} \G
+    \J {t \< Y} P X {m \mand (\mdep{\dom\G}{n})} \G
   }
 \\
   \infer[$\ox$\,i]{
-    \J {t_1} {P_1} {X_1} {m_1} \G\\
-    \J {t_2} {P_2} {X_2} {m_2} \G
+    \J {t_1} {P_1} {X_1} {m_1} {\G_1}\\
+    \J {t_2} {P_2} {X_2} {m_2} {\G_2}
   }{
-    \Jold {(t_1,t_2)} {P_1 \ox P_2} \G {X_1 \cup X_2} {m_1 \mand m_2}
+    \J {(t_1,t_2)} {P_1 \ox P_2} {X_1 \cup X_2} {m_1 \mand m_2} {\G_1 \cup \G_2}
   }
 
   \infer[$\with$\,i]{
-    \J {t_1} {P_1} {X_1} {m_1} \G\\
-    \J {t_2} {P_2} {X_2} {m_2} \G
+    \J {t_1} {P_1} {X_1} {m_1} {\G_1}\\
+    \J {t_2} {P_2} {X_2} {m_2} {\G_2}
   }{
-    \J {\withpair{t_1, t_2}} {P_1 \with P_2} {X_1 \cap X_2} {m_1 \mplus m_2} \G
+    \J {\withpair{t_1, t_2}} {P_1 \with P_2} {X_1 \cap X_2} {m_1 \mplus m_2}
+       {\G_1 \cup \G_2}
   }
 
   \TODO{$\ox$\,e}
@@ -442,6 +548,7 @@ This means that unfortunately we do \emph{not} have $\Jmode \G {\ground(\G)}$ wh
   \TODO{$\with$\,e}
 \end{mathpar}
 
+\noindent
 \todo{\strong{FIXME:}} An example in \rulename{$\to$\,i} of $\ground(\G) \mand m \models n$ being needed with pointed $\phyp x P \in \G$ is $\eta$-expansion of a finitely supported function variable:
 \begin{mathpar}
   \infer*{
@@ -451,25 +558,26 @@ This means that unfortunately we do \emph{not} have $\Jmode \G {\ground(\G)}$ wh
       \J {f\<x} P {f} {\mdep f x} {\phyp f {A \fto P},\, \hyp x A}
     }
     \\
-    \Jmode {\hyp x A} {\mundep x}
+    \Jmode {\hyp x A} {x}
     \\
-    \ground(\phyp f {A \fto P}) \mand ({\mdep f x}) \models \mundep x
+    \ground(\phyp f {A \fto P}) \mand ({\mdep f x}) \models x
   }{
     \J {\fn {x} {f\<x}}
-       {\mto {(\param x A)} {\mundep x} P}
+       {\mfun {(\param x A)} {x} P}
        f
        {\mex{x} \mdep f x}
        {\phyp f {A \fto P}}
   }
 \end{mathpar}
 
+\noindent
 \strong{Question}: Should $n$ in \rulename{$\to$\,i} be $\ex{\G} m$?
 \strong{Answer}: No!
 We are not projecting away the variables in $\G$, we are fixing them, which is stronger.
 Relational $\lambda$ is effectively a group-by, and each group receives concrete fixed values for the group-by variables in $\G$.
 A concrete example:
 Let $\G = (x:A)$, $\L = (y:B)$, $m = \mdep x y$.
-Then $n=y$ is acceptable because $m \mand \ground{\G} = \mdep x y \mand x \models y = n$.
+Then $n=y$ is acceptable because $m \mand \ground(\G) = \mdep x y \mand x \models y$.
 But $\ex{\G} m = \ex{x} \mdep x y = \many$ does not entail $y$.
 
 \newcommand\wantcolor{\color{RoyalBlue}}
@@ -477,11 +585,16 @@ But $\ex{\G} m = \ex{x} \mdep x y = \many$ does not entail $y$.
 
 \subsection{Pointed variables in finiteness dependencies}
 
-\TODO{Explain why we need pointed vars in both LHSes and RHSes of finiteness dependencies, sometimes.}
+In the type $\mfun \L m P$, the mode $m$ can refer only to vars in $\L$, which cannot be pointed.
+Nonetheless, we do sometimes need to talk about dependencies involving pointed variables.
 
-\TODO{Does the mode judgment $\Jmodeold \G \D m$ actually need the $\D$ context, so that modes can refer to pointed vars in the LHSes of dependencies? Argument for no: in the type $\mto \G m P$, the mode $m$ can refer only to vars in $\G$, which cannot be pointed.
+For instance, if $\phyp f {A \fto P}$ (a pointed type), then $f\<x$ ensures $x$ is finite \emph{for a fixed $f$}.
+Consider the relation $f\<x \ne \nil$: as a relation of $f,x$ this holds for infinitely many $x$, but if $f$ is fixed, we know it holds for finitely many $x$.
+This is important for type checking.
+Compare $\fn f \fn x f\< x : (A \fto P) \lto (A \fto P)$, obviously well-typed, with $\fn x \fn f f \< x : A \fto (A \lto P) \lto P$, which is semantically ill typed.
+So the mode of the term $f\<x$ cannot be $x$ (which asserts $x$ is unconditionally finite) but must instead be $\mdep f x$ (which asserts $x$ is finite for fixed $f$).
 
-  Argument for yes: if $f : A \fto P$ is a pointed var, then $f\<x$ grounds $x$ only when $f$ is fixed, so it depends on $f$. This could come up if I compare $\fn f \fn x f\< x : (A \fto P) \lto (A \fto P)$ (obviously ok) with $\fn x \fn f f \< x : A \fto (A \lto P) \lto P$ --- this is WRONG! So what mode should $f\<x$ have?}
+\TODO{Explain why we sometimes need pointed vars not only on the LHS but the RHS of dependencies, in particular in $\ground(\G)$.}
 
 
 \subsection{Example derivations}
@@ -491,34 +604,35 @@ I've colored the mode I believe is semantically correct {\wantcolor in blue}.
 %
 \begin{mathpar}
   \infer{
-    \J f P {f} \many {\hyp x A, \phyp f {\mto {(\param x A)} {\mundep x} P}}
+    \J f P {f} \many {\hyp x A, \phyp f {\mfun {(\param x A)} {x} P}}
   }{
     \J {f\<x}
        {P}
        {f}
        {\wantcolor \mdep f x}
-       {\hyp x A, \phyp f {\mto {(\param x A)} {\mundep x} P}}
+       {\hyp x A, \phyp f {\mfun {(\param x A)} {x} P}}
   }
 \end{mathpar}
 
-But also, what about applying a curried function $f : \mto {(\param x A)} {\mundep x} {\mto {(\param y B)} {\mundep y} P}$?
+\noindent
+But also, what about applying a curried function $f : \mfun {(\param x A)} {x} {\mfun {(\param y B)} {y} P}$?
 %
 \begin{mathpar}
   \infer{
     \infer{
       \J f
-         {\mto {(\param x A)} {\mundep x} {\mto {(\param y B)} {\mundep y} P}}
+         {\mfun {(\param x A)} {x} {\mfun {(\param y B)} {y} P}}
          {f}
          \many
-         {\phyp f {\mto {(\param x A)} {\mundep x} {\mto {(\param y B)} {\mundep y} P}},\,
+         {\phyp f {\mfun {(\param x A)} {x} {\mfun {(\param y B)} {y} P}},\,
            \hyp x A,\,
            \hyp y B}
     }{
       \J {f\<x}
-         {\mto {(\param y B)} {\mundep y} P}
+         {\mfun {(\param y B)} {y} P}
          {f}
          {\xxx}
-         {\phyp f {\mto {(\param x A)} {\mundep x} {\mto {(\param y B)} {\mundep y} P}},\,
+         {\phyp f {\mfun {(\param x A)} {x} {\mfun {(\param y B)} {y} P}},\,
            \hyp x A,\,
            \hyp y B}
     }
@@ -527,29 +641,30 @@ But also, what about applying a curried function $f : \mto {(\param x A)} {\mund
        {P}
        {f}
        {\xxx}
-       {\phyp f {\mto {(\param x A)} {\mundep x} {\mto {(\param y B)} {\mundep y} P}},\,
+       {\phyp f {\mfun {(\param x A)} {x} {\mfun {(\param y B)} {y} P}},\,
          \hyp x A,\, \hyp y B}
   }
 \end{mathpar}
 
+\noindent
 Or a curried function which doesn't ground its first argument $\hyp x A$?
 %
 \begin{mathpar}
   \infer{
     \infer{
       \J f
-         {\mto {(\param x A)} {\many} {\mto {(\param y B)} {\mundep y} P}}
+         {\mfun {(\param x A)} {\many} {\mfun {(\param y B)} {y} P}}
          {f}
          \many
-         {\phyp f {\mto {(\param x A)} {\many} {\mto {(\param y B)} {\mundep y} P}},\,
+         {\phyp f {\mfun {(\param x A)} {\many} {\mfun {(\param y B)} {y} P}},\,
            \hyp x A,\,
            \hyp y B}
     }{
       \J {f\<x}
-         {\mto {(\param y B)} {\mundep y} P}
+         {\mfun {(\param y B)} {y} P}
          {f}
          {\wantcolor \many}
-         {\phyp f {\mto {(\param x A)} {\many} {\mto {(\param y B)} {\mundep y} P}},\,
+         {\phyp f {\mfun {(\param x A)} {\many} {\mfun {(\param y B)} {y} P}},\,
            \hyp x A,\, \hyp y B}
     }
   }{
@@ -557,7 +672,7 @@ Or a curried function which doesn't ground its first argument $\hyp x A$?
        {P}
        {f}
        {\wantcolor \mdep{f,x} y}
-       {\phyp f {\mto {(\param x A)} {\many} {\mto {(\param y B)} {\mundep y} P}},\
+       {\phyp f {\mfun {(\param x A)} {\many} {\mfun {(\param y B)} {y} P}},\
          \hyp x A,\,
          \hyp y B}
   }
