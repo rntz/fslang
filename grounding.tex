@@ -621,9 +621,29 @@ Let $\ground(\G) \defeq \bigmand_{x \in \dom \G} x$ be the mode that says all va
        {\G_1 \cup \G_2}
   }
 
-  \TODO{$\ox$\,e}
+  \infer[$\ox$\,e]{
+    \J t {P_1 \ox P_2} X m \G\\
+    \J u Q {Y \cup \{x,y\}} n {\G,\, \phyp x {P_1},\, \phyp y {P_2}}
+  }{
+    \J {\letpair x y t u}
+    P
+    {X \cup Y}
+    {m \mand \mex {x,y} n \mand (\fv t \mto (x \mand y))}
+    \G
+  }
 
-  \TODO{$\with$\,e}
+  \infer[$\with$\,e]{
+    \J t {P_1 \with P_2} X m \G
+  }{
+    \J {\pi_i\<t} {P_i} X m \G
+  }
+
+  \infer[\nil]{
+    X \subseteq \{\phyp x P \in \G\}\\
+    \Jmode \G m
+  }{
+    \J \nil P {X} m \G
+  }
 \end{mathpar}
 
 \noindent
