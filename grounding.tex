@@ -587,15 +587,13 @@ Let $\ground(\G) \defeq \bigmand_{x \in \dom \G} x$ be the mode that says all va
 %
 \begin{mathpar}
   \infer[$\to$\,i]{
-    \J t P Y m {\G, \L'}
-    \\
-    \L' \subseteq \L
+    \J t P Y m {\G, \L}
     \\
     X = \dom\L
     \\
     \Jmode \L n
     \\
-    \ground(\G) \mand m \models n
+    m \mand \ground(\G) \models n
   }{
     \J {\fn X t} {\mfun \L n P} Y {\mex X m} \G
   }
@@ -605,7 +603,7 @@ Let $\ground(\G) \defeq \bigmand_{x \in \dom \G} x$ be the mode that says all va
     \\
     Y = \dom \L \subseteq \G
   }{
-    \J {t \< Y} P X {m \mand (\dom\G \mto n)} \G
+    \J {t \< Y} P X {m \mand (\fv t \mto n)} \G
   }
 \\
   \infer[$\ox$\,i]{
