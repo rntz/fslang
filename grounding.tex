@@ -65,15 +65,17 @@
 }{0pt}{\MakeLowercase}
 %\titleformat{\subsection}[block]{\itshape}{\thesubsection\quad}{0pt}{}
 
-\titlespacing*{\section}{0pt}{2ex}{2ex}
-\titlespacing*{\subsection}{0pt}{2ex}{2ex}
+\titlespacing*{\section}{0pt}{2ex plus 2ex}{2ex plus 2ex}
+\titlespacing*{\subsection}{0pt}{2ex plus 2ex}{2ex plus 2ex}
 
-%% %% to NOT use indentation:
-%% \setlength\parindent{0pt}
-%% \setlength\parskip{2ex}
-%% \titlespacing*{\section}{0pt}{1ex}{0pt}
-%% \titlespacing*{\subsection}{0pt}{1ex}{0pt}
-%% \titlespacing*{\paragraph}{0pt}{0pt}{1em}
+%% to NOT use indentation:
+\setlength\parindent{0pt}
+\setlength\parskip{2ex}
+\titlespacing*{\section}{0pt}{0ex plus 2ex}{0pt}
+\titlespacing*{\subsection}{0pt}{0ex plus 2ex}{0pt}
+%% \titlespacing*{\section}{0pt}{2ex plus 2ex minus 2ex}{0pt}
+%% \titlespacing*{\subsection}{0pt}{2ex plus 2ex minus 2ex}{0pt}
+\titlespacing*{\paragraph}{0pt}{0pt}{1em}
 
 %% \setlength\tabcolsep{5pt}
 %% \setlength\arraycolsep{5pt}
@@ -227,10 +229,12 @@
 \newcommand\mnone{\bot}
 \newcommand\mand{\sqcap} \newcommand\bigmand\bigsqcap
 \newcommand\mplus{\sqcup}
-\newcommand\mdep[2]{{#1} \to {#2}} %\to? \shortrightarrow?
+\newcommand\mto\to              %\to? \shortrightarrow?
 \newcommand\mex[1]{\ex{#1}}
 
-\renewcommand\many{\top} \renewcommand\mnone{0} \renewcommand\mand{\sqcap} \renewcommand\mplus{+}
+\renewcommand\many\top \renewcommand\mand\wedge \renewcommand\bigmand\bigwedge
+\renewcommand\mnone{0} \renewcommand\mplus{+}
+\renewcommand\mnone\bot \renewcommand\mplus\vee
 
 \newcommand\mfun[3]{{#1}_{#2} \!\to {#3}}
 %\renewcommand\mfun[3]{{#1}\,\{{#2}\} \to {#3}}
@@ -238,7 +242,7 @@
 %\renewcommand\mfun[3]{{#1} \star {#2} \to {#3}}
 %\renewcommand\mfun[3]{{#1} \oast {#2} \to {#3}}
 
-%\newcommand\sub[2]{{#1}\{#2\}}
+\newcommand\sub[2]{{#1}\{#2\}}
 \let\oldmodels\models
 \renewcommand\models\vDash      %maybe?
 
@@ -260,6 +264,8 @@
 \newcommand\varsof\vars
 \newcommand\nilsof\nils
 \newcommand\modeof\mode
+
+\DeclareMathOperator\fv{fv}
 
 
 
@@ -299,7 +305,7 @@
   \\
   \text{modes} & m,n &\bnfeq&
   x
-  \bnfor \mdep X m
+  \bnfor X \mto m
   \bnfor \mex X m
   \bnfor m \mand n \bnfor m \mplus n
   \bnfor \many \bnfor \mnone
@@ -365,9 +371,9 @@
   \em Mode & \em Interpretation \\
   $x$ & Finitely many values of $x$ satisfy the relation.
   \\
-  $\mdep X m$ &
+  $X \mto m$ &
   The mode $m$ holds once the variables in $X$ are fixed.
-  For instance, $\mdep x y$ means for each $x$ there are finitely many $y$.
+  For instance, $x \mto y$ means for each $x$ there are finitely many $y$.
   \\
   $\mex X m$ &
   Existential projection: a relation satisfying $m$ with the variables in $X$ hidden.
@@ -402,6 +408,80 @@
 
 \newcommand\ground{\name{ground}}
 
+\section{Unified effect approach}
+
+\newcommand\eff[2]{{#1} \mathbin{|} {#2}}
+\newcommand\Je[4]{{#1} \vdash {#2} : {#3} \rhd {#4}}
+\newcommand\Jeff[5]{\Je{#1}{#2}{#3}{\eff {#4} {#5}}}
+\newcommand\efun[3]{{#2} \overset{#1}{\to} {#3}}
+
+This is an attempt to unify strictness (nil preservation) and grounding (finiteness dependency analysis) into one `effect' annotation, as both of them are abstractions of a term's support in the abstract interpretation sense.
+The term $t$ being strict in $x$ means $x = \nil \implies t = nil$, or conversely that $x \ne \nil$ within the support of $t$.
+A finiteness dependency $X \mto y$ means that, in any subset of the support with a fixed valuation for $X$, there are finitely many $y$.
+These are downward closed properties of relations (if $R$ satisfies, so does any subset $S \subseteq R$), so overapproximating a term's support is sound.
+Moreover, both are closed under finite union, making them \emph{ideals} on the powerset lattice.
+\todo{What does ideal-ness gain us? I think something to do with constructive logic being sound on them?}
+
+%
+Judgment: $\G \vdash t : P \rhd e$, where $e = \eff s g$ is a combination of a strictness mode $s$ and a grounding mode $g$.
+%% We define substitution on effects as follows:
+%% \begin{1align*}
+%%   \sub{(\eff s m)}{\sigma}
+%%   &\defeq
+%%   \eff{\sub s \sigma}{\sub m \sigma}
+%%   \\
+%%   \sub x \sigma &\defeq \sigma(x)
+%% \end{align*}
+
+%% Define substitution on grounding modes $g$:
+%% \begin{align*}
+%%   \sub g {Y/x} &\defeq \mex x g \mand (Y \mto x)
+%% \end{align*}
+
+Given a variable $x$ and expression $e$ we define the grounding mode $x \doteq e$, an extremely simple approximation of unification or pattern-matching, as follows:
+%
+\begin{align*}
+  x \doteq e &=
+  (\fv e \mto x) \wedge
+  \begin{cases}
+    x \mto y & \text{if}~ e = y ~\text{for some variable}~y\\
+    \top     & \text{otherwise}
+  \end{cases}
+\end{align*}
+
+Rules:
+%
+\begin{mathpar}
+  \infer{
+    \Je \G {t_1} {P \lto Q} {e_1}\\
+    \Je \G {t_2} P {e_2}
+  }{
+    \Je \G {t_1\<t_2} Q {e_1 \wedge e_2}
+  }
+
+  \infer{
+    \Jeff \G {t} {\mfun {(\hyp x A)} {h} P} s g\\
+    \G \vdash e : A
+  }{
+    \Jeff \G
+          {t \<e}
+          P
+          s
+          {g \wedge ({\fv t} \mto \mex x {h \mand x \doteq e})}
+  }
+
+  \infer{
+    \Je \G {t_1} {\efun e {(\phyp x P)} Q} {e_1}\\
+    \Je \G {t_2} P {e_2}
+  }{
+    \Je \G {t_1\<t_2} Q {e_1 \wedge
+      %\sub{e}{x\mapsto e_2}
+      \xxx
+    }
+  }
+\end{mathpar}
+
+
 \section{An algebra of contexts?}
 
 A \emph{context} is a triple $\Omega = (\G, X, m)$ of a typing context $\G$, a set of variables $X$, and a mode $m$.
@@ -455,7 +535,7 @@ Where we use these in the conclusion or premises of a typing judgment, the judgm
   \infer[$\to$\,i]{
     \O \vdash t : P \\
     X = \dom \L \\
-    \modeof \O \mand \ground(\dom \O \setminus X) \models m
+    \modeof \O \mand \fv(\fn X t) \models m
   }{
     \ex \L \O \vdash \fn X t : \mfun \L m P
   }
@@ -464,7 +544,7 @@ Where we use these in the conclusion or premises of a typing judgment, the judgm
     \O \vdash t : \mfun \L m P\\
     X = \dom \L
   }{
-    \O \cxox (\L, X, \mdep{\dom \O} m) \vdash \multiapp t X : P
+    \O \cxox (\L, X, \dom \O \mto m) \vdash \multiapp t X : P
   }
 \\
   \infer[$\ox$\,i]{
@@ -525,7 +605,7 @@ Let $\ground(\G) \defeq \bigmand_{x \in \dom \G} x$ be the mode that says all va
     \\
     Y = \dom \L \subseteq \G
   }{
-    \J {t \< Y} P X {m \mand (\mdep{\dom\G}{n})} \G
+    \J {t \< Y} P X {m \mand (\dom\G \mto n)} \G
   }
 \\
   \infer[$\ox$\,i]{
@@ -555,17 +635,17 @@ Let $\ground(\G) \defeq \bigmand_{x \in \dom \G} x$ be the mode that says all va
     \infer*{
       \cdots
     }{
-      \J {f\<x} P {f} {\mdep f x} {\phyp f {A \fto P},\, \hyp x A}
+      \J {f\<x} P {f} {f \mto x} {\phyp f {A \fto P},\, \hyp x A}
     }
     \\
     \Jmode {\hyp x A} {x}
     \\
-    \ground(\phyp f {A \fto P}) \mand ({\mdep f x}) \models x
+    \ground(\phyp f {A \fto P}) \mand (f \mto x) \models x
   }{
     \J {\fn {x} {f\<x}}
        {\mfun {(\param x A)} {x} P}
        f
-       {\mex{x} \mdep f x}
+       {\mex{x} f \mto x}
        {\phyp f {A \fto P}}
   }
 \end{mathpar}
@@ -576,9 +656,9 @@ Let $\ground(\G) \defeq \bigmand_{x \in \dom \G} x$ be the mode that says all va
 We are not projecting away the variables in $\G$, we are fixing them, which is stronger.
 Relational $\lambda$ is effectively a group-by, and each group receives concrete fixed values for the group-by variables in $\G$.
 A concrete example:
-Let $\G = (x:A)$, $\L = (y:B)$, $m = \mdep x y$.
-Then $n=y$ is acceptable because $m \mand \ground(\G) = \mdep x y \mand x \models y$.
-But $\ex{\G} m = \ex{x} \mdep x y = \many$ does not entail $y$.
+Let $\G = (x:A)$, $\L = (y:B)$, $m = x \mto y$.
+Then $n=y$ is acceptable because $m \mand \ground(\G) = x \mto y \mand x \models y$.
+But $\ex{\G} m = \ex{x} x \mto y = \many$ does not entail $y$.
 
 \newcommand\wantcolor{\color{RoyalBlue}}
 
@@ -592,7 +672,7 @@ For instance, if $\phyp f {A \fto P}$ (a pointed type), then $f\<x$ ensures $x$ 
 Consider the relation $f\<x \ne \nil$: as a relation of $f,x$ this holds for infinitely many $x$, but if $f$ is fixed, we know it holds for finitely many $x$.
 This is important for type checking.
 Compare $\fn f \fn x f\< x : (A \fto P) \lto (A \fto P)$, obviously well-typed, with $\fn x \fn f f \< x : A \fto (A \lto P) \lto P$, which is semantically ill typed.
-So the mode of the term $f\<x$ cannot be $x$ (which asserts $x$ is unconditionally finite) but must instead be $\mdep f x$ (which asserts $x$ is finite for fixed $f$).
+So the mode of the term $f\<x$ cannot be $x$ (which asserts $x$ is unconditionally finite) but must instead be $f \mto x$ (which asserts $x$ is finite for fixed $f$).
 
 \TODO{Explain why we sometimes need pointed vars not only on the LHS but the RHS of dependencies, in particular in $\ground(\G)$.}
 
@@ -609,7 +689,7 @@ I've colored the mode I believe is semantically correct {\wantcolor in blue}.
     \J {f\<x}
        {P}
        {f}
-       {\wantcolor \mdep f x}
+       {\wantcolor f \mto x}
        {\hyp x A, \phyp f {\mfun {(\param x A)} {x} P}}
   }
 \end{mathpar}
@@ -671,7 +751,7 @@ Or a curried function which doesn't ground its first argument $\hyp x A$?
     \J {f\<x\<y}
        {P}
        {f}
-       {\wantcolor \mdep{f,x} y}
+       {\wantcolor {f,x} \mto y}
        {\phyp f {\mfun {(\param x A)} {\many} {\mfun {(\param y B)} {y} P}},\
          \hyp x A,\,
          \hyp y B}
