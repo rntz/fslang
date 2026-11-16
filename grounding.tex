@@ -540,11 +540,28 @@ Given a variable $x$ and expression $e$ we define the grounding mode $x \doteq e
 Rules:
 %
 \begin{mathpar}
-  \infer[$\to$\,i]{
+  \infer[$\lto$\,i]{
+    \Je {\G,\phyp x P} {t} {Q} {m}\\
+    m \models \strictin x
+  }{
+    \Je \G {\fn x t} {P \lto Q} {\mex x m}
+  }
+
+  \infer[$\lto$\,e]{
     \Je \G {t_1} {P \lto Q} {m_1}\\
     \Je \G {t_2} P {m_2}
   }{
     \Je \G {t_1\<t_2} Q {m_1 \wedge m_2}
+  }
+\\
+  \infer[$\to$\,i]{
+    \Je \G t P m\\
+    \msub m \emptyset {\dom\L} \models g
+  }{
+    \Je \G
+        {\fn \L t}
+        {\efun g \L P}
+        {\mex {(\dom \L)} m}
   }
 
   %% \infer{
