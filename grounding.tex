@@ -237,6 +237,7 @@
 \renewcommand\mnone\bot \renewcommand\mplus\vee
 
 \newcommand\mfun[3]{{#1}_{#2} \!\to {#3}}
+\renewcommand\mfun[3]{{#1} \overset{#2}{\to} {#3}}
 %\renewcommand\mfun[3]{{#1}\,\{{#2}\} \to {#3}}
 %\renewcommand\mfun[3]{{#1} \cdot {#2} \to {#3}}
 %\renewcommand\mfun[3]{{#1} \star {#2} \to {#3}}
@@ -273,14 +274,26 @@
 
 %% \usepackage[scaled=0.965, scaled=0.98, proportional,semibold]{sourcesanspro}
 %% \usepackage[scaled=1.021,var0,varl,]{inconsolata}
-\usepackage[scaled=0.97, osf]{XCharter}
 \linespread{1.0333}
+\usepackage[scaled=0.97, osf]{XCharter}
 \usepackage[xcharter, alty, scaled=1.0556, % scaling makes \Rightarrow too bold :(
   %scaled=1.0424,
 ]{newtxmath}
 
+%% makes math use old-style figures
+\DeclareSymbolFont{operators}{T1}{XCharter-OsF}{m}{n}
+\SetSymbolFont{operators}{bold}{T1}{XCharter-OsF}{b}{n}
+\DeclareMathAlphabet{\mathbf}{T1}{XCharter-OsF}{b}{n}
+
 
-%% %% ===== FONT OPTION 2: PALATINO =====
+%% %% ===== FONT OPTION 2: LIBERTINE =====
+%% %% osf is questionable: makes math mode use old-style figures
+%% \usepackage[llscale=1.0424583,scale=1.0424583,mono=false,p,osf]{libertine}
+%% \usepackage[libertine, scaled = 1.0424583]{newtxmath}
+%% \linespread{1.038705401695506}
+
+
+%% %% ===== FONT OPTION 3: PALATINO =====
 %% \usepackage[scaled=0.96, largesc, nohelv, osf]{newpxtext}
 %% %\usepackage[scaled=1.0176]{biolinum}
 %% %\usepackage[scaled=0.964203422764601]{inconsolata}
@@ -417,13 +430,57 @@
 
 This is an attempt to unify strictness (nil preservation) and grounding (finiteness dependency analysis) into one `effect' annotation, as both of them are abstractions of a term's support in the abstract interpretation sense.
 The term $t$ being strict in $x$ means $x = \nil \implies t = nil$, or conversely that $x \ne \nil$ within the support of $t$.
+%A finiteness dependency $X \mto y$ means that, within the support, once we fix a value for each $x \in X$, there are finitely many $y$.
 A finiteness dependency $X \mto y$ means that, in any subset of the support with a fixed valuation for $X$, there are finitely many $y$.
 These are downward closed properties of relations (if $R$ satisfies, so does any subset $S \subseteq R$), so overapproximating a term's support is sound.
-Moreover, both are closed under finite union, making them \emph{ideals} on the powerset lattice.
-\todo{What does ideal-ness gain us? I think something to do with constructive logic being sound on them?}
 
-%
-Judgment: $\G \vdash t : P \rhd e$, where $e = \eff s g$ is a combination of a strictness mode $s$ and a grounding mode $g$.
+Moreover, both are closed under finite union, making them \emph{ideals} on the powerset lattice.
+Within the lattice of ideals of relations, $I_1 \vee I_2 = \{R_1 \cup R_2 : R_i \in I_i\}$ and $I_1 \wedge I_2 = \{R_1 \cap R_2 : R_i \in I_i\}$, so the join/meet of ideals gives the appropriate lifting of relational union/intersection.
+\todo{
+  It also implies constructive logic is sound for reasoning about them, eg. $(m \models p)$ and $(n \models p)$ implies $(m \vee n) \models p$.
+  Anything else?
+}
+
+Therefore we combine strictness and finiteness dependencies into one unified syntax for `generalized modes' $m$:
+
+\newcommand\strictin[1]{\ensuremath{{!{#1}}}}
+
+\begin{tabular}{lp{13cm}}
+  \em Mode & \em Meaning\\
+  $x$ & There are finitely many $x$ values. Used only for set variables $\hyp x A$.\\
+  $\strictin x$ & The relation implies $x \ne \nil$; the term is strict/nil-preserving in $x$.
+  Used only for pointed variables $\phyp x P$.
+  \\
+  $X \mto m$ & The mode $m$ holds once the variables in $X$ are fixed.
+  For instance, $x \mto y$ means there are finitely many $y$ values for each $x$ value.
+  This has no effect on strictness modes; $x \mto !y$ means ``for any $x$ value, $y \ne \nil$'', which is the same as saying $y \ne \nil$ globally.\\
+  $\mex X m$ &
+  Existential projection: a relation satisfying $m$ with the variables in $X$ hidden.
+  \\
+  $m \mand n$ &
+  Both $m, n$ hold.
+  Intersection of relations; union of their dependencies, strict in anything either is strict in.
+  \\
+  $m \mplus n$ &
+  Join of ideals; union of relations.
+  For finiteness, this can be soundly approximated as the intersection of the closure of their dependencies.
+  Strict in anything both are strict in, thus soundly approximated by intersection of the variables each is strict in.
+  \todo{However, this is imprecise; being more precise here would allow pattern-matching on $\with$-tuples $\withpair{t,u}$.}
+  \\
+  $\many$ & Unknown; any relation. Identity of ${\mand}$.\\
+  $\mnone$ & Empty relation. Identity of ${\mplus}$.
+\end{tabular}
+
+Our aim is to give rules parameterized by a choice of some sound approximation of this abstract domain (itself already an abstraction of relations).
+To this end we assume a judgement for entailment of modes, $m \models n$, which is sound (if it is derivable, then $m \models n$; but it may fail to be derivable even if $m \models n$ semantically).
+For instance, if term $t$ has mode $m$ then $m \models x$ means the term finitely supports $x$, and $m \models \strictin x$ means the term is strict in $x$.
+
+Although we present a unified syntax, in fact it is always possible to separate a mode $m$ into a conjunction of a `strictness mode' (which is free of finiteness $x$ or dependencies $X \mto m$) and a `grounding mode' (free of $\strictin x$).
+
+We also give one possible implementation, from which the rules in the Finite FP paper follow as a special case: a mode $m$ may be represented as a pair $(X,H)$ where $X$ is a set of variables used strictly, and $H$ is a set of finiteness dependencies $X \mto y$, with the interpretation $(\bigwedge_{x \in X} \strictin x) \wedge (\bigwedge_{X \mto y \in H} X \mto y)$.
+\todo{A refinement of this where $X$ is a formal sum or union of sets of variables handles pattern-matching on $\with$-pairs possible.}
+
+Judgment: $\G \vdash t : P \rhd m$, where $m = \eff s g$ is a combination of a strictness mode $s$ and a grounding mode $g$.
 %% We define substitution on effects as follows:
 %% \begin{1align*}
 %%   \sub{(\eff s m)}{\sigma}
@@ -441,7 +498,8 @@ Judgment: $\G \vdash t : P \rhd e$, where $e = \eff s g$ is a combination of a s
 Given a variable $x$ and expression $e$ we define the grounding mode $x \doteq e$, an extremely simple approximation of unification or pattern-matching, as follows:
 %
 \begin{align*}
-  x \doteq e &=
+  x \doteq e
+  &\defeq
   (\fv e \mto x) \wedge
   \begin{cases}
     x \mto y & \text{if}~ e = y ~\text{for some variable}~y\\
@@ -453,36 +511,49 @@ Rules:
 %
 \begin{mathpar}
   \infer{
-    \Je \G {t_1} {P \lto Q} {e_1}\\
-    \Je \G {t_2} P {e_2}
+    \Je \G {t_1} {P \lto Q} {m_1}\\
+    \Je \G {t_2} P {m_2}
   }{
-    \Je \G {t_1\<t_2} Q {e_1 \wedge e_2}
+    \Je \G {t_1\<t_2} Q {m_1 \wedge m_2}
   }
 
   \infer{
-    \Jeff \G {t} {\mfun {(\hyp x A)} {h} P} s g\\
+    \Je \G {t} {\mfun {(\hyp x A)} {g} P} m\\
     \G \vdash e : A
   }{
-    \Jeff \G
-          {t \<e}
-          P
-          s
-          {g \wedge ({\fv t} \mto \mex x {h \mand x \doteq e})}
+    \Je \G
+        {t \<e}
+        P
+        {m \wedge (\eff \emptyset {g \mand \mex x x \doteq e \mand (\fv t \mto g)})}
   }
 
   \infer{
-    \Je \G {t_1} {\efun e {(\phyp x P)} Q} {e_1}\\
-    \Je \G {t_2} P {e_2}
+    \Je \G {t} {\mfun {\L} {g} P} m\\
+    \G \vdash e : A
   }{
-    \Je \G {t_1\<t_2} Q {e_1 \wedge
-      %\sub{e}{x\mapsto e_2}
-      \xxx
-    }
+    \Je \G
+        {t \<e}
+        P
+        {m \wedge (\eff \emptyset {\fv t \mto \mex x {g \mand x \doteq e}})}
   }
+
+  %% \infer{
+  %%   \Je \G {t_1} {\efun m {(\phyp x P)} Q} {m_1}\\
+  %%   \Je \G {t_2} P {m_2}
+  %% }{
+  %%   \Je \G {t_1\<t_2} Q {m_1 \wedge
+  %%     %\sub{m}{x\mapsto m_2}
+  %%     \xxx
+  %%   }
+  %% }
 \end{mathpar}
 
 
 \section{An algebra of contexts?}
+
+\newcommand\consistent[2]{{#1} \mathbin{\uparrow} {#2}}
+\newcommand\cxox\ox
+\newcommand\cxwith\with
 
 A \emph{context} is a triple $\Omega = (\G, X, m)$ of a typing context $\G$, a set of variables $X$, and a mode $m$.
 We write $\O \vdash t : P$ for $\J t P X m \G$. We define:
@@ -496,12 +567,7 @@ We write $\O \vdash t : P$ for $\J t P X m \G$. We define:
   &
   \dom \O &\defeq \dom (\varsof \O)
 \end{align*}
-
-\newcommand\consistent[2]{{#1} \mathbin{\uparrow} {#2}}
-\newcommand\cxox\ox
-\newcommand\cxwith\with
-
-\noindent
+%
 Then we define some operators on contexts:
 %
 \begin{align*}
@@ -544,7 +610,7 @@ Where we use these in the conclusion or premises of a typing judgment, the judgm
     \O \vdash t : \mfun \L m P\\
     X = \dom \L
   }{
-    \O \cxox (\L, X, \dom \O \mto m) \vdash \multiapp t X : P
+    \O \cxox (\L, X, \fv t \mto m) \vdash \multiapp t X : P
   }
 \\
   \infer[$\ox$\,i]{
@@ -607,26 +673,26 @@ Let $\ground(\G) \defeq \bigmand_{x \in \dom \G} x$ be the mode that says all va
   }
 \\
   \infer[$\ox$\,i]{
-    \J {t_1} {P_1} {X_1} {m_1} {\G_1}\\
-    \J {t_2} {P_2} {X_2} {m_2} {\G_2}
+    \J {t_1} {P_1} {X_1} {m_1} \G\\
+    \J {t_2} {P_2} {X_2} {m_2} \G
   }{
-    \J {(t_1,t_2)} {P_1 \ox P_2} {X_1 \cup X_2} {m_1 \mand m_2} {\G_1 \cup \G_2}
+    \J {(t_1,t_2)} {P_1 \ox P_2} {X_1 \cup X_2} {m_1 \mand m_2} \G
   }
 
   \infer[$\with$\,i]{
-    \J {t_1} {P_1} {X_1} {m_1} {\G_1}\\
-    \J {t_2} {P_2} {X_2} {m_2} {\G_2}
+    \J {t_1} {P_1} {X_1} {m_1} \G\\
+    \J {t_2} {P_2} {X_2} {m_2} \G
   }{
     \J {\withpair{t_1, t_2}} {P_1 \with P_2} {X_1 \cap X_2} {m_1 \mplus m_2}
-       {\G_1 \cup \G_2}
+       \G
   }
 
   \infer[$\ox$\,e]{
     \J t {P_1 \ox P_2} X m \G\\
-    \J u Q {Y \cup \{x,y\}} n {\G,\, \phyp x {P_1},\, \phyp y {P_2}}
+    \J u Q {Y \uplus \{x,y\}} n {\G, \phyp x {P_1}, \phyp y {P_2}}
   }{
     \J {\letpair x y t u}
-    P
+    Q
     {X \cup Y}
     {m \mand \mex {x,y} n \mand (\fv t \mto (x \mand y))}
     \G
@@ -639,8 +705,9 @@ Let $\ground(\G) \defeq \bigmand_{x \in \dom \G} x$ be the mode that says all va
   }
 
   \infer[\nil]{
-    X \subseteq \{\phyp x P \in \G\}\\
+    X \subseteq \{x : (\phyp x P) \in \G\}\\
     \Jmode \G m
+    \\ \todo{these premises are ugly}
   }{
     \J \nil P {X} m \G
   }
