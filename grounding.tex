@@ -432,7 +432,8 @@ This is an attempt to unify strictness (nil preservation) and grounding (finiten
 The term $t$ being strict in $x$ means $x = \nil \implies t = nil$, or conversely that $x \ne \nil$ within the support of $t$.
 %A finiteness dependency $X \mto y$ means that, within the support, once we fix a value for each $x \in X$, there are finitely many $y$.
 A finiteness dependency $X \mto y$ means that, in any subset of the support with a fixed valuation for $X$, there are finitely many $y$.
-These are downward closed properties of relations (if $R$ satisfies, so does any subset $S \subseteq R$), so overapproximating a term's support is sound.
+These are downward closed properties, so overapproximating a term's support is sound:
+if $t$ has support $S \subseteq S_\text{approx}$ and $S_\text{approx}$ satisfies some strictness or finiteness properties, so does $S$ and therefore $t$.
 
 Moreover, both are closed under finite union, making them \emph{ideals} on the powerset lattice.
 Within the lattice of ideals of relations, $I_1 \vee I_2 = \{R_1 \cup R_2 : R_i \in I_i\}$ and $I_1 \wedge I_2 = \{R_1 \cap R_2 : R_i \in I_i\}$, so the join/meet of ideals gives the appropriate lifting of relational union/intersection.
@@ -444,16 +445,21 @@ Within the lattice of ideals of relations, $I_1 \vee I_2 = \{R_1 \cup R_2 : R_i 
 Therefore we combine strictness and finiteness dependencies into one unified syntax for `generalized modes' $m$:
 
 \newcommand\strictin[1]{\ensuremath{{!{#1}}}}
+%\newcommand\msub[3]{{#1}[{#3} \mathbin{/} {#2}]}
+\newcommand\msub[3]{{#1}[{#2} \mto {#3}]}
 
 \begin{tabular}{lp{13cm}}
   \em Mode & \em Meaning\\
-  $x$ & There are finitely many $x$ values. Used only for set variables $\hyp x A$.\\
+  $x$ & There are finitely many $x$ values.
+  A term can always be given a mode that asserts finite support only for set variables $\hyp x A$, not pointed variables $\phyp x P$, although the latter may appear on the left hand side of dependencies $X \mto m$.
+  \\
   $\strictin x$ & The relation implies $x \ne \nil$; the term is strict/nil-preserving in $x$.
-  Used only for pointed variables $\phyp x P$.
+  Only used for pointed variables $\phyp x P$.
   \\
   $X \mto m$ & The mode $m$ holds once the variables in $X$ are fixed.
   For instance, $x \mto y$ means there are finitely many $y$ values for each $x$ value.
-  This has no effect on strictness modes; $x \mto !y$ means ``for any $x$ value, $y \ne \nil$'', which is the same as saying $y \ne \nil$ globally.\\
+  This has no effect on strictness modes; $x \mto \strictin y$ means ``for any $x$ value, $y \ne \nil$'', which is the same as saying $y \ne \nil$ globally.
+  \\
   $\mex X m$ &
   Existential projection: a relation satisfying $m$ with the variables in $X$ hidden.
   \\
@@ -468,17 +474,38 @@ Therefore we combine strictness and finiteness dependencies into one unified syn
   \todo{However, this is imprecise; being more precise here would allow pattern-matching on $\with$-tuples $\withpair{t,u}$.}
   \\
   $\many$ & Unknown; any relation. Identity of ${\mand}$.\\
-  $\mnone$ & Empty relation. Identity of ${\mplus}$.
+  $\mnone$ &
+  Identity of ${\mplus}$.
+  One may interpret this either as the empty relation, or as any relation which is finite and strict with respect to everything.
+  These interpretations differ semantically, but the difference does not affect our analysis.
+  \\
+  $\msub m X Y$ &
+  Models relationally joining a relation with a function $X \to Y$ and hiding the $Y$ variables.
+  For our analysis, this is equivalent to and may be implemented as
+  $\mex Y m \mand (X \mto \bigwedge Y)$,
+  but we use it only when every $y \in Y$ is not merely finitely but \emph{uniquely} determined by fixing the values of all $x \in X$.
+  For instance, $\msub m \emptyset X$ means $m$ with the variables $X$ fixed, while $\msub m {x,y} z$ means $m$ with $z$ determined by some function of $x,y$.
 \end{tabular}
+
+%% \todo{
+%%   Probably the nicest form for the substitution is $m[Y/X] = \mex X m \mand (Y \mto X)$ -- or replace $Y \mto X$ with $\bigwedge_{x \in X} Y \mto x$ to keep the single-target form -- which says "replace every variable in Y with a copy of X", or "every variable in Y is functionally determined by the collective value of X", eh?
+%% }
 
 Our aim is to give rules parameterized by a choice of some sound approximation of this abstract domain (itself already an abstraction of relations).
 To this end we assume a judgement for entailment of modes, $m \models n$, which is sound (if it is derivable, then $m \models n$; but it may fail to be derivable even if $m \models n$ semantically).
 For instance, if term $t$ has mode $m$ then $m \models x$ means the term finitely supports $x$, and $m \models \strictin x$ means the term is strict in $x$.
 
-Although we present a unified syntax, in fact it is always possible to separate a mode $m$ into a conjunction $s \mand g$ of a `strictness mode' $s$ that is free of any finiteness $x$ or dependencies $X \mto m$ and a `grounding mode' $g$ that is free of any $\strictin x$.
+We suggest one possible choice that is sufficiently strong to subsume the rules in the Finite FP paper as a special case:
+a mode $m$ may be represented as a pair $(X,H)$ where $X$ is a set of variables used strictly, and $H$ is a set of finiteness dependencies $Y \mto x$, with the interpretation $(\bigwedge_{x \in X} \strictin x) \wedge (\bigwedge_{Y \mto x \in H} Y \mto x)$.
+\todo{A refinement of this where $X$ is a formal sum or union of sets of variables handles pattern-matching on $\with$-pairs.}
 
-We also give one possible implementation, from which the rules in the Finite FP paper follow as a special case: a mode $m$ may be represented as a pair $(X,H)$ where $X$ is a set of variables used strictly, and $H$ is a set of finiteness dependencies $X \mto y$, with the interpretation $(\bigwedge_{x \in X} \strictin x) \wedge (\bigwedge_{X \mto y \in H} X \mto y)$.
-\todo{A refinement of this where $X$ is a formal sum or union of sets of variables handles pattern-matching on $\with$-pairs possible.}
+This $(X,H)$ representation fully separates strictness $X$ from finiteness $H$.
+Separating strictness and finiteness loses precision for relational union:
+in $R \cup S$, if $R \models \strictin x$ and $S \models y$ \xxx
+
+\todo{
+  Explain that you can separate into ``disjunction of separate conjunctions'' form.
+}
 
 Judgment: $\G \vdash t : P \rhd m$.
 %, where $m = \eff s g$ is a combination of a strictness mode $s$ and a grounding mode $g$.
@@ -525,18 +552,18 @@ Rules:
     \Je \G
         {t \<e}
         P
-        {m \wedge {g \mand \mex x x \doteq e \mand (\fv t \mto g)}}
+        {m \wedge {\mex x x \doteq e \mand (\fv t \mto g)}}
   }
 
   \infer{
-    \Je \G {t} {\mfun {\L} {g} P} m\\
-    \L = (\hyp {x_i} {A_i})_i\\
+    \Je \G {t} {\mfun {(\param {x_i} {A_i})_i} {g} P} m\\
+    %\L = (\hyp {x_i} {A_i})_i\\
     \fa i \G \vdash e_i : A_i
   }{
     \Je \G
         {t \<(e_i)_i}
         P
-        {m \wedge \mex {(\dom \L)}
+        {m \wedge \mex {(x_i)_i}
           (\fv t \mto g)
           \mand
           \bigwedge_i x_i \doteq e_i
