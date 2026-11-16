@@ -423,9 +423,9 @@
 
 \section{Unified effect approach}
 
-\newcommand\eff[2]{{#1} \mathbin{|} {#2}}
-\newcommand\Je[4]{{#1} \vdash {#2} : {#3} \rhd {#4}}
-\newcommand\Jeff[5]{\Je{#1}{#2}{#3}{\eff {#4} {#5}}}
+\newcommand\Je[4]{{#1} \vdash {#2} : {#3} \mathrel{\rhd} {#4}}
+%\newcommand\eff[2]{{#1} \mathbin{|} {#2}}
+%\newcommand\Jeff[5]{\Je{#1}{#2}{#3}{\eff {#4} {#5}}}
 \newcommand\efun[3]{{#2} \overset{#1}{\to} {#3}}
 
 This is an attempt to unify strictness (nil preservation) and grounding (finiteness dependency analysis) into one `effect' annotation, as both of them are abstractions of a term's support in the abstract interpretation sense.
@@ -503,11 +503,13 @@ This $(X,H)$ representation fully separates strictness $X$ from finiteness $H$.
 Separating strictness and finiteness loses precision for relational union:
 in $R \cup S$, if $R \models \strictin x$ and $S \models y$ \xxx
 
-\todo{
+\TODO{Explain that we write $g$ for `grounding modes': modes $m$ without any $\strictin x$. Functions are annotated with grounding modes, $\efun g \L P$.}
+
+\TODO{
   Explain that you can separate into ``disjunction of separate conjunctions'' form.
 }
 
-Judgment: $\G \vdash t : P \rhd m$.
+Judgment: $\Je \G t P m$.
 %, where $m = \eff s g$ is a combination of a strictness mode $s$ and a grounding mode $g$.
 %% We define substitution on effects as follows:
 %% \begin{1align*}
@@ -538,24 +540,23 @@ Given a variable $x$ and expression $e$ we define the grounding mode $x \doteq e
 Rules:
 %
 \begin{mathpar}
-  \infer{
+  \infer[$\to$\,i]{
     \Je \G {t_1} {P \lto Q} {m_1}\\
     \Je \G {t_2} P {m_2}
   }{
     \Je \G {t_1\<t_2} Q {m_1 \wedge m_2}
   }
 
-  \infer{
-    \Je \G {t} {\mfun {(\hyp x A)} {g} P} m\\
-    \G \vdash e : A
-  }{
-    \Je \G
-        {t \<e}
-        P
-        {m \wedge {\mex x x \doteq e \mand (\fv t \mto g)}}
-  }
-
-  \infer{
+  %% \infer{
+  %%   \Je \G {t} {\mfun {(\hyp x A)} {g} P} m\\
+  %%   \G \vdash e : A
+  %% }{
+  %%   \Je \G
+  %%       {t \<e}
+  %%       P
+  %%       {m \wedge {\mex x x \doteq e \mand (\fv t \mto g)}}
+  %% }
+  \infer[$\to$\,e]{
     \Je \G {t} {\mfun {(\param {x_i} {A_i})_i} {g} P} m\\
     %\L = (\hyp {x_i} {A_i})_i\\
     \fa i \G \vdash e_i : A_i
@@ -569,16 +570,34 @@ Rules:
           \bigwedge_i x_i \doteq e_i
         }
   }
+\\
+  \infer[$\with$\,i]{
+    \Je \G {t_1} {P_1} {m_1}\\
+    \Je \G {t_2} {P_2} {m_2}
+  }{
+    \Je \G {\withpair{t_1, t_2}} {P_1 \with P_2} {m_1 \mplus m_2}
+  }
 
-  %% \infer{
-  %%   \Je \G {t_1} {\efun m {(\phyp x P)} Q} {m_1}\\
-  %%   \Je \G {t_2} P {m_2}
-  %% }{
-  %%   \Je \G {t_1\<t_2} Q {m_1 \wedge
-  %%     %\sub{m}{x\mapsto m_2}
-  %%     \xxx
-  %%   }
-  %% }
+  \infer[$\ox$\,i]{
+    \Je \G {t_1} {P_1} {m_1}\\
+    \Je \G {t_2} {P_2} {m_2}
+  }{
+    \Je \G {(t_1, t_2)} {P_1 \ox P_2} {m_1 \mand m_2}
+  }
+
+  \infer[$\with$\,e]{
+    \Je \G t {P_1 \with P_2} m
+  }{
+    \Je \G {\pi_i\<t} {P_i} m
+  }
+
+  \infer[$\ox$\,e]{
+    \Je \G {t} {P \ox Q} {m_1}\\
+    \Je {\G, \phyp {x} {P}, \phyp {y} {Q}} {u} R {m_2}\\
+    m_2 \models \strictin {x} \mand \strictin {y}
+  }{
+    \Je \G {\letpair x y {t} {u}} R {m_1 \mand \msub {m_2}{\fv t}{x,y}}
+  }
 \end{mathpar}
 
 
