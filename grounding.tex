@@ -475,12 +475,13 @@ Our aim is to give rules parameterized by a choice of some sound approximation o
 To this end we assume a judgement for entailment of modes, $m \models n$, which is sound (if it is derivable, then $m \models n$; but it may fail to be derivable even if $m \models n$ semantically).
 For instance, if term $t$ has mode $m$ then $m \models x$ means the term finitely supports $x$, and $m \models \strictin x$ means the term is strict in $x$.
 
-Although we present a unified syntax, in fact it is always possible to separate a mode $m$ into a conjunction of a `strictness mode' (which is free of finiteness $x$ or dependencies $X \mto m$) and a `grounding mode' (free of $\strictin x$).
+Although we present a unified syntax, in fact it is always possible to separate a mode $m$ into a conjunction $s \mand g$ of a `strictness mode' $s$ that is free of any finiteness $x$ or dependencies $X \mto m$ and a `grounding mode' $g$ that is free of any $\strictin x$.
 
 We also give one possible implementation, from which the rules in the Finite FP paper follow as a special case: a mode $m$ may be represented as a pair $(X,H)$ where $X$ is a set of variables used strictly, and $H$ is a set of finiteness dependencies $X \mto y$, with the interpretation $(\bigwedge_{x \in X} \strictin x) \wedge (\bigwedge_{X \mto y \in H} X \mto y)$.
 \todo{A refinement of this where $X$ is a formal sum or union of sets of variables handles pattern-matching on $\with$-pairs possible.}
 
-Judgment: $\G \vdash t : P \rhd m$, where $m = \eff s g$ is a combination of a strictness mode $s$ and a grounding mode $g$.
+Judgment: $\G \vdash t : P \rhd m$.
+%, where $m = \eff s g$ is a combination of a strictness mode $s$ and a grounding mode $g$.
 %% We define substitution on effects as follows:
 %% \begin{1align*}
 %%   \sub{(\eff s m)}{\sigma}
@@ -524,17 +525,22 @@ Rules:
     \Je \G
         {t \<e}
         P
-        {m \wedge (\eff \emptyset {g \mand \mex x x \doteq e \mand (\fv t \mto g)})}
+        {m \wedge {g \mand \mex x x \doteq e \mand (\fv t \mto g)}}
   }
 
   \infer{
     \Je \G {t} {\mfun {\L} {g} P} m\\
-    \G \vdash e : A
+    \L = (\hyp {x_i} {A_i})_i\\
+    \fa i \G \vdash e_i : A_i
   }{
     \Je \G
-        {t \<e}
+        {t \<(e_i)_i}
         P
-        {m \wedge (\eff \emptyset {\fv t \mto \mex x {g \mand x \doteq e}})}
+        {m \wedge \mex {(\dom \L)}
+          (\fv t \mto g)
+          \mand
+          \bigwedge_i x_i \doteq e_i
+        }
   }
 
   %% \infer{
