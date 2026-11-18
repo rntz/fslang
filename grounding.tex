@@ -141,41 +141,30 @@
 
 %\newcommand\emptycx\varepsilon
 \newcommand\emptycx{{\cdot}}
-\newcommand\of{\mathbin{:}}
-\newcommand\cxsep{\mathbin{/}}
-%\renewcommand\cxsep{\,/\,}
-\renewcommand\cxsep{\mathbin{|}}
+%\newcommand\cxsep{\mathbin{|}}
 
-\newcommand\hyp[2]{{#1} \of {#2}}
-%\renewcommand\hyp[2]{{#1}\colon\!{#2}} % good in newtxmath[charter]
-%\renewcommand\hyp[2]{{#1}\!:{#2}} %good in Euler, too loose in newtxmath[xcharter]
-%% pointed hypothesis
-\newcommand\phyp[2]{{#1} \dblcolon {#2}}
+\newcommand\hyp[2]{{#1} : {#2}}          %hypothesis
+\newcommand\phyp[2]{{#1} \dblcolon {#2}} %pointed hypothesis
 %% "parameter": type tagged with a variable name for use in modes
-\newcommand\param[2]{\hyp{#1}{#2}}
-\renewcommand\param[2]{{#1}\colon\!{#2}}
-\renewcommand\hyp[2]{{#1} : {#2}}\renewcommand\phyp[2]{{#1} \dblcolon {#2}}
-\renewcommand\param[2]{{#1}\colon{#2}}
+\newcommand\param[2]{{\hyp{#1}{#2}}}
+\renewcommand\param[2]{{#1}\!:\!{#2}}
 
 \newcommand\Jmode[2]{{#1} \vdash {#2}~\text{mode}}
 %% Alas, I think subscripting entails is the most readable option.
 %% By also subscripting the mode in \mfun, modes are always subscripts.
-\newcommand\J[5]{{#5} \vdash^{#3}_{#4} {#1} : {#2}}
-%\renewcommand\J[5]{{#5} \cxsep {#3} \vdash {#1} : {#2}\ \{{#4}\}}
-%\renewcommand\J[5]{{#5} \cxsep {#3} \vdash {#1} : {#2} \dblcolon {#4}}
-%\renewcommand\J[5]{{#5} \cxsep {#3} \vdash {#1} : {#2} \mathbin{@} {#4}}
-%\renewcommand\J[5]{{#5} \cxsep {#3} \vdash {#1} : {#2} \sim {#4}}
+\newcommand\Jold[5]{{#5} \vdash^{#3}_{#4} {#1} : {#2}}
+\newcommand\cJ[3]{{#1} \vdash {#2} : {#3}}
+\newcommand\Je[4]{{#1} \vdash {#2} : {#3} \mathrel{|} {#4}}
+%\renewcommand\Je[4]{{#1} \vdash {#2} : {#3} \mathrel{\rhd} {#4}}
+%\renewcommand\Je[4]{{#1} \mathbin{|} {#4} \vdash {#2} : {#3}}
+%\renewcommand\Je[4]{{#1} \vdash^{#4} {#2} : {#3}}
 
 \newcommand\rulename\textsc
 \newcommand\kword[1]{\ensuremath{\textrm{#1}}}
 \newcommand\const\name
-%\newcommand\cname\text          %constructor name
-%\newcommand\cname\name
-\newcommand\cname\textrm
+\newcommand\cname\textrm        %constructor name
 \newcommand\cnil{\cname{none}}
 \newcommand\cjust{\cname{just}}
-%\newcommand\ctrue{\cname{true}}
-%\newcommand\cfalse{\cname{false}}
 
 \newcommand\nil{\name{nil}}
 \newcommand\true{\name{true}}
@@ -189,32 +178,14 @@
 \newcommand\tabsurd{\kword{absurd}\<}
 \newcommand\tand{\mathrel{\kword{and}}}
 \newcommand\tor{\mathrel{\kword{or}}}
-%% \renewcommand\tand{~\kword{and}~}
-%% \renewcommand\tor{~\kword{or}~}
-%\newcommand\twhen[2]{\kword{when} \<({#1}) \<{#2}}
-%\newcommand\twhen[2]{\kword{if}~ {#1} ~\kword{then}~ {#2}}
-%\newcommand\twhen[2]{{#1} \Rightarrow {#2}}
-%\newcommand\twhen[2]{{#2} \mathrel{\kword{when}} {#1}}
 \newcommand\whenkword{\kword{when}}
 \newcommand\when{\mathrel{\whenkword}}
-%\newcommand\teq[2]{\name{eq} \<{#1} \<{#2}}
 \newcommand\teq[2]{{#1} = {#2}}
-%\newcommand\teq[2]{{#1} \mathrel{\kword{is}} {#2}}
-%\newcommand\teq[2]{{#2} \gets {#1}}
 \newcommand\withpair[1]{\ensuremath{\langle{#1}\rangle}}
-%\newcommand\tif[3]{\kword{if}~{#1}~\kword{then}~{#2}~\kword{else}~{#3}}
 \newcommand\ifjust[4]{%
   \kword{case}~{#1}\ \kword{of}\
   \cjust~{#2} \shortrightarrow {#3};\, \cnil \shortrightarrow {#4}%
 }
-
-%% \renewcommand\tand{\mathrel{\mathrm{\&\&}}}
-%% \renewcommand\tor{\mathrel{\mathrm{||}}}
-%% \newcommand\tand{\mathrel{\mathbf{and}}}
-%% \newcommand\tor{\mathrel{\mathbf{or}}}
-%% \renewcommand\ifjust[3]{%
-%%   \kword{if}~\cjust~{#2} \gets {#1} ~\kword{then}~ {#3} ~\kword{else}~
-%% }
 
 \newcommand\pwild{\text{\textunderscore}}
 
@@ -225,25 +196,24 @@
 \newcommand\natz{\ensuremath{\nat_0}}
 
 %% mode commands
-\newcommand\many{\top}
-\newcommand\mnone{\bot}
-\newcommand\mand{\sqcap} \newcommand\bigmand\bigsqcap
-\newcommand\mplus{\sqcup}
+\newcommand\mstrict[1]{\ensuremath{{!{#1}}}}
+\newcommand\many\top
+\newcommand\mnone\bot
+\newcommand\mand\wedge
+\newcommand\bigmand\bigwedge
+\newcommand\mplus\vee
 \newcommand\mto\to              %\to? \shortrightarrow?
 \newcommand\mex[1]{\ex{#1}}
-
-\renewcommand\many\top \renewcommand\mand\wedge \renewcommand\bigmand\bigwedge
-\renewcommand\mnone{0} \renewcommand\mplus{+}
-\renewcommand\mnone\bot \renewcommand\mplus\vee
+\newcommand\msub[3]{{#1}[{#2} \mto {#3}]}
+\newcommand\mentails\vdash
 
 \newcommand\mfun[3]{{#1}_{#2} \!\to {#3}}
 \renewcommand\mfun[3]{{#1} \overset{#2}{\to} {#3}}
-%\renewcommand\mfun[3]{{#1}\,\{{#2}\} \to {#3}}
-%\renewcommand\mfun[3]{{#1} \cdot {#2} \to {#3}}
-%\renewcommand\mfun[3]{{#1} \star {#2} \to {#3}}
-%\renewcommand\mfun[3]{{#1} \oast {#2} \to {#3}}
+%% TODO: unify with \efun
 
-\newcommand\sub[2]{{#1}\{#2\}}
+\newcommand\efun[3]{{#2} \overset{#1}{\to} {#3}}
+
+%\newcommand\sub[2]{{#1}\{#2\}}
 \let\oldmodels\models
 \renewcommand\models\vDash      %maybe?
 
@@ -280,10 +250,11 @@
   %scaled=1.0424,
 ]{newtxmath}
 
-%% makes math use old-style figures
-\DeclareSymbolFont{operators}{T1}{XCharter-OsF}{m}{n}
-\SetSymbolFont{operators}{bold}{T1}{XCharter-OsF}{b}{n}
-\DeclareMathAlphabet{\mathbf}{T1}{XCharter-OsF}{b}{n}
+%% %% Makes math use old-style figures. 2026-11-17 I've decided against this,
+%% %%mainly because 1/0 look bad as types if they aren't cap-height.
+%% \DeclareSymbolFont{operators}{T1}{XCharter-OsF}{m}{n}
+%% \SetSymbolFont{operators}{bold}{T1}{XCharter-OsF}{b}{n}
+%% \DeclareMathAlphabet{\mathbf}{T1}{XCharter-OsF}{b}{n}
 
 
 %% %% ===== FONT OPTION 2: LIBERTINE =====
@@ -318,10 +289,17 @@
   \\
   \text{modes} & m,n &\bnfeq&
   x
+  \bnfor \mstrict x
   \bnfor X \mto m
   \bnfor \mex X m
   \bnfor m \mand n \bnfor m \mplus n
   \bnfor \many \bnfor \mnone
+  \\
+  \text{grounding modes} & g,h &&
+  \text{are modes $m$ without any strictness atoms $\mstrict x$}
+  \\
+  \text{strictness modes} & s &&
+  \text{are modes $m$ without any finiteness atoms $x$}
   \\
   \text{variable sets} & X,Y &\bnfeq& \emptyset \bnfor X,\, x
   \\
@@ -336,11 +314,9 @@
   P \with Q \bnfor P \ox Q \bnfor P \lto Q
   %\bnfor A \fto Q
   \bnfor \mfun \L m P
-  \\
-  &&&%\bnfor
+  \bnfor
   \maybeof A
-  %\bnfor \bool
-  \bnfor \natz
+  \bnfor \dots
   \\
   \text{expressions} & e &\bnfeq&
   \dots
@@ -365,7 +341,7 @@
 \end{array}
 \]
 
-\vspace{2ex}\noindent
+\noindent%\vspace{2ex}
 \begin{tabular}{llp{86mm}}%{rp{25mm}p{110mm}}
   \it Syntax & \it Name & \it Interpretation\\
   $A,B$ & Types & Sets\\
@@ -379,37 +355,34 @@
   Functions $f : A \to P$ such that $\support{f} \defeq \{ x : f(x) \ne \nil \}$ is finite.
 \end{tabular}
 
-\vspace{2ex} \noindent
-\begin{tabular}{lp{108mm}}
+\noindent%\vspace{2ex}
+\begin{tabular}{lp{12cm}}
   \em Mode & \em Interpretation \\
   $x$ & Finitely many values of $x$ satisfy the relation.
   \\
+  $\mstrict x$ & The relation implies $x \ne \nil$.
+  \\
   $X \mto m$ &
   The mode $m$ holds once the variables in $X$ are fixed.
-  For instance, $x \mto y$ means for each $x$ there are finitely many $y$.
   \\
   $\mex X m$ &
-  Existential projection: a relation satisfying $m$ with the variables in $X$ hidden.
+  A relation satisfying $m$ with the variables in $X$ hidden.
   \\
-  $m \mand n$ &
-  Both $m, n$ hold.
-  Intersection of relations; union of their dependencies.
-  \\
+  $m \mand n$ & Both $m, n$ hold; intersection of relations satisfying $m,n$ respectively.\\
   $m \mplus n$ &
-  Union of relations.
-  Can be approximated as the intersection of the closure of their dependencies.
+  Union of relations satisfying $m,n$ respectively.
   \\
   $\many$ & Unknown; any relation. Identity of ${\mand}$.\\
-  $\mnone$ & Empty relation. Identity of ${\mplus}$.
+  $\mnone$ & Identity of ${\mplus}$. A relation satisfying all possible constraints.
 \end{tabular}
 
-\vspace{2ex} \noindent
+\noindent%\vspace{2ex}
 \begin{tabular}{lp{108mm}}
-  \em Judgment & \em Interpretation
-  \\
-  %% $\cJ e A \G$ & $\G \to A$
+  \em Judgment & \em Interpretation\\
+  %% $\cJ \G e A$ & wub
   %% \\
-  $\J t P X m \G$ & Term $t$ has type $P$ using variables in $\G$.
+  %% \\
+  $\Jold t P X m \G$ & Term $t$ has type $P$ using variables in $\G$.
   It preserves $\nil$ with respect to variables in $X$
   (for $x \in X$ if $x = \nil$ then $t = \nil$).
   It has mode $m$.
@@ -419,30 +392,17 @@
 \end{tabular}
 
 
-\newcommand\ground{\name{ground}}
+\section{Modes}
 
-\section{Unified effect approach}
-
-\newcommand\cJ[3]{{#1} \vdash {#2} : {#3}}
-\newcommand\Je[4]{{#1} \vdash {#2} : {#3} \mathrel{|} {#4}}
-%\renewcommand\Je[4]{{#1} \vdash {#2} : {#3} \mathrel{\rhd} {#4}}
-%\renewcommand\Je[4]{{#1} \mathbin{|} {#4} \vdash {#2} : {#3}}
-%\renewcommand\Je[4]{{#1} \vdash^{#4} {#2} : {#3}}
-
-\newcommand\efun[3]{{#2} \overset{#1}{\to} {#3}}
-\newcommand\mentails\vdash
-
-%\newcommand\eff[2]{{#1} \mathbin{|} {#2}}
-%\newcommand\Jeff[5]{\Je{#1}{#2}{#3}{\eff {#4} {#5}}}
-
-This is an attempt to unify strictness (nil preservation) and grounding (finiteness dependency analysis) into one `effect' annotation, as both of them are abstractions of a term's support in the abstract interpretation sense.
+We combine strictness (nil preservation) and grounding (finiteness dependencies) into one `effect' annotation, as both of them are abstractions of a term's support in the abstract interpretation sense.
 The term $t$ being strict in $x$ means $x = \nil \implies t = nil$, or conversely that $x \ne \nil$ within the support of $t$.
 %A finiteness dependency $X \mto y$ means that, within the support, once we fix a value for each $x \in X$, there are finitely many $y$.
 A finiteness dependency $X \mto y$ means that, in any subset of the support with a fixed valuation for $X$, there are finitely many $y$.
-These are downward closed properties, so overapproximating a term's support is sound:
-if $t$ has support $S \subseteq S_\text{approx}$ and $S_\text{approx}$ satisfies some strictness or finiteness properties, so does $S$ and therefore $t$.
 
-Moreover, both are closed under finite union, making them \emph{ideals} on the powerset lattice.
+These are downward closed properties, so overapproximating a term's support is sound:
+if $t$ has support $S \subseteq S_\text{approx}$ and $S_\text{approx}$ is strict or finite in some variable, then so is $S$ and therefore $t$.
+%
+Moreover, they are closed under finite union, making them \emph{ideals} on the powerset lattice.
 Within the lattice of ideals of relations, $I_1 \vee I_2 = \{R_1 \cup R_2 : R_i \in I_i\}$ and $I_1 \wedge I_2 = \{R_1 \cap R_2 : R_i \in I_i\}$, so the join/meet of ideals gives the appropriate lifting of relational union/intersection.
 \todo{
   It also implies constructive logic is sound for reasoning about them, eg. $(m \models p)$ and $(n \models p)$ implies $(m \vee n) \models p$.
@@ -451,21 +411,17 @@ Within the lattice of ideals of relations, $I_1 \vee I_2 = \{R_1 \cup R_2 : R_i 
 
 Therefore we combine strictness and finiteness dependencies into one unified syntax for `generalized modes' $m$, which denote ideals of relations:
 
-\newcommand\strictin[1]{\ensuremath{{!{#1}}}}
-%\newcommand\msub[3]{{#1}[{#3} \mathbin{/} {#2}]}
-\newcommand\msub[3]{{#1}[{#2} \mto {#3}]}
-
-\begin{tabular}{lp{13cm}}
+\begin{tabular}{lp{125mm}}
   \em Mode & \em Gloss\\
   $x$ & There are finitely many $x$ values.
   A term can always be given a mode that asserts finite support only for set variables $\hyp x A$, not pointed variables $\phyp x P$, although the latter may appear on the left hand side of dependencies $X \mto m$.
   \\
-  $\strictin x$ & The relation implies $x \ne \nil$; the term is strict/nil-preserving in $x$.
+  $\mstrict x$ & The relation implies $x \ne \nil$; the term is strict/nil-preserving in $x$.
   Only used for pointed variables $\phyp x P$.
   \\
   $X \mto m$ & The mode $m$ holds once the variables in $X$ are fixed.
   For instance, $x \mto y$ means there are finitely many $y$ values for each $x$ value.
-  This has no effect on strictness modes; $x \mto \strictin y$ means ``for any $x$ value, $y \ne \nil$'', which is the same as saying $y \ne \nil$ globally.
+  This has no effect on strictness modes; $x \mto \mstrict y$ means ``for any $x$ value, $y \ne \nil$'', which is the same as saying $y \ne \nil$ globally.
   \\
   $\mex X m$ &
   Existential projection: a relation satisfying $m$ with the variables in $X$ hidden.
@@ -494,48 +450,220 @@ Therefore we combine strictness and finiteness dependencies into one unified syn
   For instance, $\msub m \emptyset X$ means $m$ with the variables $X$ fixed, while $\msub m {x,y} z$ means $m$ with $z$ determined by some function of $x,y$.
 \end{tabular}
 
+For a fixed set of variables, $m$ denotes the ideal $\{R : R \models m\}$ of relations over those variables that satisfy the mode, defined:
+\begin{align*}
+  R \models x &\iff \pi_x R ~\text{is finite}\\
+  R \models \mstrict x &\iff \nil \notin \pi_x R
+  \\&\iff R \subseteq \{x \ne \nil\}\\
+  R \models X \mto m
+  &\iff
+  \fa{S \subseteq R, |\pi_X S| \le 1} S \models m
+  \\
+  R \models m \mand n
+  &\iff
+  (R \models m) \wedge (R \models n)
+  \\
+  &\iff
+  \ex{S_1 \models m, S_2 \models n} R = S_1 \cap S_2
+  \\
+  R \models m \mplus n
+  &\iff
+  \ex{S_1 \models m, S_2 \models n} R = S_1 \cup S_2
+  \qquad\textit{see note\footnotemark{}}
+  \\
+  R \models \many &\iff \top\\
+  R \models \mnone &\iff R = \emptyset
+  \qquad \text{\em or, alternatively:} \qquad
+  R~\text{is finite and strict in every variable\footnotemark{}}
+\end{align*}
+%
+We also write $t \models m$ if $\support t \models m$, and $m \models n$ if $\fa{R \models m} R \models n$.
+For instance, $t \models x$ means the term $t$ is finitely supported in $x$ and $t \models \mstrict x$ means it is strict in $x$.
+
+\footnotetext{
+  While $(R \models m) \vee (R \models n) \implies R \models m \mplus n$, the converse does not hold;
+%Note that it is not the case that $R \models m \mplus n \implies (R \models m) \vee (R \models n)$;
+  this is a genuine asymmetry between $m \mand n$ and $m \mplus n$.
+}
+
+\footnotetext{\TODO{
+    Explain why it won't matter for our purposes which semantics we choose.
+    Is this `don't care' property really true for every theorem we want to show, though?
+}}
+
 %% \todo{
 %%   Probably the nicest form for the substitution is $m[Y/X] = \mex X m \mand (Y \mto X)$ -- or replace $Y \mto X$ with $\bigwedge_{x \in X} Y \mto x$ to keep the single-target form -- which says "replace every variable in Y with a copy of X", or "every variable in Y is functionally determined by the collective value of X", eh?
 %% }
 
-Our aim is to give rules parameterized by a choice of some sound approximation of this abstract domain (itself already an abstraction of relations).
-To this end we assume a judgment $m \mentails n$ which is sound but not necessarily complete with respect to mode entailment: $m \mentails n$ implies $\den{m} \subseteq \den{n}$ but not vice versa.
-For instance, if term $t$ has mode $m$ then $m \mentails x$ means the term finitely supports $x$, and $m \mentails \strictin x$ means the term is strict in $x$.
-
-We suggest one choice, which is sufficiently strong to subsume the rules in the Finite FP paper as a special case:
-a mode $m$ may be represented as a pair $(X,H)$ where $X$ is a set of variables used strictly, and $H$ is a set of finiteness dependencies $Y \mto x$, with the interpretation $(\bigwedge_{x \in X} \strictin x) \wedge (\bigwedge_{Y \mto x \in H} Y \mto x)$.
+Our typing rules are parameterized by a judgment $m \mentails n$ capturing a sound but not necessarily complete approximation of mode entailment:
+$m \mentails n$ implies $m \models n$ but not vice versa.
+%
+We suggest one choice, sufficiently strong to subsume the rules in the Finite FP paper as a special case, which is to restrict to modes of the form
+$(\bigwedge_i \mstrict x_i) \wedge \bigwedge_j (Y_j \mto z_j)$.
+In other words, we can approximate any mode $m$ by a pair $(X,H)$ where $X$ is a set of variables used strictly, and $H$ is a set of finiteness dependencies $Y \mto x$.
 \todo{A refinement of this where $X$ is a formal sum or union of sets of variables handles pattern-matching on $\with$-pairs.}
 \TODO{One can allow formal sums in either or both strictness or finiteness components.
   Entailment remains decidable, and if formal sums are allowed in both positions one a system as expressive \emph{for the purposes of our type system} as full entailment of modes (so the only approximation is in going from sets of relations to our mode ideals?).
   One does not need to deal with cross correlations between strictness \& grounding as long as set variables and pointed variables are kept strictly separate and $\to$ and $\lto$ are not merged; once they merge, cross correlation is possible, raising expressivity and complexity even more.}
 
 This $(X,H)$ representation fully separates strictness $X$ from finiteness $H$.
-Separating strictness and finiteness loses precision for relational union:
-in $R \cup S$, if $R \models \strictin x$ and $S \models y$ \xxx
+Separating strictness and finiteness loses precision for unions:
+if $R \models x$ and $S \models \mstrict y$
+then $R \cup S \models x \mplus \mstrict y$,
+which says $R \cup S$ makes $x$ finite where $y = \nil$;
+a conjunction $s \mand g$ of a strictness mode $s$ and a grounding mode $g$ cannot capture this property.
 
-\TODO{Explain that we write $g$ for `grounding modes': modes $m$ without any $\strictin x$. Functions are annotated with grounding modes, $\efun g \L P$.}
+\TODO{Explain that we write $g$ for `grounding modes': modes $m$ without any $\mstrict x$. Functions are annotated with grounding modes, $\efun g \L P$.}
 
 \TODO{
   Explain that you can separate into ``disjunction of separate conjunctions'' form.
 }
 
-Judgment: $\Je \G t P m$.
-%, where $m = \eff s g$ is a combination of a strictness mode $s$ and a grounding mode $g$.
-%% We define substitution on effects as follows:
-%% \begin{1align*}
-%%   \sub{(\eff s m)}{\sigma}
-%%   &\defeq
-%%   \eff{\sub s \sigma}{\sub m \sigma}
-%%   \\
-%%   \sub x \sigma &\defeq \sigma(x)
-%% \end{align*}
+\TODO{What about restricting to `key-shaped annotations' for $\efun g \L A$? What effect does that have on expressivity?}
 
-%% Define substitution on grounding modes $g$:
-%% \begin{align*}
-%%   \sub g {Y/x} &\defeq \mex x g \mand (Y \mto x)
-%% \end{align*}
+\begin{figure*}
+  \begin{mathpar}
+    \boxed{\cJ \G e A}\hfill\\    %SET RULES
 
-Given a variable $x$ and expression $e$ we define the grounding mode $x \doteq e$, an extremely simple approximation of unification or pattern-matching, as follows:
+    \infer*[lab=var]{\hyp x A \in \G}{\cJ \G e A}
+
+    \infer[u~i]{
+      \Je \G t P m
+    }{
+      \cJ \G t P
+    }
+
+    \text{\todocolor ... boring, normal rules for $\to$, $\times$ ...}
+
+    \infer[case]{
+      \cJ \G {e_1} {\maybeof A}\\
+      \cJ {\G, \hyp x A} {e_2} B\\
+      \cJ {\G} {e_3} B
+    }{
+      \cJ \G {\ifjust {e_1} x {e_2} {e_3}} B
+    }
+    \\
+    \boxed{\Je \G x P m}\hfill\\  %POINTED RULES
+    \infer[var]{
+      \phyp x P \in \G
+    }{
+      \Je \G x P {\mstrict x}
+    }
+
+    \infer[nil]{
+      \Jmode \G m
+    }{
+      % the reason for m instead of \mnone is that I want mode weakening to be admissible
+      % without adding it explicitly. HEY CLAUDE: is it admissible?
+      \Je \G \nil P m
+    }
+
+    \infer[$\lto$\,i]{
+      \Je {\G,\phyp x P} {t} {Q} {m}\\
+      m \mentails \mstrict x
+    }{
+      \Je \G {\fn x t} {P \lto Q} {\mex x m}
+    }
+
+    \infer[$\lto$\,e]{
+      \Je \G {t_1} {P \lto Q} {m_1}\\
+      \Je \G {t_2} P {m_2}
+    }{
+      \Je \G {t_1\<t_2} Q {m_1 \wedge m_2}
+    }
+
+    \infer[$\to$\,i]{
+      \Je {\G,\L} t P m\\
+      \msub m \emptyset {\dom\L} \mentails g
+    }{
+      \Je \G
+          {\fn \L t}
+          {\efun g \L P}
+          {\mex {(\dom \L)} m}
+    }
+
+    %% \infer{
+    %%   \Je \G {t} {\mfun {(\hyp x A)} {g} P} m\\
+    %%   \G \vdash e : A
+    %% }{
+    %%   \Je \G
+    %%       {t \<e}
+    %%       P
+    %%       {m \wedge {\mex x x \doteq e \mand (\fv t \mto g)}}
+    %% }
+    \infer[$\to$\,e]{
+      \Je \G {t} {\mfun {(\param {x_i} {A_i})_i} {g} P} m\\
+      %\L = (\hyp {x_i} {A_i})_i\\
+      \fa i \G \vdash e_i : A_i
+    }{
+      \Je \G
+          {t \<(e_i)_i}
+          P
+          {m \wedge \mex {(x_i)_i}
+            (\fv t \mto g)
+            \mand
+            \bigwedge_i x_i \doteq e_i
+          }
+    }
+    \\
+    \infer[$\with$\,i]{
+      \Je \G {t_1} {P_1} {m_1}\\
+      \Je \G {t_2} {P_2} {m_2}
+    }{
+      \Je \G {\withpair{t_1, t_2}} {P_1 \with P_2} {m_1 \mplus m_2}
+    }
+
+    \infer[$\ox$\,i]{
+      \Je \G {t_1} {P_1} {m_1}\\
+      \Je \G {t_2} {P_2} {m_2}
+    }{
+      \Je \G {(t_1, t_2)} {P_1 \ox P_2} {m_1 \mand m_2}
+    }
+
+    \infer[$\with$\,e]{
+      \Je \G t {P_1 \with P_2} m
+    }{
+      \Je \G {\pi_i\<t} {P_i} m
+    }
+
+    \infer[$\ox$\,e]{
+      \Je \G {t} {P \ox Q} {m_1}\\
+      \Je {\G, \phyp {x} {P}, \phyp {y} {Q}} {u} R {m_2}\\
+      m_2 \mentails \mstrict x \mand \mstrict y
+    }{
+      \Je \G {\letpair x y {t} {u}} R {m_1 \mand \msub {m_2}{\fv t}{x,y}}
+    }
+
+    \infer[maybe~i]{
+      \cJ \G e A
+    }{
+      \Je \G {\tjust e} {\maybeof A} \many
+    }
+
+    \infer[maybe~e]{
+      \Je \G t {\maybeof A} {m_1}\\
+      \Je {\G, \hyp x A} u P {m_2}
+    }{
+      \Je \G {\letjust x t u} P {m_1 \mand \todocolor \msub {m_2} {\fv t} x}
+      %% \\
+      %% \todo{shouldn't this use substitution?}
+    }
+
+    \infer[u~e]{
+      \cJ \G e P
+    }{
+      \Je \G e P \many
+    }
+  \end{mathpar}
+  \caption{Typing rules}
+  \label{fig:rules}
+\end{figure*}
+
+Judgments: $\Je \G t P m$ and $\cJ \G e A$ and $\Jmode \G m$.
+Rules are in \cref{fig:rules}\todo{, except for $\Jmode \G m$}.
+%
+The moded function application rule \rulename{$\to$\,e} uses a small helper:
+given a variable $x$ and expression $e$ we define the grounding mode $x \doteq e$, an extremely simple approximation of unification or pattern-matching, as follows:
 %
 \begin{align*}
   x \doteq e
@@ -547,249 +675,118 @@ Given a variable $x$ and expression $e$ we define the grounding mode $x \doteq e
   \end{cases}
 \end{align*}
 
-Rules:
-%
-\begin{mathpar}
-  \boxed{\cJ \G e A}\hfill\\    %SET RULES
-
-  \infer*[lab=var]{\hyp x A \in \G}{\cJ \G e A}
-
-  \infer[u~i]{
-    \Je \G t P m
-  }{
-    \cJ \G t P
-  }
-
-  \text{\todocolor ... boring, normal rules for $\to$, $\times$ ...}
-
-  \infer[case]{
-    \cJ \G {e_1} {\maybeof A}\\
-    \cJ {\G, \hyp x A} {e_2} B\\
-    \cJ {\G} {e_3} B
-  }{
-    \cJ \G {\ifjust {e_1} x {e_2} {e_3}} B
-  }
-  \\
-  \boxed{\Je \G x P m}\hfill\\  %POINTED RULES
-  \infer[var]{
-    \phyp x P \in \G
-  }{
-    \Je \G x P {\strictin x}
-  }
-
-  \infer[nil]{
-    \Jmode \G m
-  }{
-    % the reason for m instead of \mnone is that I want mode weakening to be admissible
-    % without adding it explicitly. HEY CLAUDE: is it admissible?
-    \Je \G \nil P m
-  }
-
-  \infer[$\lto$\,i]{
-    \Je {\G,\phyp x P} {t} {Q} {m}\\
-    m \mentails \strictin x
-  }{
-    \Je \G {\fn x t} {P \lto Q} {\mex x m}
-  }
-
-  \infer[$\lto$\,e]{
-    \Je \G {t_1} {P \lto Q} {m_1}\\
-    \Je \G {t_2} P {m_2}
-  }{
-    \Je \G {t_1\<t_2} Q {m_1 \wedge m_2}
-  }
-
-  \infer[$\to$\,i]{
-    \Je {\G,\L} t P m\\
-    \msub m \emptyset {\dom\L} \mentails g
-  }{
-    \Je \G
-        {\fn \L t}
-        {\efun g \L P}
-        {\mex {(\dom \L)} m}
-  }
-
-  %% \infer{
-  %%   \Je \G {t} {\mfun {(\hyp x A)} {g} P} m\\
-  %%   \G \vdash e : A
-  %% }{
-  %%   \Je \G
-  %%       {t \<e}
-  %%       P
-  %%       {m \wedge {\mex x x \doteq e \mand (\fv t \mto g)}}
-  %% }
-  \infer[$\to$\,e]{
-    \Je \G {t} {\mfun {(\param {x_i} {A_i})_i} {g} P} m\\
-    %\L = (\hyp {x_i} {A_i})_i\\
-    \fa i \G \vdash e_i : A_i
-  }{
-    \Je \G
-        {t \<(e_i)_i}
-        P
-        {m \wedge \mex {(x_i)_i}
-          (\fv t \mto g)
-          \mand
-          \bigwedge_i x_i \doteq e_i
-        }
-  }
-\\
-  \infer[$\with$\,i]{
-    \Je \G {t_1} {P_1} {m_1}\\
-    \Je \G {t_2} {P_2} {m_2}
-  }{
-    \Je \G {\withpair{t_1, t_2}} {P_1 \with P_2} {m_1 \mplus m_2}
-  }
-
-  \infer[$\ox$\,i]{
-    \Je \G {t_1} {P_1} {m_1}\\
-    \Je \G {t_2} {P_2} {m_2}
-  }{
-    \Je \G {(t_1, t_2)} {P_1 \ox P_2} {m_1 \mand m_2}
-  }
-
-  \infer[$\with$\,e]{
-    \Je \G t {P_1 \with P_2} m
-  }{
-    \Je \G {\pi_i\<t} {P_i} m
-  }
-
-  \infer[$\ox$\,e]{
-    \Je \G {t} {P \ox Q} {m_1}\\
-    \Je {\G, \phyp {x} {P}, \phyp {y} {Q}} {u} R {m_2}\\
-    m_2 \mentails \strictin x \mand \strictin y
-  }{
-    \Je \G {\letpair x y {t} {u}} R {m_1 \mand \msub {m_2}{\fv t}{x,y}}
-  }
-
-  \infer[maybe~i]{
-    \cJ \G e A
-  }{
-    \Je \G {\tjust e} {\maybeof A} \many
-  }
-
-  \infer[maybe~e]{
-    \Je \G t {\maybeof A} {m_1}\\
-    \Je {\G, \hyp x A} u P {m_2}
-  }{
-    \Je \G {\letjust x t u} P {m_1 \mand \todocolor \msub {m_2} {\fv t} x}
-    %% \\
-    %% \todo{shouldn't this use substitution?}
-  }
-
-  \infer[u~e]{
-    \cJ \G e P
-  }{
-    \Je \G e P \many
-  }
-\end{mathpar}
-
 \TODO{
   In \rulename{$\to$\,e}, the conditional $\fv t \mto g$ is necessary for soundness.
   But what is the purpose of the substitions in \rulename{$\ox$\,e} and \rulename{maybe~e}?
   They could be soundly replaced with $\exists$ instead, but this loses important precision.
   What can we not typecheck without them?
-
   Are they giving an order in which to nest the Finite FP $\G/\D/\O$ contexts?
   Specifying what ``staging orders'' are possible?
+
+  One place (\emph{the} place?) where we use these dependencies is \rulename{$\to$\,e}.
 }
 
-
-\section{An algebra of contexts?}
-
-\newcommand\consistent[2]{{#1} \mathbin{\uparrow} {#2}}
-\newcommand\cxox\ox
-\newcommand\cxwith\with
-
-A \emph{context} is a triple $\Omega = (\G, X, m)$ of a typing context $\G$, a set of variables $X$, and a mode $m$.
-We write $\O \vdash t : P$ for $\J t P X m \G$. We define:
-%
-\begin{align*}
-  \varsof {(\G,X,m)} &\defeq \G
-  &
-  \nilsof {(\G,X,m)} &\defeq X
-  &
-  \modeof {(\G,X,m)} &\defeq m
-  &
-  \dom \O &\defeq \dom (\varsof \O)
-\end{align*}
-%
-Then we define some operators on contexts:
-%
-\begin{align*}
-  (\G_1, X_1, m_1) \cxox (\G_2, X_2, m_2)
-  &\defeq
-  (\G_1 \cup \G_2,\, X_1 \cup X_2,\, (m_1 \mand m_2))
-  \\
-  (\G_1, X_1, m_1) \cxwith (\G_2, X_2, m_2)
-  &\defeq
-  (\G_1 \cup \G_2,\, X_1 \cap X_2,\, (m_1 \mplus m_2))
-  \\
-  \ex {\G_2} (\G_1, X, m) &\defeq
-  (\G_1 \setminus \G_2,\, X \setminus \dom {\G_2},\, \ex{(\dom \G_2)} m)
-  \\
-  (\G, X, m) \mand n &\defeq (\G, X, m \mand n)
-\end{align*}
-
-\noindent
-The operators $\G_1 \cup \G_2$ and $\G_1 \setminus \G_2$ are defined only when $\G_1,\G_2$ are \emph{consistent,} that is, do not assign unequal types to the same variable $x$.
-This makes them, and the context operators $\cxox,\cxwith,\exists$ defined using them, partial functions.
-Where we use these in the conclusion or premises of a typing judgment, the judgment is derivable only when this result is defined.
-%Let $\consistent {\G_1} {\G_2}$ indicate that the typing contexts $\G_1,\G_2$ are consistent.
-
-\begin{mathpar}
-  \infer[var]{
-    \phyp x P \in \G
-  }{
-    (\G, x, \many) \vdash x : P
-  }
-\\
-  \infer[$\to$\,i]{
-    \O \vdash t : P \\
-    X = \dom \L \\
-    \modeof \O \mand \fv(\fn X t) \mentails m
-  }{
-    \ex \L \O \vdash \fn X t : \mfun \L m P
-  }
-
-  \infer[$\to$\,e~var]{
-    \O \vdash t : \mfun \L m P\\
-    X = \dom \L
-  }{
-    \O \cxox (\L, X, \fv t \mto m) \vdash \multiapp t X : P
-  }
-\\
-  \infer[$\ox$\,i]{
-    \O_1 \vdash t_1 : P_1\\
-    \O_2 \vdash t_2 : P_2
-  }{
-    \O_1 \cxox \O_2 \vdash (t_1, t_2) : P_1 \ox P_2
-  }
-
-  \infer[$\with$\,i]{
-    \O_1 \vdash t_1 : P_1\\
-    \O_2 \vdash t_2 : P_2
-  }{
-    \O_1 \cxwith \O_2 \vdash \withpair{t_1, t_2} : P_1 \with P_2
-  }
-\\
-  \infer[$\ox$\,e]{
-    \O_1 \vdash t : P_1 \ox P_2\\
-    \O_2 \vdash u : Q\\
-    x,y \subseteq \nils \O_2
-  }{
-    \O_1 \cxox \ex{(\phyp x {P_1}, \phyp y {P_2})} \O_2
-    \vdash \letpair x y t u : Q
-  }
-
-  \infer[$\with$\,e]{
-    \O \vdash t : P_1 \with P_2
-  }{
-    \O \vdash \pi_i \<t : P_i
-  }
-\end{mathpar}
+\TODO{Substitution lemma?}
 
 
-\section{Typing rules}
+%% \section{An algebra of contexts?}
+
+%% \newcommand\consistent[2]{{#1} \mathbin{\uparrow} {#2}}
+%% \newcommand\cxox\ox
+%% \newcommand\cxwith\with
+
+%% A \emph{context} is a triple $\Omega = (\G, X, m)$ of a typing context $\G$, a set of variables $X$, and a mode $m$.
+%% We write $\O \vdash t : P$ for $\Jold t P X m \G$. We define:
+%% %
+%% \begin{align*}
+%%   \varsof {(\G,X,m)} &\defeq \G
+%%   &
+%%   \nilsof {(\G,X,m)} &\defeq X
+%%   &
+%%   \modeof {(\G,X,m)} &\defeq m
+%%   &
+%%   \dom \O &\defeq \dom (\varsof \O)
+%% \end{align*}
+%% %
+%% Then we define some operators on contexts:
+%% %
+%% \begin{align*}
+%%   (\G_1, X_1, m_1) \cxox (\G_2, X_2, m_2)
+%%   &\defeq
+%%   (\G_1 \cup \G_2,\, X_1 \cup X_2,\, (m_1 \mand m_2))
+%%   \\
+%%   (\G_1, X_1, m_1) \cxwith (\G_2, X_2, m_2)
+%%   &\defeq
+%%   (\G_1 \cup \G_2,\, X_1 \cap X_2,\, (m_1 \mplus m_2))
+%%   \\
+%%   \ex {\G_2} (\G_1, X, m) &\defeq
+%%   (\G_1 \setminus \G_2,\, X \setminus \dom {\G_2},\, \ex{(\dom \G_2)} m)
+%%   \\
+%%   (\G, X, m) \mand n &\defeq (\G, X, m \mand n)
+%% \end{align*}
+
+%% \noindent
+%% The operators $\G_1 \cup \G_2$ and $\G_1 \setminus \G_2$ are defined only when $\G_1,\G_2$ are \emph{consistent,} that is, do not assign unequal types to the same variable $x$.
+%% This makes them, and the context operators $\cxox,\cxwith,\exists$ defined using them, partial functions.
+%% Where we use these in the conclusion or premises of a typing judgment, the judgment is derivable only when this result is defined.
+%% %Let $\consistent {\G_1} {\G_2}$ indicate that the typing contexts $\G_1,\G_2$ are consistent.
+
+%% \begin{mathpar}
+%%   \infer[var]{
+%%     \phyp x P \in \G
+%%   }{
+%%     (\G, x, \many) \vdash x : P
+%%   }
+%% \\
+%%   \infer[$\to$\,i]{
+%%     \O \vdash t : P \\
+%%     X = \dom \L \\
+%%     \modeof \O \mand \fv(\fn X t) \mentails m
+%%   }{
+%%     \ex \L \O \vdash \fn X t : \mfun \L m P
+%%   }
+
+%%   \infer[$\to$\,e~var]{
+%%     \O \vdash t : \mfun \L m P\\
+%%     X = \dom \L
+%%   }{
+%%     \O \cxox (\L, X, \fv t \mto m) \vdash \multiapp t X : P
+%%   }
+%% \\
+%%   \infer[$\ox$\,i]{
+%%     \O_1 \vdash t_1 : P_1\\
+%%     \O_2 \vdash t_2 : P_2
+%%   }{
+%%     \O_1 \cxox \O_2 \vdash (t_1, t_2) : P_1 \ox P_2
+%%   }
+
+%%   \infer[$\with$\,i]{
+%%     \O_1 \vdash t_1 : P_1\\
+%%     \O_2 \vdash t_2 : P_2
+%%   }{
+%%     \O_1 \cxwith \O_2 \vdash \withpair{t_1, t_2} : P_1 \with P_2
+%%   }
+%% \\
+%%   \infer[$\ox$\,e]{
+%%     \O_1 \vdash t : P_1 \ox P_2\\
+%%     \O_2 \vdash u : Q\\
+%%     x,y \subseteq \nils \O_2
+%%   }{
+%%     \O_1 \cxox \ex{(\phyp x {P_1}, \phyp y {P_2})} \O_2
+%%     \vdash \letpair x y t u : Q
+%%   }
+
+%%   \infer[$\with$\,e]{
+%%     \O \vdash t : P_1 \with P_2
+%%   }{
+%%     \O \vdash \pi_i \<t : P_i
+%%   }
+%% \end{mathpar}
+
+
+\section{Old typing rules}
+
+\newcommand\ground{\name{ground}}
 
 Let $\dom \G$ be the set of variables given types by $\G$.
 Let $\ground(\G) \defeq \bigmand_{x \in \dom \G} x$ be the mode that says all variables in $\G$ are ground / finitely constrained (pointed variables $\phyp x A \in \G$ included).
@@ -798,7 +795,7 @@ Let $\ground(\G) \defeq \bigmand_{x \in \dom \G} x$ be the mode that says all va
 %
 \begin{mathpar}
   \infer[$\to$\,i]{
-    \J t P Y m {\G, \L}
+    \Jold t P Y m {\G, \L}
     \\
     X = \dom\L
     \\
@@ -806,37 +803,37 @@ Let $\ground(\G) \defeq \bigmand_{x \in \dom \G} x$ be the mode that says all va
     \\
     m \mand \ground(\G) \mentails n
   }{
-    \J {\fn X t} {\mfun \L n P} Y {\mex X m} \G
+    \Jold {\fn X t} {\mfun \L n P} Y {\mex X m} \G
   }
 
   \infer[$\to$\,e~var]{
-    \J t {\mfun \L n P} X m \G
+    \Jold t {\mfun \L n P} X m \G
     \\
     Y = \dom \L \subseteq \G
   }{
-    \J {t \< Y} P X {m \mand (\fv t \mto n)} \G
+    \Jold {t \< Y} P X {m \mand (\fv t \mto n)} \G
   }
 \\
   \infer[$\ox$\,i]{
-    \J {t_1} {P_1} {X_1} {m_1} \G\\
-    \J {t_2} {P_2} {X_2} {m_2} \G
+    \Jold {t_1} {P_1} {X_1} {m_1} \G\\
+    \Jold {t_2} {P_2} {X_2} {m_2} \G
   }{
-    \J {(t_1,t_2)} {P_1 \ox P_2} {X_1 \cup X_2} {m_1 \mand m_2} \G
+    \Jold {(t_1,t_2)} {P_1 \ox P_2} {X_1 \cup X_2} {m_1 \mand m_2} \G
   }
 
   \infer[$\with$\,i]{
-    \J {t_1} {P_1} {X_1} {m_1} \G\\
-    \J {t_2} {P_2} {X_2} {m_2} \G
+    \Jold {t_1} {P_1} {X_1} {m_1} \G\\
+    \Jold {t_2} {P_2} {X_2} {m_2} \G
   }{
-    \J {\withpair{t_1, t_2}} {P_1 \with P_2} {X_1 \cap X_2} {m_1 \mplus m_2}
+    \Jold {\withpair{t_1, t_2}} {P_1 \with P_2} {X_1 \cap X_2} {m_1 \mplus m_2}
        \G
   }
 
   \infer[$\ox$\,e]{
-    \J t {P_1 \ox P_2} X m \G\\
-    \J u Q {Y \uplus \{x,y\}} n {\G, \phyp x {P_1}, \phyp y {P_2}}
+    \Jold t {P_1 \ox P_2} X m \G\\
+    \Jold u Q {Y \uplus \{x,y\}} n {\G, \phyp x {P_1}, \phyp y {P_2}}
   }{
-    \J {\letpair x y t u}
+    \Jold {\letpair x y t u}
     Q
     {X \cup Y}
     {m \mand \mex {x,y} n \mand (\fv t \mto (x \mand y))}
@@ -844,9 +841,9 @@ Let $\ground(\G) \defeq \bigmand_{x \in \dom \G} x$ be the mode that says all va
   }
 
   \infer[$\with$\,e]{
-    \J t {P_1 \with P_2} X m \G
+    \Jold t {P_1 \with P_2} X m \G
   }{
-    \J {\pi_i\<t} {P_i} X m \G
+    \Jold {\pi_i\<t} {P_i} X m \G
   }
 
   \infer[\nil]{
@@ -854,7 +851,7 @@ Let $\ground(\G) \defeq \bigmand_{x \in \dom \G} x$ be the mode that says all va
     \Jmode \G m
     \\ \todo{these premises are ugly}
   }{
-    \J \nil P {X} m \G
+    \Jold \nil P {X} m \G
   }
 \end{mathpar}
 
@@ -865,14 +862,14 @@ Let $\ground(\G) \defeq \bigmand_{x \in \dom \G} x$ be the mode that says all va
     \infer*{
       \cdots
     }{
-      \J {f\<x} P {f} {f \mto x} {\phyp f {A \fto P},\, \hyp x A}
+      \Jold {f\<x} P {f} {f \mto x} {\phyp f {A \fto P},\, \hyp x A}
     }
     \\
     \Jmode {\hyp x A} {x}
     \\
     \ground(\phyp f {A \fto P}) \mand (f \mto x) \mentails x
   }{
-    \J {\fn {x} {f\<x}}
+    \Jold {(\fn {x} {f\<x})}
        {\mfun {(\param x A)} {x} P}
        f
        {\mex{x} f \mto x}
@@ -914,9 +911,9 @@ I've colored the mode I believe is semantically correct {\wantcolor in blue}.
 %
 \begin{mathpar}
   \infer{
-    \J f P {f} \many {\hyp x A, \phyp f {\mfun {(\param x A)} {x} P}}
+    \Jold f P {f} \many {\hyp x A, \phyp f {\mfun {(\param x A)} {x} P}}
   }{
-    \J {f\<x}
+    \Jold {f\<x}
        {P}
        {f}
        {\wantcolor f \mto x}
@@ -930,7 +927,7 @@ But also, what about applying a curried function $f : \mfun {(\param x A)} {x} {
 \begin{mathpar}
   \infer{
     \infer{
-      \J f
+      \Jold f
          {\mfun {(\param x A)} {x} {\mfun {(\param y B)} {y} P}}
          {f}
          \many
@@ -938,7 +935,7 @@ But also, what about applying a curried function $f : \mfun {(\param x A)} {x} {
            \hyp x A,\,
            \hyp y B}
     }{
-      \J {f\<x}
+      \Jold {f\<x}
          {\mfun {(\param y B)} {y} P}
          {f}
          {\xxx}
@@ -947,7 +944,7 @@ But also, what about applying a curried function $f : \mfun {(\param x A)} {x} {
            \hyp y B}
     }
   }{
-    \J {f\<x\<y}
+    \Jold {f\<x\<y}
        {P}
        {f}
        {\xxx}
@@ -962,7 +959,7 @@ Or a curried function which doesn't ground its first argument $\hyp x A$?
 \begin{mathpar}
   \infer{
     \infer{
-      \J f
+      \Jold f
          {\mfun {(\param x A)} {\many} {\mfun {(\param y B)} {y} P}}
          {f}
          \many
@@ -970,7 +967,7 @@ Or a curried function which doesn't ground its first argument $\hyp x A$?
            \hyp x A,\,
            \hyp y B}
     }{
-      \J {f\<x}
+      \Jold {f\<x}
          {\mfun {(\param y B)} {y} P}
          {f}
          {\wantcolor \many}
@@ -978,7 +975,7 @@ Or a curried function which doesn't ground its first argument $\hyp x A$?
            \hyp x A,\, \hyp y B}
     }
   }{
-    \J {f\<x\<y}
+    \Jold {f\<x\<y}
        {P}
        {f}
        {\wantcolor {f,x} \mto y}
