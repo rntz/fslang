@@ -21,6 +21,7 @@
 %\usepackage{latexsym}
 \usepackage{stmaryrd}           % \shortrightarrow
 \usepackage{mathtools}          % \dblcolon, \Coloneqq, \intertext
+%\ClearHookRule{begindocument}{calc-noop}{calc} %hack to avoid a complex footnote numbering bug with texlive 20260301
 \usepackage{mathpartir}         % \begin{mathpar}, \infer
 %\usepackage{nccmath}            % fleqn (for code environment)
 \usepackage{booktabs}           % \midrule
@@ -238,6 +239,7 @@
 
 \DeclareMathOperator\fv{fv}
 
+\newcommand\wantcolor{\color{RoyalBlue}}
 
 
 %% ===== FONT OPTION 1: CHARTER ====
@@ -281,7 +283,7 @@
 
 \begin{document}
 
-\section{notation}
+\section{Notation}
 
 \[
 \begin{array}{rccll}
@@ -395,10 +397,10 @@
 \section{Modes}
 
 We combine strictness (nil preservation) and grounding (finiteness dependencies) into one `effect' annotation, as both of them are abstractions of a term's support in the abstract interpretation sense.
-The term $t$ being strict in $x$ means $x = \nil \implies t = nil$, or conversely that $x \ne \nil$ within the support of $t$.
+The term $t$ being strict in $x$ that $x \ne \nil$ within the support of $t$.
 %A finiteness dependency $X \mto y$ means that, within the support, once we fix a value for each $x \in X$, there are finitely many $y$.
 A finiteness dependency $X \mto y$ means that, in any subset of the support with a fixed valuation for $X$, there are finitely many $y$.
-
+%
 These are downward closed properties, so overapproximating a term's support is sound:
 if $t$ has support $S \subseteq S_\text{approx}$ and $S_\text{approx}$ is strict or finite in some variable, then so is $S$ and therefore $t$.
 %
@@ -451,13 +453,14 @@ Therefore we combine strictness and finiteness dependencies into one unified syn
 \end{tabular}
 
 For a fixed set of variables, $m$ denotes the ideal $\{R : R \models m\}$ of relations over those variables that satisfy the mode, defined:
+%
 \begin{align*}
   R \models x &\iff \pi_x R ~\text{is finite}\\
   R \models \mstrict x &\iff \nil \notin \pi_x R
   \\&\iff R \subseteq \{x \ne \nil\}\\
   R \models X \mto m
   &\iff
-  \fa{S \subseteq R, |\pi_X S| \le 1} S \models m
+  \fa{S \subseteq R} |\pi_X S| \le 1 \implies S \models m
   \\
   R \models m \mand n
   &\iff
@@ -473,20 +476,20 @@ For a fixed set of variables, $m$ denotes the ideal $\{R : R \models m\}$ of rel
   \\
   R \models \many &\iff \top\\
   R \models \mnone &\iff R = \emptyset
-  \qquad \text{\em or, alternatively:} \qquad
-  R~\text{is finite and strict in every variable\footnotemark{}}
+  \quad\text{\emph{or instead:}\quad%
+  $R$ is finite and strict in every variable\footnotemark{}}
 \end{align*}
 %
-We also write $t \models m$ if $\support t \models m$, and $m \models n$ if $\fa{R \models m} R \models n$.
-For instance, $t \models x$ means the term $t$ is finitely supported in $x$ and $t \models \mstrict x$ means it is strict in $x$.
+We also write $t \models m$ if $\support t \models m$, and $m \models n$ if $\fa{R} R \models m \implies R \models n$.
+For instance, $t \models x$ means $t$ is finitely supported in $x$ and $t \models \mstrict x$ means it is strict in $x$.
 
-\footnotetext{
+\addtocounter{footnote}{-1}\footnotetext{
   While $(R \models m) \vee (R \models n) \implies R \models m \mplus n$, the converse does not hold;
 %Note that it is not the case that $R \models m \mplus n \implies (R \models m) \vee (R \models n)$;
   this is a genuine asymmetry between $m \mand n$ and $m \mplus n$.
 }
 
-\footnotetext{\TODO{
+\stepcounter{footnote}\footnotetext{\TODO{
     Explain why it won't matter for our purposes which semantics we choose.
     Is this `don't care' property really true for every theorem we want to show, though?
 }}
@@ -512,6 +515,7 @@ if $R \models x$ and $S \models \mstrict y$
 then $R \cup S \models x \mplus \mstrict y$,
 which says $R \cup S$ makes $x$ finite where $y = \nil$;
 a conjunction $s \mand g$ of a strictness mode $s$ and a grounding mode $g$ cannot capture this property.
+Its best and only approximation is the totally uninformative $s = g = \top$, or $X = H = \emptyset$.
 
 \TODO{Explain that we write $g$ for `grounding modes': modes $m$ without any $\mstrict x$. Functions are annotated with grounding modes, $\efun g \L P$.}
 
@@ -685,6 +689,21 @@ given a variable $x$ and expression $e$ we define the grounding mode $x \doteq e
 
   One place (\emph{the} place?) where we use these dependencies is \rulename{$\to$\,e}.
 }
+%
+\begin{mathpar}
+  \infer*{
+    \Je {} t {(A \fto \bool) \ox P} {m_t}\\
+    \Je {\phyp f {A \fto \bool}, \phyp p P}
+        {f\<x \tand p}
+        {P}
+        {\mstrict f \mand \mstrict p \mand f \mto x}
+  }{
+    \Je {\G,\, \hyp x A}
+        {\letpair f p t {f\<x \tand p}}
+        P
+        {m_t \mand \mstrict f \mand \mstrict p \mand \wantcolor (\fv t \mto x)}
+  }
+\end{mathpar}
 
 \TODO{Substitution lemma?}
 
@@ -886,8 +905,6 @@ A concrete example:
 Let $\G = (x:A)$, $\L = (y:B)$, $m = x \mto y$.
 Then $n=y$ is acceptable because $m \mand \ground(\G) = x \mto y \mand x \mentails y$.
 But $\ex{\G} m = \ex{x} x \mto y = \many$ does not entail $y$.
-
-\newcommand\wantcolor{\color{RoyalBlue}}
 
 
 \subsection{Pointed variables in finiteness dependencies}
